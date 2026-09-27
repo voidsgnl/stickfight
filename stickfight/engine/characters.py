@@ -26,6 +26,7 @@ def create_ninja(
         color=(45, 48, 56),
         line_width=10,
         scale=1.0,
+        render_style="silhouette",
     )
     f.headband_color = (235, 45, 45)
     f.equip("sword")
@@ -70,6 +71,7 @@ def create_brawler(
         color=(235, 60, 60),
         line_width=12,
         scale=1.1,
+        render_style="segmented",
     )
 
 
@@ -89,6 +91,7 @@ def create_monk(
         color=(245, 140, 35),
         line_width=10,
         scale=1.0,
+        render_style="segmented",
     )
     f.headband_color = (245, 200, 70)
     f.equip("staff")
