@@ -160,3 +160,15 @@ def test_generator_seed_is_deterministic_without_changing_global_random():
 
     assert first_events == second_events
     assert random.getstate() == global_state
+
+
+@pytest.mark.parametrize("style", ["segmented", "silhouette", "classic", "tech"])
+def test_fighter_render_styles_are_configurable(style):
+    fighter = Fighter("Styled", render_style=style)
+    assert fighter.render_style == style
+
+
+def test_scene_exposes_render_style():
+    scene = FightScene(width=640, height=960)
+    fighter = scene.add_fighter("Styled", render_style="silhouette")
+    assert fighter.render_style == "silhouette"
