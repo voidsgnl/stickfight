@@ -157,158 +157,194 @@ class Renderer:
             surface.blit(shadow_surf, (sx - rx - 2, sy - ry - 2))
 
     def draw_fighter(self, surface: pygame.Surface, fighter: Fighter, camera: Camera):
-        """Draws a stick fighter with antialiased joint capsules, head, weapon, and accessories."""
+        """Draws a stylized fighter from the animation skeleton.
+
+        The renderer is deliberately style-driven: choreography, physics, collision,
+        and animation remain unchanged while the same joints can produce different
+        visual identities.
+        """
         self.draw_fighter_shadow(surface, fighter, camera)
 
         joints = fighter.get_world_joints()
-        screen_joints: Dict[str, Tuple[float, float]] = {}
-        for name, pt in joints.items():
-            screen_joints[name] = camera.world_to_screen(pt[0], pt[1])
+        screen_joints: Dict[str, Tuple[float, float]] = {
+            name: camera.world_to_screen(pt[0], pt[1])
+            for name, pt in joints.items()
+        }
 
         z = camera.zoom
-        stroke_width = max(2, int(fighter.line_width * fighter.scale * z))
-        joint_radius = max(2, stroke_width // 2)
+        s = fighter.scale
+        style = getattr(fighter, "render_style", "segmented")
+        base = fighter.color
 
-        def draw_segment(j1_name: str, j2_name: str, color: Tuple[int, int, int]):
-            if j1_name in screen_joints and j2_name in screen_joints:
-                p1 = screen_joints[j1_name]
-                p2 = screen_joints[j2_name]
-                outline_width = stroke_width + max(2, int(4 * z))
-                outline_color = tuple(max(0, int(channel * 0.28)) for channel in color)
-                highlight_color = tuple(min(255, int(channel * 1.18 + 12)) for channel in color)
-                outline_radius = max(2, outline_width // 2)
+        def shade(color: Tuple[int, int, int], factor: float) -> Tuple[int, int, int]:
+            return tuple(max(0, min(255, int(c * factor))) for c in color)
 
-                pygame.draw.line(surface, outline_color, p1, p2, outline_width)
-                pygame.draw.circle(surface, outline_color, (int(p1[0]), int(p1[1])), outline_radius)
-                pygame.draw.circle(surface, outline_color, (int(p2[0]), int(p2[1])), outline_radius)
-                pygame.draw.line(surface, color, p1, p2, stroke_width)
-                pygame.draw.circle(surface, color, (int(p1[0]), int(p1[1])), joint_radius)
-                pygame.draw.circle(surface, color, (int(p2[0]), int(p2[1])), joint_radius)
+        dark = shade(base, 0.42)
+        mid = shade(base, 0.72)
+        light = tuple(min(255, int(c * 1.15 + 12)) for c in base)
 
-                dx = p2[0] - p1[0]
-                dy = p2[1] - p1[1]
-                length = math.hypot(dx, dy)
-                if length > 1e-4:
-                    offset_x = -dy / length * max(0.75, stroke_width * 0.12)
-                    offset_y = dx / length * max(0.75, stroke_width * 0.12)
-                    pygame.draw.aaline(
-                        surface,
-                        highlight_color,
-                        (p1[0] + offset_x, p1[1] + offset_y),
-                        (p2[0] + offset_x, p2[1] + offset_y),
-                    )
+        def point(name: str):
+            return screen_joints.get(name)
 
-        base_color = fighter.color
-        # Slightly darker shade for back limbs to provide visual depth
-        back_color = (
-            max(0, int(base_color[0] * 0.75)),
-            max(0, int(base_color[1] * 0.75)),
-            max(0, int(base_color[2] * 0.75)),
-        )
+        def limb(a: str, b: str, color: Tuple[int, int, int], width: int, outline: bool = True):
+            p1, p2 = point(a), point(b)
+            if not p1 or not p2:
+                return
+            w = max(2, int(width * s * z))
+            if outline:
+                ow = w + max(2, int(5 * z))
+                pygame.draw.line(surface, dark, p1, p2, ow)
+                r = max(2, ow // 2)
+                pygame.draw.circle(surface, dark, (int(p1[0]), int(p1[1])), r)
+                pygame.draw.circle(surface, dark, (int(p2[0]), int(p2[1])), r)
+            pygame.draw.line(surface, color, p1, p2, w)
+            r = max(2, w // 2)
+            pygame.draw.circle(surface, color, (int(p1[0]), int(p1[1])), r)
+            pygame.draw.circle(surface, color, (int(p2[0]), int(p2[1])), r)
 
-        # 1. Back leg
-        draw_segment("left_hip", "left_knee", back_color)
-        draw_segment("left_knee", "left_foot", back_color)
+        def joint(name: str, radius: float, color: Tuple[int, int, int] = base):
+            p = point(name)
+            if not p:
+                return
+            r = max(2, int(radius * s * z))
+            pygame.draw.circle(surface, dark, (int(p[0]), int(p[1])), r + max(2, int(3 * z)))
+            pygame.draw.circle(surface, color, (int(p[0]), int(p[1])), r)
 
-        # 2. Back arm
-        draw_segment("neck", "left_shoulder", back_color)
-        draw_segment("left_shoulder", "left_elbow", back_color)
-        draw_segment("left_elbow", "left_hand", back_color)
+        def torso():
+            pelvis, chest, neck = point("pelvis"), point("chest"), point("neck")
+            if not pelvis or not chest or not neck:
+                return
+            px, py = pelvis
+            cx, cy = chest
+            nx, ny = neck
+            # A tapered torso gives the character an actual body silhouette.
+            vx, vy = nx - py * 0 + nx - cx, ny - cy
+            length = max(1.0, math.hypot(vx, vy))
+            pxn, pyn = -vy / length, vx / length
+            top_w = 15 * s * z
+            bot_w = 20 * s * z
+            poly = [
+                (cx + pxn * top_w, cy + pyn * top_w),
+                (cx - pxn * top_w, cy - pyn * top_w),
+                (px - pxn * bot_w, py - pyn * bot_w),
+                (px + pxn * bot_w, py + pyn * bot_w),
+            ]
+            pygame.draw.polygon(surface, dark, [(int(x), int(y)) for x, y in poly])
+            inset = max(1, int(3 * z))
+            poly2 = [
+                (cx + pxn * max(1, top_w - inset), cy + pyn * max(1, top_w - inset)),
+                (cx - pxn * max(1, top_w - inset), cy - pyn * max(1, top_w - inset)),
+                (px - pxn * max(1, bot_w - inset), py - pyn * max(1, bot_w - inset)),
+                (px + pxn * max(1, bot_w - inset), py + pyn * max(1, bot_w - inset)),
+            ]
+            pygame.draw.polygon(surface, base, [(int(x), int(y)) for x, y in poly2])
 
-        # 3. Torso (pelvis to neck)
-        draw_segment("pelvis", "chest", base_color)
-        draw_segment("chest", "neck", base_color)
+        # Back limbs first creates readable depth.
+        limb("left_hip", "left_knee", mid, 13 if style != "classic" else 7)
+        limb("left_knee", "left_foot", mid, 13 if style != "classic" else 7)
+        limb("neck", "left_shoulder", mid, 12 if style != "classic" else 7)
+        limb("left_shoulder", "left_elbow", mid, 13 if style != "classic" else 7)
+        limb("left_elbow", "left_hand", mid, 13 if style != "classic" else 7)
 
-        # 4. Front leg
-        draw_segment("right_hip", "right_knee", base_color)
-        draw_segment("right_knee", "right_foot", base_color)
+        if style != "classic":
+            torso()
 
-        # 5. Front arm
-        draw_segment("neck", "right_shoulder", base_color)
-        draw_segment("right_shoulder", "right_elbow", base_color)
-        draw_segment("right_elbow", "right_hand", base_color)
+        # Front limbs.
+        limb("right_hip", "right_knee", base, 15 if style != "classic" else 8)
+        limb("right_knee", "right_foot", base, 15 if style != "classic" else 8)
+        limb("neck", "right_shoulder", base, 14 if style != "classic" else 8)
+        limb("right_shoulder", "right_elbow", base, 15 if style != "classic" else 8)
+        limb("right_elbow", "right_hand", base, 15 if style != "classic" else 8)
 
-        # 6. Weapon Rendering (Katana / Staff)
-        if fighter.weapon == "sword" and "right_hand" in screen_joints and "right_elbow" in screen_joints:
-            hx, hy = screen_joints["right_hand"]
-            ex, ey = screen_joints["right_elbow"]
-            # Compute forearm vector direction
-            dx = hx - ex
-            dy = hy - ey
-            length = math.hypot(dx, dy)
-            if length < 1e-4:
-                ux, uy = fighter.facing, 0.0
+        # Hands/feet read as intentional combat extremities rather than line endpoints.
+        joint("left_hand", 8 if style != "classic" else 5, mid)
+        joint("right_hand", 9 if style != "classic" else 5, base)
+        joint("left_foot", 9 if style != "classic" else 5, mid)
+        joint("right_foot", 10 if style != "classic" else 5, base)
+
+        # Head: silhouette/segmented styles use a stronger graphic shape.
+        hp = point("head")
+        if hp:
+            hx, hy = hp
+            hr = max(5, int(fighter.head_radius * z))
+            if style == "silhouette":
+                pygame.draw.circle(surface, dark, (int(hx), int(hy)), hr + max(2, int(3 * z)))
+                pygame.draw.circle(surface, base, (int(hx), int(hy)), hr)
+                # Single directional eye slit.
+                eye_x = int(hx + fighter.facing * hr * 0.42)
+                pygame.draw.line(
+                    surface, light,
+                    (eye_x - fighter.facing * hr * 0.08, int(hy - hr * 0.12)),
+                    (eye_x + fighter.facing * hr * 0.18, int(hy - hr * 0.12)),
+                    max(2, int(3 * z)),
+                )
             else:
-                ux, uy = dx / length, dy / length
+                pygame.draw.circle(surface, dark, (int(hx), int(hy)), hr + max(2, int(3 * z)))
+                pygame.draw.circle(surface, base, (int(hx), int(hy)), hr)
+                eye_x = int(hx + fighter.facing * hr * 0.42)
+                eye_y = int(hy - hr * 0.10)
+                eye_r = max(2, int(hr * 0.20))
+                pygame.draw.circle(surface, (255, 255, 255), (eye_x, eye_y), eye_r)
+                pygame.draw.circle(surface, (18, 18, 24), (eye_x + fighter.facing, eye_y), max(1, eye_r // 2))
 
-            blade_len = 95.0 * fighter.scale * z
-            tip_x = hx + ux * blade_len
-            tip_y = hy + uy * blade_len
+            # Neck is rendered after the head so it visually connects to the torso.
+            np = point("neck")
+            if np:
+                pygame.draw.line(surface, dark, (hx, hy + hr * 0.55), np, max(3, int(11 * s * z)))
+                pygame.draw.line(surface, base, (hx, hy + hr * 0.55), np, max(2, int(7 * s * z)))
 
-            # Gold tsuba (guard)
-            guard_len = 14.0 * z
-            gx1 = hx - uy * guard_len
-            gy1 = hy + ux * guard_len
-            gx2 = hx + uy * guard_len
-            gy2 = hy - ux * guard_len
-            pygame.draw.line(surface, (230, 190, 50), (gx1, gy1), (gx2, gy2), max(2, int(4 * z)))
+        # Style-specific identity details.
+        if style in ("silhouette", "segmented") and fighter.headband_color:
+            hb = fighter.headband_color
+            if hp:
+                hx, hy = hp
+                hr = max(5, int(fighter.head_radius * z))
+                pygame.draw.line(surface, hb,
+                    (hx - hr, hy - hr * 0.12),
+                    (hx + hr, hy - hr * 0.12),
+                    max(3, int(5 * z)))
+                opp = -fighter.facing
+                wave = math.sin(fighter.clip_time * 8.0) * 7.0 * z
+                tail = (hx + opp * 48 * z + wave, hy + 18 * z)
+                pygame.draw.line(surface, hb, (hx + opp * hr, hy), tail, max(2, int(4 * z)))
+                pygame.draw.line(surface, hb, (hx + opp * hr, hy + 5 * z),
+                    (tail[0] + opp * 12 * z, tail[1] + 10 * z), max(2, int(3 * z)))
 
-            # Steel Katana Blade
-            pygame.draw.line(surface, (240, 245, 255), (hx, hy), (tip_x, tip_y), max(2, int(5 * z)))
-            # Sharp shine highlight
-            pygame.draw.line(surface, (255, 255, 255), (hx, hy), (tip_x, tip_y), max(1, int(2 * z)))
+        if style == "tech":
+            # Compact cyan/white mechanical accents for cybernetic fighters.
+            for name in ("chest", "right_elbow", "right_knee"):
+                p = point(name)
+                if p:
+                    pygame.draw.circle(surface, light, (int(p[0]), int(p[1])), max(2, int(4 * z)))
+            if point("chest") and point("neck"):
+                pygame.draw.line(surface, light, point("chest"), point("neck"), max(1, int(2 * z)))
 
-        elif fighter.weapon == "staff" and "right_hand" in screen_joints:
-            hx, hy = screen_joints["right_hand"]
-            staff_len = 160.0 * fighter.scale * z
-            s_top = (hx - fighter.facing * 30 * z, hy - staff_len * 0.5)
-            s_bot = (hx + fighter.facing * 30 * z, hy + staff_len * 0.5)
-            pygame.draw.line(surface, (150, 100, 60), s_top, s_bot, max(2, int(6 * z)))
-            pygame.draw.circle(surface, (230, 190, 50), (int(s_top[0]), int(s_top[1])), max(2, int(4 * z)))
-            pygame.draw.circle(surface, (230, 190, 50), (int(s_bot[0]), int(s_bot[1])), max(2, int(4 * z)))
+        # Weapon rendering remains compatible with the existing combat system.
+        if fighter.weapon == "sword" and point("right_hand") and point("right_elbow"):
+            hx, hy = point("right_hand")
+            ex, ey = point("right_elbow")
+            dx, dy = hx - ex, hy - ey
+            length = max(1e-4, math.hypot(dx, dy))
+            ux, uy = dx / length, dy / length
+            blade_len = 105.0 * s * z
+            tip = (hx + ux * blade_len, hy + uy * blade_len)
+            guard = 15.0 * z
+            pygame.draw.line(surface, (225, 180, 55),
+                (hx - uy * guard, hy + ux * guard),
+                (hx + uy * guard, hy - ux * guard), max(2, int(4 * z)))
+            pygame.draw.line(surface, dark, (hx, hy), tip, max(4, int(8 * z)))
+            pygame.draw.line(surface, (235, 240, 250), (hx, hy), tip, max(2, int(5 * z)))
+            pygame.draw.line(surface, (255, 255, 255), (hx, hy), tip, max(1, int(2 * z)))
 
-        # 7. Head & Accessories
-        if "head" in screen_joints:
-            hx, hy = screen_joints["head"]
-            hr = max(4, int(fighter.head_radius * z))
-            # Neck connector
-            if "neck" in screen_joints:
-                nx, ny = screen_joints["neck"]
-                neck_start = (hx, hy + hr * 0.55)
-                neck_width = max(2, int(stroke_width * 0.8))
-                neck_outline = tuple(max(0, int(channel * 0.28)) for channel in base_color)
-                pygame.draw.line(surface, neck_outline, neck_start, (nx, ny), neck_width + max(2, int(3 * z)))
-                pygame.draw.line(surface, base_color, neck_start, (nx, ny), neck_width)
-
-            head_outline_radius = hr + max(1, int(2 * z))
-            head_outline = tuple(max(0, int(channel * 0.28)) for channel in base_color)
-            pygame.draw.circle(surface, head_outline, (int(hx), int(hy)), head_outline_radius)
-            pygame.draw.circle(surface, base_color, (int(hx), int(hy)), hr)
-
-            # Directional eye dot
-            eye_x = int(hx + fighter.facing * hr * 0.42)
-            eye_y = int(hy - hr * 0.12)
-            eye_r = max(2, int(hr * 0.22))
-            pygame.draw.circle(surface, (255, 255, 255), (eye_x, eye_y), eye_r)
-            pupil_r = max(1, eye_r // 2)
-            pygame.draw.circle(surface, (20, 20, 26), (eye_x + fighter.facing * 1, eye_y), pupil_r)
-
-            # Flowing Ninja Headband Ribbon
-            if fighter.headband_color:
-                hb_col = fighter.headband_color
-                # Headband wrap across forehead
-                pygame.draw.arc(surface, hb_col, pygame.Rect(hx - hr, hy - hr, hr * 2, hr * 2), 0.2, 3.0, max(2, int(5 * z)))
-                # Two waving ribbon tails flowing back
-                f_opp = -fighter.facing
-                t1_x = hx + f_opp * hr
-                t1_y = hy - hr * 0.2
-                t2_x = t1_x + f_opp * (35 * z) + math.sin(fighter.clip_time * 8.0) * 8.0
-                t2_y = t1_y + (15 * z) + math.cos(fighter.clip_time * 8.0) * 6.0
-                pygame.draw.line(surface, hb_col, (t1_x, t1_y), (t2_x, t2_y), max(2, int(4 * z)))
-
-                t3_x = t1_x + f_opp * (45 * z) + math.sin(fighter.clip_time * 7.0 + 1.0) * 10.0
-                t3_y = t1_y + (28 * z) + math.cos(fighter.clip_time * 7.0 + 1.0) * 8.0
-                pygame.draw.line(surface, hb_col, (t1_x, t1_y + 4), (t3_x, t3_y), max(2, int(3 * z)))
+        elif fighter.weapon == "staff" and point("right_hand"):
+            hx, hy = point("right_hand")
+            staff_len = 170.0 * s * z
+            a = (hx - fighter.facing * 28 * z, hy - staff_len * 0.5)
+            b = (hx + fighter.facing * 28 * z, hy + staff_len * 0.5)
+            pygame.draw.line(surface, dark, a, b, max(5, int(9 * z)))
+            pygame.draw.line(surface, (155, 105, 65), a, b, max(2, int(5 * z)))
+            pygame.draw.circle(surface, (235, 190, 65), (int(a[0]), int(a[1])), max(2, int(4 * z)))
+            pygame.draw.circle(surface, (235, 190, 65), (int(b[0]), int(b[1])), max(2, int(4 * z)))
 
     def draw_captions(self, surface: pygame.Surface, captions: List[Tuple[str, float, float]], current_time: float):
         """Renders active captions at the bottom or top of screen."""
