@@ -64,6 +64,7 @@ class Fighter:
         health: float = 100.0,
         weapon: Optional[str] = None,
         headband_color: Optional[Tuple[int, int, int]] = None,
+        render_style: str = "segmented",
     ):
         self.name = name
         self.x = float(x)
@@ -77,6 +78,7 @@ class Fighter:
         self.max_health = health
         self.weapon = weapon  # "sword", "staff", None
         self.headband_color = headband_color  # Optional ninja ribbon
+        self.render_style = render_style  # segmented, silhouette, classic, tech
         self.state = "idle"  # idle, walking, attacking, blocking, dodging, hit, knockback, fallen
 
         # Physics body. Horizontal scripted movement may still set x directly,
