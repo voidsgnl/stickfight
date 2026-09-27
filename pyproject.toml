@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "stickfight"
+version = "0.1.0"
+description = "Code-driven 2D stick figure fight animation and video engine"
+readme = "readme.md"
+requires-python = ">=3.9"
+dependencies = [
+    "pygame-ce>=2.5.0",
+    "numpy>=1.24.0",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
