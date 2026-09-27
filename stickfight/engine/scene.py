@@ -50,6 +50,7 @@ class FightScene:
         color: Optional[Tuple[int, int, int]] = None,
         line_width: int = 8,
         scale: float = 1.0,
+        render_style: str = "segmented",
     ) -> Fighter:
         """Adds a fighter to the scene."""
         ground_contact = y if y is not None else self.ground_y
@@ -70,6 +71,7 @@ class FightScene:
             color=color,
             line_width=line_width,
             scale=scale,
+            render_style=render_style,
         )
         self.fighters.append(fighter)
         self._fighter_map[name] = fighter
