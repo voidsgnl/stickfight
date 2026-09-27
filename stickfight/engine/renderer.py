@@ -156,6 +156,167 @@ class Renderer:
             pygame.draw.ellipse(shadow_surf, (0, 0, 0, 80), (2, 2, rx * 2, ry * 2))
             surface.blit(shadow_surf, (sx - rx - 2, sy - ry - 2))
 
+    def _draw_ink_fight(
+        self,
+        surface: pygame.Surface,
+        fighter: Fighter,
+        joints: Dict[str, Tuple[float, float]],
+        camera: Camera,
+    ):
+        """Render the optional black-ink/comic fight style from the existing skeleton."""
+        z = camera.zoom
+        s = fighter.scale
+        ink = (18, 18, 18)
+        paper = (246, 244, 238)
+        red = (190, 38, 38)
+
+        def p(name: str):
+            return joints.get(name)
+
+        def stroke(a: str, b: str, width: float = 11.0):
+            p1, p2 = p(a), p(b)
+            if not p1 or not p2:
+                return
+            w = max(3, int(width * s * z))
+            pygame.draw.line(surface, ink, p1, p2, w)
+            r = max(2, w // 2)
+            pygame.draw.circle(surface, ink, (int(p1[0]), int(p1[1])), r)
+            pygame.draw.circle(surface, ink, (int(p2[0]), int(p2[1])), r)
+
+        def node(name: str, radius: float):
+            pt = p(name)
+            if not pt:
+                return
+            r = max(3, int(radius * s * z))
+            pygame.draw.circle(surface, ink, (int(pt[0]), int(pt[1])), r)
+
+        for a, b in (
+            ("left_hip", "left_knee"), ("left_knee", "left_foot"),
+            ("neck", "left_shoulder"), ("left_shoulder", "left_elbow"),
+            ("left_elbow", "left_hand"),
+            ("right_hip", "right_knee"), ("right_knee", "right_foot"),
+            ("neck", "right_shoulder"), ("right_shoulder", "right_elbow"),
+            ("right_elbow", "right_hand"),
+        ):
+            stroke(a, b, 10.0 if "left" in a or "left" in b else 12.0)
+
+        pelvis, chest, neck = p("pelvis"), p("chest"), p("neck")
+        if pelvis and chest and neck:
+            px, py = pelvis
+            cx, cy = chest
+            nx, ny = neck
+            vx, vy = nx - cx, ny - cy
+            length = max(1.0, math.hypot(vx, vy))
+            pxn, pyn = -vy / length, vx / length
+            top_w = 14 * s * z
+            bot_w = 19 * s * z
+            poly = [
+                (cx + pxn * top_w, cy + pyn * top_w),
+                (cx - pxn * top_w, cy - pyn * top_w),
+                (px - pxn * bot_w, py - pyn * bot_w),
+                (px + pxn * bot_w, py + pyn * bot_w),
+            ]
+            pygame.draw.polygon(surface, ink, [(int(x), int(y)) for x, y in poly])
+            inset = max(2, int(4 * z))
+            inner = [
+                (cx + pxn * max(2, top_w - inset), cy + pyn * max(2, top_w - inset)),
+                (cx - pxn * max(2, top_w - inset), cy - pyn * max(2, top_w - inset)),
+                (px - pxn * max(2, bot_w - inset), py - pyn * max(2, bot_w - inset)),
+                (px + pxn * max(2, bot_w - inset), py + pyn * max(2, bot_w - inset)),
+            ]
+            pygame.draw.polygon(surface, paper, [(int(x), int(y)) for x, y in inner])
+
+        for name, radius in (
+            ("left_hand", 8), ("right_hand", 9), ("left_foot", 9), ("right_foot", 10),
+        ):
+            node(name, radius)
+
+        hp = p("head")
+        if hp:
+            hx, hy = hp
+            hr = max(5, int(fighter.head_radius * z))
+            pygame.draw.circle(surface, ink, (int(hx), int(hy)), hr + max(2, int(3 * z)))
+            pygame.draw.circle(surface, paper, (int(hx), int(hy)), hr)
+            eye_x = int(hx + fighter.facing * hr * 0.45)
+            pygame.draw.line(
+                surface, ink,
+                (eye_x - fighter.facing * hr * 0.12, int(hy - hr * 0.10)),
+                (eye_x + fighter.facing * hr * 0.20, int(hy - hr * 0.10)),
+                max(2, int(3 * z)),
+            )
+            np = p("neck")
+            if np:
+                pygame.draw.line(surface, ink, (hx, hy + hr * 0.55), np, max(3, int(9 * s * z)))
+
+            if fighter.headband_color:
+                pygame.draw.line(
+                    surface, red,
+                    (hx - hr, hy - hr * 0.15),
+                    (hx + hr, hy - hr * 0.15),
+                    max(3, int(5 * z)),
+                )
+                opp = -fighter.facing
+                wave = math.sin(fighter.clip_time * 8.0) * 7.0 * z
+                tail = (hx + opp * 50 * z + wave, hy + 18 * z)
+                pygame.draw.line(surface, red, (hx + opp * hr, hy), tail, max(2, int(4 * z)))
+                pygame.draw.line(
+                    surface, red, (hx + opp * hr, hy + 5 * z),
+                    (tail[0] + opp * 12 * z, tail[1] + 10 * z), max(2, int(3 * z))
+                )
+
+        clip = getattr(fighter.active_clip, "name", "")
+        hand = p("right_hand")
+        elbow = p("right_elbow")
+        foot = p("right_foot")
+        if clip in ("punch", "uppercut", "slash") and hand and elbow:
+            hx, hy = hand
+            ex, ey = elbow
+            dx, dy = hx - ex, hy - ey
+            length = max(1.0, math.hypot(dx, dy))
+            ux, uy = dx / length, dy / length
+            for offset in (0.0, 10.0, 20.0):
+                start = (hx - ux * (42 + offset) * z, hy - uy * (42 + offset) * z)
+                end = (hx - ux * (72 + offset) * z, hy - uy * (72 + offset) * z)
+                pygame.draw.line(surface, ink, start, end, max(2, int(3 * z)))
+        elif clip in ("kick", "sweep") and foot:
+            fx, fy = foot
+            for i in range(3):
+                pygame.draw.line(
+                    surface, ink,
+                    (fx - fighter.facing * (38 + i * 14) * z, fy - (10 + i * 5) * z),
+                    (fx - fighter.facing * (72 + i * 14) * z, fy - (18 + i * 7) * z),
+                    max(2, int(3 * z)),
+                )
+
+        if fighter.weapon == "sword" and hand and elbow:
+            hx, hy = hand
+            ex, ey = elbow
+            dx, dy = hx - ex, hy - ey
+            length = max(1e-4, math.hypot(dx, dy))
+            ux, uy = dx / length, dy / length
+            tip = (hx + ux * 105.0 * s * z, hy + uy * 105.0 * s * z)
+            guard = 15.0 * z
+            pygame.draw.line(
+                surface, ink,
+                (hx - uy * guard, hy + ux * guard),
+                (hx + uy * guard, hy - ux * guard), max(3, int(5 * z))
+            )
+            pygame.draw.line(surface, ink, (hx, hy), tip, max(4, int(9 * z)))
+            pygame.draw.line(surface, paper, (hx, hy), tip, max(2, int(3 * z)))
+            if clip == "slash":
+                pygame.draw.line(
+                    surface, red,
+                    (tip[0] - uy * 8 * z, tip[1] + ux * 8 * z),
+                    (tip[0] + uy * 8 * z, tip[1] - ux * 8 * z), max(2, int(3 * z))
+                )
+        elif fighter.weapon == "staff" and hand:
+            hx, hy = hand
+            staff_len = 170.0 * s * z
+            a = (hx - fighter.facing * 28 * z, hy - staff_len * 0.5)
+            b = (hx + fighter.facing * 28 * z, hy + staff_len * 0.5)
+            pygame.draw.line(surface, ink, a, b, max(5, int(9 * z)))
+            pygame.draw.line(surface, paper, a, b, max(2, int(3 * z)))
+
     def draw_fighter(self, surface: pygame.Surface, fighter: Fighter, camera: Camera):
         """Draws a stylized fighter from the animation skeleton.
 
@@ -175,6 +336,12 @@ class Renderer:
         s = fighter.scale
         style = getattr(fighter, "render_style", "segmented")
         base = fighter.color
+
+        # Optional comic/black-ink visual direction. Presentation-only: the same
+        # skeleton joints, animation clips, physics, hitboxes and weapons remain underneath.
+        if style == "ink_fight":
+            self._draw_ink_fight(surface, fighter, screen_joints, camera)
+            return
 
         def shade(color: Tuple[int, int, int], factor: float) -> Tuple[int, int, int]:
             return tuple(max(0, min(255, int(c * factor))) for c in color)
