@@ -213,6 +213,11 @@ class FallAction(Action):
         super().on_start(scene)
         self.fighter.state = "fallen"
         self.start_x = self.fighter.x
+        # A scripted fall ends on the ground; clear any previous airborne state.
+        self.fighter.physics.vx = 0.0
+        self.fighter.physics.vy = 0.0
+        self.fighter.physics.is_grounded = True
+        self.fighter.physics.y = self.fighter.y
         self.fighter.set_animation("fall", loop=False)
         self.thump_played = False
 
@@ -241,6 +246,8 @@ class JumpAction(Action):
     def on_start(self, scene: FightScene):
         super().on_start(scene)
         self.fighter.state = "jumping"
+        # Use the physics body for the actual launch; animation supplies pose only.
+        self.fighter.apply_impulse(0.0, -math.sqrt(2.0 * self.fighter.physics.gravity * self.height))
         self.fighter.set_animation("jump", loop=False)
         scene.effects.trigger_dust_puff(self.fighter.x, self.fighter.y, count=8)
 
@@ -248,9 +255,12 @@ class JumpAction(Action):
         self.fighter.update_animation(dt)
 
     def on_finish(self, scene: FightScene):
-        self.fighter.state = "idle"
+        # Do not snap an airborne fighter back to the floor when the animation
+        # clip ends; physics owns the landing position.
+        self.fighter.state = "idle" if self.fighter.physics.is_grounded else "jumping"
         self.fighter.set_animation("idle")
-        scene.effects.trigger_dust_puff(self.fighter.x, self.fighter.y, count=8)
+        if self.fighter.physics.is_grounded:
+            scene.effects.trigger_dust_puff(self.fighter.x, self.fighter.y, count=8)
 
 
 class CounterAction(Action):
