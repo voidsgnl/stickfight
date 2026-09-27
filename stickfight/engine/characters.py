@@ -49,6 +49,7 @@ def create_samurai(
         color=(230, 235, 245),
         line_width=10,
         scale=1.0,
+        render_style="segmented",
     )
     f.headband_color = (235, 190, 45)
     f.equip("sword")
