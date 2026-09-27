@@ -162,7 +162,7 @@ def test_generator_seed_is_deterministic_without_changing_global_random():
     assert random.getstate() == global_state
 
 
-@pytest.mark.parametrize("style", ["segmented", "silhouette", "classic", "tech"])
+@pytest.mark.parametrize("style", ["segmented", "silhouette", "classic", "tech", "ink_fight"])
 def test_fighter_render_styles_are_configurable(style):
     fighter = Fighter("Styled", render_style=style)
     assert fighter.render_style == style
