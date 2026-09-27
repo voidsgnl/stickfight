@@ -115,4 +115,5 @@ def create_cyborg(
         color=(50, 220, 255),
         line_width=10,
         scale=1.0,
+        render_style="tech",
     )
