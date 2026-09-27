@@ -9,6 +9,9 @@ import math
 from stickfight.engine.skeleton import (
     Pose,
     make_idle_pose,
+    BodyProportions,
+    apply_proportions,
+    PROPORTIONS_DEFAULT,
 )
 from stickfight.engine.animation import (
     AnimationClip,
@@ -65,6 +68,7 @@ class Fighter:
         weapon: Optional[str] = None,
         headband_color: Optional[Tuple[int, int, int]] = None,
         render_style: str = "segmented",
+        proportions: Optional[BodyProportions] = None,
     ):
         self.name = name
         self.x = float(x)
@@ -79,6 +83,10 @@ class Fighter:
         self.weapon = weapon  # "sword", "staff", None
         self.headband_color = headband_color  # Optional ninja ribbon
         self.render_style = render_style  # segmented, silhouette, classic, tech, ink_fight
+        # Per-archetype rig scaling (stance width, limb length, etc.) applied
+        # on top of every shared animation clip. Defaults to the canonical
+        # proportions used by the original pose library.
+        self.proportions = proportions or PROPORTIONS_DEFAULT
         self.state = "idle"  # idle, walking, attacking, blocking, dodging, hit, knockback, fallen
 
         # Physics body. Horizontal scripted movement may still set x directly,
@@ -110,7 +118,7 @@ class Fighter:
 
         self.active_clip: AnimationClip = self.clips["idle"]
         self.clip_time: float = 0.0
-        self.current_pose: Pose = make_idle_pose()
+        self.current_pose: Pose = apply_proportions(make_idle_pose(), self.proportions)
         self.root_dx: float = 0.0
         self.root_dy: float = 0.0
 
@@ -155,7 +163,9 @@ class Fighter:
         """Advances active animation clip by dt seconds."""
         self.clip_time += dt
         pose, rdx, rdy = self.active_clip.evaluate(self.clip_time)
-        self.current_pose = pose
+        # Apply this fighter's archetype rig scaling on top of the shared
+        # canonical pose so every clip renders on the correct body type.
+        self.current_pose = apply_proportions(pose, self.proportions)
         self.root_dx = rdx
         self.root_dy = rdy
 
