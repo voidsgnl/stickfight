@@ -78,7 +78,7 @@ class Fighter:
         self.max_health = health
         self.weapon = weapon  # "sword", "staff", None
         self.headband_color = headband_color  # Optional ninja ribbon
-        self.render_style = render_style  # segmented, silhouette, classic, tech
+        self.render_style = render_style  # segmented, silhouette, classic, tech, ink_fight
         self.state = "idle"  # idle, walking, attacking, blocking, dodging, hit, knockback, fallen
 
         # Physics body. Horizontal scripted movement may still set x directly,
