@@ -84,6 +84,73 @@ class Pose:
 
 
 # ============================================================================
+# BODY PROPORTIONS
+# Per-archetype rig scaling applied on top of the canonical poses below.
+# This lets every archetype share the same animation clips (punch, kick,
+# slash, etc.) while still reading as structurally distinct body types
+# (e.g. a stocky brawler vs. a lean ninja) rather than uniform palette-swaps.
+# ============================================================================
+
+@dataclass
+class BodyProportions:
+    """Per-archetype rig scaling applied on top of the canonical poses."""
+    head_scale: float = 1.0
+    torso_length: float = 1.0      # neck/chest distance from pelvis
+    shoulder_width: float = 1.0    # arm socket x-offset
+    arm_length: float = 1.0        # elbow/hand reach
+    stance_width: float = 1.0      # hip x-offset
+    leg_length: float = 1.0        # knee/foot y-offset
+
+    def scale_for(self, joint: str) -> Tuple[float, float]:
+        """Returns (x_scale, y_scale) for a given joint name."""
+        if joint == "head":
+            return (self.head_scale, self.head_scale)
+        if joint in ("neck", "chest"):
+            return (self.shoulder_width, self.torso_length)
+        if joint in ("left_shoulder", "right_shoulder"):
+            return (self.shoulder_width, self.torso_length)
+        if joint in ("left_elbow", "right_elbow", "left_hand", "right_hand"):
+            return (self.arm_length, self.arm_length)
+        if joint in ("left_hip", "right_hip"):
+            return (self.stance_width, 1.0)
+        if joint in ("left_knee", "right_knee", "left_foot", "right_foot"):
+            return (self.stance_width, self.leg_length)
+        return (1.0, 1.0)
+
+
+def apply_proportions(pose: Pose, proportions: BodyProportions) -> Pose:
+    """Returns a new Pose with joint offsets scaled per-group by proportions."""
+    scaled: JointMap = {}
+    for name, (x, y) in pose.joints.items():
+        sx, sy = proportions.scale_for(name)
+        scaled[name] = (x * sx, y * sy)
+    return Pose(joints=scaled)
+
+
+# Preset rigs. Values are intentionally subtle multipliers on top of the
+# canonical poses so hitboxes, physics, and choreography timing remain valid
+# for every archetype without per-archetype pose duplication.
+PROPORTIONS_DEFAULT = BodyProportions()
+PROPORTIONS_NINJA = BodyProportions(
+    head_scale=0.92, torso_length=0.95, shoulder_width=0.9,
+    arm_length=1.05, stance_width=0.9, leg_length=1.08,
+)
+PROPORTIONS_SAMURAI = BodyProportions()  # balanced, canonical proportions
+PROPORTIONS_BRAWLER = BodyProportions(
+    head_scale=1.05, torso_length=0.88, shoulder_width=1.25,
+    arm_length=0.92, stance_width=1.2, leg_length=0.9,
+)
+PROPORTIONS_MONK = BodyProportions(
+    head_scale=0.95, torso_length=1.05, shoulder_width=0.95,
+    arm_length=1.1, stance_width=0.95, leg_length=1.1,
+)
+PROPORTIONS_CYBORG = BodyProportions(
+    head_scale=0.85, torso_length=1.0, shoulder_width=1.05,
+    arm_length=1.15, stance_width=1.0, leg_length=1.05,
+)
+
+
+# ============================================================================
 # CANONICAL POSES
 # Pelvis is at (0, 0). Up is negative y, down is positive y.
 # Normal standing height: pelvis at y=0, feet at y=+140, head at y=-140.
