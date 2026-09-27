@@ -91,7 +91,32 @@ The system converts high-level actions into individual animation frames.
 
 ---
 
-# 3. One Fight on One Scene
+# 3. Fighter Visual Styles
+
+The renderer supports multiple visual treatments without changing the fight simulation.
+
+The optional **black-ink comic fight style** is selected per fighter:
+
+```python
+A = scene.add_fighter("A", x=350, y=1500, render_style="ink_fight")
+B = scene.add_fighter("B", x=730, y=1500, render_style="ink_fight")
+```
+
+`ink_fight` changes only presentation: heavy black ink strokes, clean negative-space body shapes, minimal directional eye marks, red combat accents, and animation-driven motion marks. The existing skeleton, animation clips, physics, collision/hitboxes, choreography, and weapon attachment points remain the source of truth.
+
+Existing styles remain available:
+
+- `segmented`
+- `silhouette`
+- `classic`
+- `tech`
+- `ink_fight`
+
+This makes the black-ink direction an **option**, rather than forcing a visual replacement across the whole engine.
+
+---
+
+# 4. One Fight on One Scene
 
 The first version of the project is intentionally simple.
 
@@ -132,7 +157,7 @@ Later, the engine can support multiple scenes.
 
 ---
 
-# 4. The Fight Timeline
+# 5. The Fight Timeline
 
 The timeline controls **when things happen**.
 
