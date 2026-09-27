@@ -17,6 +17,7 @@ from stickfight.engine.effects import EffectsManager
 from stickfight.engine.audio import AudioManager
 from stickfight.engine.renderer import Renderer, VideoExporter
 from stickfight.engine.collision import check_hit, Hitbox
+from stickfight.engine.skeleton import BodyProportions
 from stickfight.scripting.actions import Action, HitAction, KnockbackAction, ParallelAction
 
 
@@ -51,6 +52,7 @@ class FightScene:
         line_width: int = 8,
         scale: float = 1.0,
         render_style: str = "segmented",
+        proportions: Optional[BodyProportions] = None,
     ) -> Fighter:
         """Adds a fighter to the scene."""
         ground_contact = y if y is not None else self.ground_y
@@ -72,6 +74,7 @@ class FightScene:
             line_width=line_width,
             scale=scale,
             render_style=render_style,
+            proportions=proportions,
         )
         self.fighters.append(fighter)
         self._fighter_map[name] = fighter
