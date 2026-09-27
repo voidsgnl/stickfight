@@ -133,19 +133,31 @@ class FightScene:
         # Turn defender toward attacker on hit
         defender.face_fighter(attacker)
 
-        # Hit reaction animation
+        # Hit reaction animation + physical impulse.
         if is_heavy:
             defender.state = "knockback"
             defender.set_animation("knockback", loop=False)
-            defender.x -= defender.facing * (hitbox.knockback_x * 0.5)
+            defender.apply_impulse(hitbox.knockback_x, hitbox.knockback_y)
         else:
             defender.state = "hit"
             defender.set_animation("hit", loop=False)
 
     def update(self, dt: float):
-        """Simulates 1 tick of the scene."""
+        """Simulates 1 tick of the scene, including fighter physics."""
         self.current_time += dt
+
+        # Advance existing physical motion first. Scripted actions may then
+        # reposition fighters horizontally and the body is synchronized below.
+        for f in self.fighters:
+            f.physics.update(dt)
+            f.sync_from_physics()
+
         self.timeline.update(self.current_time, dt, self)
+
+        # Actions such as walk_to() intentionally control horizontal placement;
+        # preserve that choreography while keeping the physics body synchronized.
+        for f in self.fighters:
+            f.sync_to_physics()
         self.camera.frame_fighters(self.fighters)
         self.camera.update(dt)
         self.effects.update(dt)
@@ -170,13 +182,17 @@ class FightScene:
             self.renderer.draw_health_bars(surface, self.fighters)
 
     def reset(self):
-        """Resets fight state to beginning."""
+        """Resets fight state, physics, effects, camera, and audio to the beginning."""
         self.current_time = 0.0
         self.timeline.reset()
+        self.audio.scheduled_events.clear()
+        self.effects = EffectsManager()
+        self.camera = Camera(viewport_width=self.width, viewport_height=self.height)
         for f in self.fighters:
             f.health = f.max_health
             f.state = "idle"
             f.set_animation("idle")
+            f.reset_physics()
 
     # ========================================================================
     # RENDER & PREVIEW MODES
