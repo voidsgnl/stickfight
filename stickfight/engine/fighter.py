@@ -28,6 +28,7 @@ from stickfight.engine.animation import (
     create_sword_guard_clip,
 )
 from stickfight.engine.collision import Hitbox, Hurtbox
+from stickfight.engine.physics import PhysicsBody
 from stickfight.scripting.actions import (
     Action,
     WalkToAction,
@@ -78,6 +79,15 @@ class Fighter:
         self.headband_color = headband_color  # Optional ninja ribbon
         self.state = "idle"  # idle, walking, attacking, blocking, dodging, hit, knockback, fallen
 
+        # Physics body. Horizontal scripted movement may still set x directly,
+        # but vertical motion and combat impulses are simulated here.
+        self.physics = PhysicsBody(
+            x=self.x,
+            y=self.y,
+            ground_y=self.y,
+            gravity=1800.0,
+        )
+
         # Animation library
         self.clips: Dict[str, AnimationClip] = {
             "idle": create_idle_clip(),
@@ -101,6 +111,31 @@ class Fighter:
         self.current_pose: Pose = make_idle_pose()
         self.root_dx: float = 0.0
         self.root_dy: float = 0.0
+
+    def sync_from_physics(self):
+        """Copies the simulated world position into the fighter."""
+        self.x = self.physics.x
+        self.y = self.physics.y
+
+    def sync_to_physics(self):
+        """Keeps the physics body aligned after scripted position changes."""
+        self.physics.x = self.x
+        self.physics.y = self.y
+
+    def apply_impulse(self, ix: float, iy: float = 0.0):
+        """Applies a combat/jump impulse to the fighter's physics body."""
+        self.sync_to_physics()
+        self.physics.apply_impulse(ix, iy)
+
+    def reset_physics(self):
+        """Restores the body to the fighter's spawn position and grounded state."""
+        self.physics.x = self.x
+        self.physics.y = self.y
+        self.physics.vx = 0.0
+        self.physics.vy = 0.0
+        self.physics.ax = 0.0
+        self.physics.ay = 0.0
+        self.physics.is_grounded = True
 
     def equip(self, weapon_name: Optional[str]):
         """Equips weapon on fighter ('sword', 'staff', None)."""
