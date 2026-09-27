@@ -218,7 +218,7 @@ class Renderer:
             cx, cy = chest
             nx, ny = neck
             # A tapered torso gives the character an actual body silhouette.
-            vx, vy = nx - py * 0 + nx - cx, ny - cy
+            vx, vy = nx - cx, ny - cy
             length = max(1.0, math.hypot(vx, vy))
             pxn, pyn = -vy / length, vx / length
             top_w = 15 * s * z
