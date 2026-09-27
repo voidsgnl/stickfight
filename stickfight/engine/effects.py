@@ -72,13 +72,59 @@ class ImpactText:
         self.y -= 25.0 * dt  # float upwards
 
 
+@dataclass
+class SlashArc:
+    x: float
+    y: float
+    radius: float
+    start_angle: float
+    end_angle: float
+    color: Tuple[int, int, int] = (240, 245, 255)
+    life: float = 0.18
+    max_life: float = 0.18
+    width: int = 6
+
+    @property
+    def is_alive(self) -> bool:
+        return self.life > 0.0
+
+    def update(self, dt: float):
+        self.life -= dt
+
+
 class EffectsManager:
     def __init__(self):
         self.particles: List[Particle] = []
         self.shockwaves: List[Shockwave] = []
         self.impact_texts: List[ImpactText] = []
+        self.slash_arcs: List[SlashArc] = []
         self.flash_alpha: float = 0.0
         self.flash_color: Tuple[int, int, int] = (255, 255, 255)
+
+    def trigger_slash_arc(self, x: float, y: float, start_angle: float, end_angle: float, radius: float = 120.0, color: Tuple[int, int, int] = (240, 245, 255)):
+        """Adds a glowing curved blade slash trail."""
+        self.slash_arcs.append(SlashArc(
+            x=x, y=y, radius=radius, start_angle=start_angle, end_angle=end_angle, color=color
+        ))
+
+    def trigger_weapon_clash(self, x: float, y: float):
+        """Weapon on weapon clash with high-density steel sparks."""
+        self.shockwaves.append(Shockwave(x=x, y=y, max_radius=75.0, color=(255, 255, 220)))
+        for _ in range(28):
+            angle = random.uniform(0, 2 * math.pi)
+            speed = random.uniform(220, 550)
+            self.particles.append(Particle(
+                x=x,
+                y=y,
+                vx=math.cos(angle) * speed,
+                vy=math.sin(angle) * speed,
+                color=(255, 245, 140),
+                radius=random.uniform(2.5, 5.5),
+                life=random.uniform(0.18, 0.4),
+                max_life=0.4
+            ))
+        self.flash_alpha = 95.0
+        self.impact_texts.append(ImpactText(text="CLANG!", x=x, y=y - 45.0, color=(255, 240, 100)))
 
     def trigger_hit_effect(self, x: float, y: float, is_blocked: bool = False, is_heavy: bool = False):
         """Spawns particles, shockwave, and flash for an impact."""
@@ -143,11 +189,27 @@ class EffectsManager:
             t.update(dt)
         self.impact_texts = [t for t in self.impact_texts if t.is_alive]
 
+        for a in self.slash_arcs:
+            a.update(dt)
+        self.slash_arcs = [a for a in self.slash_arcs if a.is_alive]
+
         if self.flash_alpha > 0:
             self.flash_alpha = max(0.0, self.flash_alpha - 350.0 * dt)
 
     def draw(self, surface: pygame.Surface, camera_to_screen_fn):
         """Renders particles, shockwaves, impact texts, and flash overlay."""
+        # Draw slash arcs (glowing weapon trails)
+        for sa in self.slash_arcs:
+            sx, sy = camera_to_screen_fn(sa.x, sa.y)
+            progress = sa.life / sa.max_life
+            alpha = int(255 * progress)
+            r = int(sa.radius)
+            if r > 4 and alpha > 0:
+                arc_surf = pygame.Surface((r * 2 + 10, r * 2 + 10), pygame.SRCALPHA)
+                rect = pygame.Rect(5, 5, r * 2, r * 2)
+                pygame.draw.arc(arc_surf, (*sa.color, alpha), rect, sa.start_angle, sa.end_angle, sa.width)
+                surface.blit(arc_surf, (sx - r - 5, sy - r - 5))
+
         # Draw shockwaves
         for sw in self.shockwaves:
             sx, sy = camera_to_screen_fn(sw.x, sw.y)

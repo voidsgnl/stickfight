@@ -22,6 +22,12 @@ from stickfight.engine.skeleton import (
     make_knockback_air_pose,
     make_fall_pose,
     make_jump_pose,
+    make_uppercut_windup,
+    make_uppercut_strike,
+    make_sweep_pose,
+    make_sword_ready,
+    make_sword_slash_windup,
+    make_sword_slash_strike,
 )
 
 
@@ -284,3 +290,63 @@ def create_jump_clip(duration: float = 0.65, height: float = 160.0) -> Animation
         Keyframe(time=1.0, pose=idle, root_dx=0.0, root_dy=0.0, easing=ease_in_out_quad),
     ]
     return AnimationClip(name="jump", duration=duration, keyframes=keyframes, loop=False)
+
+
+def create_uppercut_clip(duration: float = 0.55) -> AnimationClip:
+    """Dip down into coiled crouch, then launch vertically with skyward fist."""
+    idle = make_idle_pose()
+    windup = make_uppercut_windup()
+    strike = make_uppercut_strike()
+
+    keyframes = [
+        Keyframe(time=0.0, pose=idle, root_dx=0.0, root_dy=0.0, easing=ease_in_quad),
+        Keyframe(time=0.20, pose=windup, root_dx=10.0, root_dy=25.0, easing=ease_out_cubic),
+        Keyframe(time=0.45, pose=strike, root_dx=25.0, root_dy=-50.0, easing=linear),
+        Keyframe(time=0.70, pose=strike, root_dx=20.0, root_dy=-25.0, easing=ease_out_quad),
+        Keyframe(time=1.0, pose=idle, root_dx=0.0, root_dy=0.0, easing=ease_in_out_quad),
+    ]
+    return AnimationClip(name="uppercut", duration=duration, keyframes=keyframes, loop=False)
+
+
+def create_sweep_clip(duration: float = 0.50) -> AnimationClip:
+    """Drop low to the ground and sweep lead leg in full circle."""
+    idle = make_idle_pose()
+    sweep = make_sweep_pose()
+
+    keyframes = [
+        Keyframe(time=0.0, pose=idle, root_dx=0.0, root_dy=0.0, easing=ease_in_quad),
+        Keyframe(time=0.25, pose=sweep, root_dx=20.0, root_dy=40.0, easing=linear),
+        Keyframe(time=0.65, pose=sweep, root_dx=40.0, root_dy=40.0, easing=ease_out_quad),
+        Keyframe(time=1.0, pose=idle, root_dx=0.0, root_dy=0.0, easing=ease_in_out_quad),
+    ]
+    return AnimationClip(name="sweep", duration=duration, keyframes=keyframes, loop=False)
+
+
+def create_slash_clip(duration: float = 0.48) -> AnimationClip:
+    """Fast diagonal katana/sword slash with broad weapon arc."""
+    ready = make_sword_ready()
+    windup = make_sword_slash_windup()
+    strike = make_sword_slash_strike()
+
+    keyframes = [
+        Keyframe(time=0.0, pose=ready, root_dx=0.0, root_dy=0.0, easing=ease_in_quad),
+        Keyframe(time=0.22, pose=windup, root_dx=-20.0, root_dy=-10.0, easing=ease_out_cubic),
+        Keyframe(time=0.42, pose=strike, root_dx=45.0, root_dy=10.0, easing=linear),
+        Keyframe(time=0.68, pose=strike, root_dx=35.0, root_dy=5.0, easing=ease_out_quad),
+        Keyframe(time=1.0, pose=ready, root_dx=0.0, root_dy=0.0, easing=ease_in_out_quad),
+    ]
+    return AnimationClip(name="slash", duration=duration, keyframes=keyframes, loop=False)
+
+
+def create_sword_guard_clip(duration: float = 0.50) -> AnimationClip:
+    """Sword parry and guard stance."""
+    ready = make_sword_ready()
+    parry = make_block_pose()
+
+    keyframes = [
+        Keyframe(time=0.0, pose=ready, root_dx=0.0, root_dy=0.0, easing=ease_out_quad),
+        Keyframe(time=0.15, pose=parry, root_dx=-5.0, root_dy=0.0, easing=linear),
+        Keyframe(time=0.80, pose=parry, root_dx=-5.0, root_dy=0.0, easing=ease_in_out_quad),
+        Keyframe(time=1.0, pose=ready, root_dx=0.0, root_dy=0.0, easing=ease_in_out_quad),
+    ]
+    return AnimationClip(name="sword_guard", duration=duration, keyframes=keyframes, loop=False)

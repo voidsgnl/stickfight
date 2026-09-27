@@ -89,6 +89,7 @@ class PunchAction(Action):
             if self.defender:
                 hitbox = self.fighter.get_hitbox()
                 if hitbox:
+                    hitbox.damage = self.damage
                     scene.resolve_attack(self.fighter, self.defender, hitbox)
 
     def on_finish(self, scene: FightScene):
@@ -118,6 +119,7 @@ class KickAction(Action):
             if self.defender:
                 hitbox = self.fighter.get_hitbox()
                 if hitbox:
+                    hitbox.damage = self.damage
                     scene.resolve_attack(self.fighter, self.defender, hitbox)
 
     def on_finish(self, scene: FightScene):
@@ -303,3 +305,197 @@ class ParallelAction(Action):
     def on_finish(self, scene: FightScene):
         for act in self.actions:
             act.on_finish(scene)
+
+
+class UppercutAction(Action):
+    """Heavy rising fist driving upward into sky, launching defender airborne."""
+    def __init__(self, attacker: Fighter, defender: Optional[Fighter] = None, duration: float = 0.55, damage: float = 26.0):
+        super().__init__(attacker, duration)
+        self.defender = defender
+        self.damage = damage
+        self.hit_registered = False
+
+    def on_start(self, scene: FightScene):
+        super().on_start(scene)
+        if self.defender:
+            self.fighter.face_fighter(self.defender)
+        self.fighter.set_animation("uppercut", loop=False)
+        self.hit_registered = False
+        scene.audio.schedule_sound(scene.current_time + 0.15, "whoosh")
+
+    def update(self, scene: FightScene, local_t: float, dt: float):
+        self.fighter.update_animation(dt)
+        if not self.hit_registered and local_t >= 0.22 and self.defender:
+            self.hit_registered = True
+            hitbox = self.fighter.get_hitbox()
+            if hitbox:
+                # Add vertical launch impulse
+                hitbox.damage = self.damage
+                hitbox.knockback_x = 90.0 * self.fighter.facing
+                hitbox.knockback_y = -350.0
+                scene.resolve_attack(self.fighter, self.defender, hitbox)
+                scene.effects.trigger_dust_puff(self.fighter.x, self.fighter.y, count=12)
+
+    def on_finish(self, scene: FightScene):
+        self.fighter.set_animation("idle")
+
+
+class SweepAction(Action):
+    """Low crouched leg sweep that knocks defender off their feet."""
+    def __init__(self, attacker: Fighter, defender: Optional[Fighter] = None, duration: float = 0.50, damage: float = 16.0):
+        super().__init__(attacker, duration)
+        self.defender = defender
+        self.damage = damage
+        self.hit_registered = False
+
+    def on_start(self, scene: FightScene):
+        super().on_start(scene)
+        if self.defender:
+            self.fighter.face_fighter(self.defender)
+        self.fighter.set_animation("sweep", loop=False)
+        self.hit_registered = False
+        scene.audio.schedule_sound(scene.current_time + 0.12, "whoosh")
+        scene.effects.trigger_dust_puff(self.fighter.x + 30 * self.fighter.facing, self.fighter.y, count=10)
+
+    def update(self, scene: FightScene, local_t: float, dt: float):
+        self.fighter.update_animation(dt)
+        if not self.hit_registered and local_t >= 0.20 and self.defender:
+            self.hit_registered = True
+            if abs(self.fighter.x - self.defender.x) <= 240.0:
+                # Sweep trips defender into fall
+                self.defender.health = max(0.0, self.defender.health - self.damage)
+                scene.audio.schedule_sound(scene.current_time, "kick")
+                scene.effects.trigger_hit_effect(self.defender.x, self.defender.y - 30.0)
+                self.defender.state = "fallen"
+                self.defender.set_animation("fall", loop=False)
+                scene.camera.shake(intensity=9.0, duration=0.2)
+
+    def on_finish(self, scene: FightScene):
+        self.fighter.set_animation("idle")
+
+
+class SlashAction(Action):
+    """Sword weapon strike with crescent trail and potential blade clash."""
+    def __init__(self, attacker: Fighter, defender: Optional[Fighter] = None, duration: float = 0.48, damage: float = 28.0):
+        super().__init__(attacker, duration)
+        self.defender = defender
+        self.damage = damage
+        self.hit_registered = False
+
+    def on_start(self, scene: FightScene):
+        super().on_start(scene)
+        if self.defender:
+            self.fighter.face_fighter(self.defender)
+        self.fighter.set_animation("slash", loop=False)
+        self.hit_registered = False
+        scene.audio.schedule_sound(scene.current_time + 0.14, "blade_slice")
+
+        # Spawn glowing crescent slash arc
+        f_sign = self.fighter.facing
+        start_ang = -0.6 if f_sign > 0 else 2.5
+        end_ang = 1.4 if f_sign > 0 else 4.2
+        scene.effects.trigger_slash_arc(
+            x=self.fighter.x + 40 * f_sign,
+            y=self.fighter.y - 120.0,
+            start_angle=start_ang,
+            end_angle=end_ang,
+            radius=135.0,
+            color=(235, 245, 255)
+        )
+
+    def update(self, scene: FightScene, local_t: float, dt: float):
+        self.fighter.update_animation(dt)
+        if not self.hit_registered and local_t >= 0.22 and self.defender:
+            self.hit_registered = True
+            hitbox = self.fighter.get_hitbox()
+            if hitbox:
+                hitbox.damage = self.damage
+                hitbox.knockback_x = 160.0 * self.fighter.facing
+                if self.defender.state == "blocking":
+                    # Blade parried / clashed!
+                    scene.audio.schedule_sound(scene.current_time, "clang")
+                    scene.effects.trigger_weapon_clash(
+                        (self.fighter.x + self.defender.x) / 2.0,
+                        self.fighter.y - 140.0
+                    )
+                    scene.camera.shake(intensity=8.0, duration=0.2)
+                    self.defender.health = max(0.0, self.defender.health - self.damage * 0.15)
+                else:
+                    scene.resolve_attack(self.fighter, self.defender, hitbox)
+
+    def on_finish(self, scene: FightScene):
+        self.fighter.set_animation("idle")
+
+
+class StaffStrikeAction(Action):
+    """Sweeping staff strike with extended reach."""
+    def __init__(self, attacker: Fighter, defender: Optional[Fighter] = None, duration: float = 0.48, damage: float = 21.0):
+        super().__init__(attacker, duration)
+        self.defender = defender
+        self.damage = damage
+        self.hit_registered = False
+
+    def on_start(self, scene: FightScene):
+        super().on_start(scene)
+        if self.defender:
+            self.fighter.face_fighter(self.defender)
+        self.fighter.set_animation("slash", loop=False)
+        self.hit_registered = False
+        scene.audio.schedule_sound(scene.current_time + 0.12, "whoosh")
+
+    def update(self, scene: FightScene, local_t: float, dt: float):
+        self.fighter.update_animation(dt)
+        if not self.hit_registered and local_t >= 0.22 and self.defender:
+            self.hit_registered = True
+            hitbox = self.fighter.get_hitbox()
+            if hitbox:
+                hitbox.damage = self.damage
+                scene.resolve_attack(self.fighter, self.defender, hitbox)
+
+    def on_finish(self, scene: FightScene):
+        self.fighter.set_animation("idle")
+
+
+class ComboAction(Action):
+    """Executes a chain of consecutive combat actions in rapid succession."""
+    def __init__(self, fighter: Fighter, actions: List[Action]):
+        self.actions = actions
+        total_dur = sum(a.duration for a in actions)
+        super().__init__(fighter, total_dur)
+        self.current_idx = 0
+        self.action_start_t = 0.0
+
+    def on_start(self, scene: FightScene):
+        super().on_start(scene)
+        self.current_idx = 0
+        self.action_start_t = 0.0
+        if self.actions:
+            self.actions[0].on_start(scene)
+
+    def update(self, scene: FightScene, local_t: float, dt: float):
+        frame_start_t = max(0.0, local_t - dt)
+        cursor_t = max(frame_start_t, self.action_start_t)
+
+        while self.current_idx < len(self.actions):
+            action = self.actions[self.current_idx]
+            action_end_t = self.action_start_t + action.duration
+            segment_end_t = min(local_t, action_end_t)
+            segment_dt = max(0.0, segment_end_t - cursor_t)
+
+            if segment_dt > 0.0:
+                action.update(scene, segment_end_t - self.action_start_t, segment_dt)
+
+            if local_t < action_end_t:
+                break
+
+            action.on_finish(scene)
+            self.current_idx += 1
+            self.action_start_t = action_end_t
+            cursor_t = action_end_t
+            if self.current_idx < len(self.actions):
+                self.actions[self.current_idx].on_start(scene)
+
+    def on_finish(self, scene: FightScene):
+        if self.current_idx < len(self.actions):
+            self.actions[self.current_idx].on_finish(scene)
+        self.fighter.set_animation("idle")

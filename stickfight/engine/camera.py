@@ -29,8 +29,8 @@ class Camera:
         self.shake_offset_y: float = 0.0
 
         # Tracking bounds
-        self.min_zoom: float = 0.9
-        self.max_zoom: float = 2.0
+        self.min_zoom: float = 0.75
+        self.max_zoom: float = 1.4
 
     def shake(self, intensity: float = 12.0, duration: float = 0.25):
         """Triggers a camera shake effect."""
@@ -43,14 +43,13 @@ class Camera:
         if zoom is not None:
             self.target_zoom = max(self.min_zoom, min(self.max_zoom, zoom))
 
-    def frame_fighters(self, fighters: List, padding: float = 280.0):
-        """Automatically centers on and dynamically frames all active fighters."""
+    def frame_fighters(self, fighters: List, padding: float = 300.0):
+        """Automatically centers on and frames all active fighters."""
         if not fighters:
             return
 
         xs = [f.x for f in fighters]
-        # Frame torso/upper body height
-        ys = [f.y - 140.0 * getattr(f, "scale", 1.0) for f in fighters]
+        ys = [f.y - 120.0 for f in fighters]  # Aim at fighter upper bodies
 
         center_x = sum(xs) / len(xs)
         center_y = sum(ys) / len(ys)
@@ -58,10 +57,10 @@ class Camera:
         span_x = max(xs) - min(xs) + padding
         span_y = max(ys) - min(ys) + padding
 
-        # Calculate desired zoom so fighters occupy a prominent portion of vertical frame
-        zoom_x = (self.width * 0.82) / max(span_x, 320.0)
-        zoom_y = (self.height * 0.48) / max(span_y, 420.0)
-        desired_zoom = min(zoom_x, zoom_y)
+        # Calculate desired zoom so all fighters fit comfortably
+        zoom_x = self.width / max(span_x, 400.0)
+        zoom_y = self.height / max(span_y, 600.0)
+        desired_zoom = min(zoom_x, zoom_y, 1.25)
         desired_zoom = max(self.min_zoom, min(self.max_zoom, desired_zoom))
 
         self.set_target(center_x, center_y, desired_zoom)

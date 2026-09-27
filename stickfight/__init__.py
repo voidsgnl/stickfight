@@ -9,6 +9,14 @@ from stickfight.engine.skeleton import Pose
 from stickfight.engine.camera import Camera
 from stickfight.engine.renderer import Renderer
 from stickfight.engine.animation import AnimationClip
+from stickfight.engine.characters import (
+    create_ninja,
+    create_samurai,
+    create_brawler,
+    create_monk,
+    create_cyborg,
+)
+from stickfight.scripting.generator import generate_fight
 
 __all__ = [
     "FightScene",
@@ -17,4 +25,10 @@ __all__ = [
     "Camera",
     "Renderer",
     "AnimationClip",
+    "create_ninja",
+    "create_samurai",
+    "create_brawler",
+    "create_monk",
+    "create_cyborg",
+    "generate_fight",
 ]

@@ -101,12 +101,7 @@ class FightScene:
         """Evaluates collision and resolves damage, blocks, dodges, and reactions."""
         hurtbox = defender.get_hurtbox()
 
-        # Check physical collision or close-proximity reach
-        is_touching = check_hit(hitbox, hurtbox)
-        dist_x = abs(attacker.x - defender.x)
-
-        if not is_touching and dist_x > 220.0 * attacker.scale:
-            # Attack missed by distance
+        if not check_hit(hitbox, hurtbox):
             return
 
         impact_x = (hitbox.x + defender.x) / 2.0

@@ -418,3 +418,135 @@ def make_jump_pose(phase: float = 0.5) -> Pose:
         "right_knee": (25.0, -45.0),
         "right_foot": (15.0, 10.0),
     })
+
+
+def make_uppercut_windup() -> Pose:
+    """Deep crouch, right fist dropped low and coiled for upward drive."""
+    return Pose({
+        "pelvis": (-10.0, 25.0),
+        "chest": (-15.0, -15.0),
+        "neck": (-15.0, -55.0),
+        "head": (-12.0, -90.0),
+        "left_shoulder": (-25.0, -50.0),
+        "left_elbow": (5.0, -45.0),
+        "left_hand": (15.0, -70.0),
+        "right_shoulder": (5.0, -50.0),
+        "right_elbow": (15.0, 5.0),
+        "right_hand": (25.0, -15.0),  # Dropped low near hip
+        "left_hip": (-20.0, 25.0),
+        "left_knee": (-40.0, 85.0),
+        "left_foot": (-45.0, 140.0),
+        "right_hip": (10.0, 25.0),
+        "right_knee": (25.0, 90.0),
+        "right_foot": (30.0, 140.0),
+    })
+
+
+def make_uppercut_strike() -> Pose:
+    """Explosive upward leap, right fist driving high into the sky."""
+    return Pose({
+        "pelvis": (15.0, -40.0),
+        "chest": (25.0, -100.0),
+        "neck": (28.0, -145.0),
+        "head": (25.0, -180.0),
+        "left_shoulder": (15.0, -140.0),
+        "left_elbow": (-10.0, -110.0),
+        "left_hand": (-20.0, -90.0),
+        "right_shoulder": (40.0, -140.0),
+        "right_elbow": (85.0, -125.0),
+        "right_hand": (130.0, -155.0),  # Drives forward through the opponent's guard
+        "left_hip": (5.0, -35.0),
+        "left_knee": (-5.0, 25.0),
+        "left_foot": (-10.0, 85.0),
+        "right_hip": (25.0, -35.0),
+        "right_knee": (45.0, 10.0),
+        "right_foot": (50.0, 70.0),
+    })
+
+
+def make_sweep_pose() -> Pose:
+    """Low crouched leg sweep rotating along the floor."""
+    return Pose({
+        "pelvis": (-10.0, 60.0),
+        "chest": (-15.0, 25.0),
+        "neck": (-10.0, 0.0),
+        "head": (-5.0, -35.0),
+        "left_shoulder": (-20.0, 5.0),
+        "left_elbow": (-35.0, 50.0),
+        "left_hand": (-40.0, 95.0),  # Hand bracing on floor
+        "right_shoulder": (10.0, 5.0),
+        "right_elbow": (25.0, -15.0),
+        "right_hand": (35.0, -35.0),
+        "left_hip": (-25.0, 65.0),
+        "left_knee": (-55.0, 100.0),
+        "left_foot": (-35.0, 140.0),
+        "right_hip": (5.0, 65.0),
+        "right_knee": (75.0, 120.0),
+        "right_foot": (155.0, 138.0),  # Sweeping foot extended low along ground
+    })
+
+
+def make_sword_ready() -> Pose:
+    """Classic 2-handed samurai / ninja ready stance."""
+    return Pose({
+        "pelvis": (0.0, 5.0),
+        "chest": (5.0, -48.0),
+        "neck": (8.0, -88.0),
+        "head": (10.0, -122.0),
+        "left_shoulder": (-10.0, -84.0),
+        "left_elbow": (15.0, -65.0),
+        "left_hand": (35.0, -65.0),
+        "right_shoulder": (15.0, -84.0),
+        "right_elbow": (30.0, -68.0),
+        "right_hand": (45.0, -68.0),  # Both hands gripping hilt
+        "left_hip": (-15.0, 5.0),
+        "left_knee": (-30.0, 72.0),
+        "left_foot": (-28.0, 140.0),
+        "right_hip": (12.0, 5.0),
+        "right_knee": (25.0, 70.0),
+        "right_foot": (32.0, 140.0),
+    })
+
+
+def make_sword_slash_windup() -> Pose:
+    """Blade raised high above shoulder/head, coiling for diagonal slash."""
+    return Pose({
+        "pelvis": (-15.0, 10.0),
+        "chest": (-30.0, -45.0),
+        "neck": (-40.0, -85.0),
+        "head": (-35.0, -120.0),
+        "left_shoulder": (-45.0, -85.0),
+        "left_elbow": (-60.0, -125.0),
+        "left_hand": (-45.0, -165.0),
+        "right_shoulder": (-20.0, -85.0),
+        "right_elbow": (-35.0, -135.0),
+        "right_hand": (-25.0, -175.0),  # Hands raised high behind head
+        "left_hip": (-25.0, 10.0),
+        "left_knee": (-45.0, 75.0),
+        "left_foot": (-50.0, 140.0),
+        "right_hip": (5.0, 10.0),
+        "right_knee": (15.0, 75.0),
+        "right_foot": (25.0, 140.0),
+    })
+
+
+def make_sword_slash_strike() -> Pose:
+    """Full-extension downward diagonal slash."""
+    return Pose({
+        "pelvis": (20.0, 15.0),
+        "chest": (55.0, -35.0),
+        "neck": (75.0, -70.0),
+        "head": (80.0, -105.0),
+        "left_shoulder": (55.0, -68.0),
+        "left_elbow": (85.0, -45.0),
+        "left_hand": (120.0, -35.0),
+        "right_shoulder": (80.0, -68.0),
+        "right_elbow": (115.0, -45.0),
+        "right_hand": (145.0, -30.0),  # Thrust forward follow-through
+        "left_hip": (5.0, 15.0),
+        "left_knee": (-20.0, 80.0),
+        "left_foot": (-35.0, 140.0),
+        "right_hip": (35.0, 15.0),
+        "right_knee": (70.0, 80.0),
+        "right_foot": (65.0, 140.0),
+    })

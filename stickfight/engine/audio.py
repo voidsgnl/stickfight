@@ -80,6 +80,38 @@ class SoundSynthesizer:
         signal = (sub + noise)
         return np.clip(signal, -1.0, 1.0) * 0.9
 
+    @classmethod
+    def generate_clang(cls) -> np.ndarray:
+        """Metallic sword blade clash with resonant harmonic ringing."""
+        dur = 0.55
+        t = np.linspace(0, dur, int(cls.SAMPLE_RATE * dur), endpoint=False)
+        harmonics = [
+            (1180.0, 0.5, 18.0),
+            (1740.0, 0.4, 22.0),
+            (2620.0, 0.35, 26.0),
+            (3880.0, 0.25, 32.0),
+            (5200.0, 0.15, 38.0),
+        ]
+        signal = np.zeros_like(t)
+        for freq, amp, decay in harmonics:
+            signal += amp * np.sin(2 * np.pi * freq * t) * np.exp(-decay * t)
+        # Sharp impact transient
+        transient = np.random.uniform(-1, 1, len(t)) * np.exp(-80.0 * t) * 0.6
+        signal += transient
+        return np.clip(signal, -1.0, 1.0) * 0.9
+
+    @classmethod
+    def generate_blade_slice(cls) -> np.ndarray:
+        """High frequency razor-sharp air slicing whoosh."""
+        dur = 0.26
+        t = np.linspace(0, dur, int(cls.SAMPLE_RATE * dur), endpoint=False)
+        noise = np.random.uniform(-1, 1, len(t))
+        envelope = np.sin(np.pi * (t / dur)) ** 3
+        freq = 900 - 550 * (t / dur)
+        whistle = np.sin(2 * np.pi * freq * t)
+        signal = (0.7 * noise + 0.3 * whistle) * envelope
+        return np.clip(signal, -1.0, 1.0) * 0.85
+
 
 class AudioManager:
     def __init__(self, asset_dir: str = "assets/sounds"):
@@ -100,6 +132,8 @@ class AudioManager:
             "kick": SoundSynthesizer.generate_kick,
             "block": SoundSynthesizer.generate_block,
             "fall": SoundSynthesizer.generate_fall,
+            "clang": SoundSynthesizer.generate_clang,
+            "blade_slice": SoundSynthesizer.generate_blade_slice,
         }
 
         for name, gen_fn in generators.items():
