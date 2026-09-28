@@ -7,7 +7,7 @@ from __future__ import annotations
 import os
 import sys
 import time
-from typing import List, Dict, Optional, Tuple, Any
+from typing import List, Dict, Optional, Tuple, Any, Union
 import pygame
 
 from stickfight.engine.fighter import Fighter
@@ -18,7 +18,7 @@ from stickfight.engine.audio import AudioManager
 from stickfight.engine.renderer import Renderer, VideoExporter
 from stickfight.engine.collision import check_hit, Hitbox
 from stickfight.engine.skeleton import BodyProportions
-from stickfight.scripting.actions import Action, HitAction, KnockbackAction, ParallelAction
+from stickfight.scripting.actions import Action, HitAction, KnockbackAction, ParallelAction, CameraAction
 
 
 class FightScene:
@@ -101,6 +101,36 @@ class FightScene:
     def parallel(self, *actions: Action) -> ParallelAction:
         """Groups actions to execute concurrently."""
         return ParallelAction(list(actions))
+
+    def camera_shot(
+        self,
+        start_time: float,
+        focus: Optional[Union[Fighter, Tuple[Fighter, ...], List[Fighter]]] = None,
+        x: Optional[float] = None,
+        y: Optional[float] = None,
+        zoom: Optional[float] = None,
+        cut: bool = False,
+        transition: float = 0.4,
+        hold: float = 0.6,
+    ) -> CameraAction:
+        """Schedules a director-style camera shot (cut/pan/zoom) at start_time.
+
+        `focus` can be a single fighter (close-up) or a list/tuple of
+        fighters (frames their midpoint, e.g. a wide two-shot). Explicit
+        x/y/zoom override the focus-derived values. Pass cut=True for an
+        instant hard cut instead of a smooth pan/zoom transition.
+
+        Example — wide shot on both fighters, then a hard cut to a close-up
+        on the attacker right before their strike lands:
+            scene.camera_shot(0.0, focus=(a, b), zoom=0.85, hold=1.2)
+            scene.camera_shot(1.2, focus=a, zoom=1.35, cut=True, hold=0.8)
+        """
+        action = CameraAction(
+            focus=focus, x=x, y=y, zoom=zoom,
+            cut=cut, transition=transition, hold=hold,
+        )
+        self.at(start_time, action)
+        return action
 
     def resolve_attack(self, attacker: Fighter, defender: Fighter, hitbox: Hitbox):
         """Evaluates collision and resolves damage, blocks, dodges, and reactions."""
