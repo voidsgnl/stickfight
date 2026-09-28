@@ -1,1622 +1,382 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Stick Fight Video Studio — Interactive Choreography</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚔️</text></svg>">
-  <style>
-    :root {
-      --bg-dark: #0a0c10;
-      --bg-card: rgba(20, 25, 34, 0.88);
-      --bg-card-hover: rgba(28, 34, 46, 0.95);
-      --border-subtle: rgba(255, 255, 255, 0.08);
-      --border-focus: #00e5ff;
-      --text-main: #f0f3f8;
-      --text-muted: #8b949e;
-      --accent-red: #ff3366;
-      --accent-blue: #00d2ff;
-      --accent-gold: #ffb700;
-      --accent-green: #00e676;
-      --accent-purple: #b388ff;
-      --radius-sm: 6px;
-      --radius-md: 12px;
-      --radius-lg: 18px;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    }
-
-    body {
-      background: var(--bg-dark);
-      background-image: 
-        radial-gradient(circle at 10% 10%, rgba(255, 51, 102, 0.08) 0%, transparent 45%),
-        radial-gradient(circle at 90% 90%, rgba(0, 210, 255, 0.08) 0%, transparent 45%);
-      color: var(--text-main);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      overflow-x: hidden;
-    }
-
-    header {
-      padding: 14px 24px;
-      background: rgba(12, 15, 22, 0.92);
-      backdrop-filter: blur(14px);
-      border-bottom: 1px solid var(--border-subtle);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      flex-wrap: wrap;
-      gap: 12px;
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .brand-icon {
-      font-size: 24px;
-      background: linear-gradient(135deg, #ff3366, #ffb700);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .brand-title {
-      font-size: 18px;
-      font-weight: 800;
-      letter-spacing: 0.5px;
-      background: linear-gradient(90deg, #ffffff, #cfd8dc);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .brand-tag {
-      font-size: 10px;
-      background: rgba(255, 183, 0, 0.15);
-      color: var(--accent-gold);
-      padding: 2px 7px;
-      border-radius: 20px;
-      border: 1px solid rgba(255, 183, 0, 0.3);
-      font-weight: 700;
-      text-transform: uppercase;
-    }
-
-    .presets-bar {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
-
-    .preset-btn {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--border-subtle);
-      color: var(--text-main);
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-
-    .preset-btn:hover {
-      background: rgba(255, 255, 255, 0.12);
-      border-color: rgba(255, 255, 255, 0.25);
-      transform: translateY(-1px);
-    }
-
-    .preset-btn.random-btn {
-      background: linear-gradient(135deg, rgba(255, 51, 102, 0.2), rgba(0, 210, 255, 0.2));
-      border-color: rgba(0, 210, 255, 0.4);
-    }
-
-    /* Main Grid Layout */
-    main {
-      flex: 1;
-      display: grid;
-      grid-template-columns: 340px 1fr 340px;
-      gap: 18px;
-      padding: 18px 24px;
-      max-width: 1760px;
-      margin: 0 auto;
-      width: 100%;
-    }
-
-    @media (max-width: 1300px) {
-      main {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .panel {
-      background: var(--bg-card);
-      backdrop-filter: blur(16px);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-lg);
-      padding: 18px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
-    }
-
-    .panel-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding-bottom: 10px;
-      border-bottom: 1px solid var(--border-subtle);
-    }
-
-    .panel-title {
-      font-size: 15px;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .badge-fighter-a {
-      background: rgba(255, 51, 102, 0.15);
-      color: var(--accent-red);
-      border: 1px solid rgba(255, 51, 102, 0.4);
-      padding: 2px 8px;
-      border-radius: 12px;
-      font-size: 11px;
-    }
-
-    .badge-fighter-b {
-      background: rgba(0, 210, 255, 0.15);
-      color: var(--accent-blue);
-      border: 1px solid rgba(0, 210, 255, 0.4);
-      padding: 2px 8px;
-      border-radius: 12px;
-      font-size: 11px;
-    }
-
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-    }
-
-    .form-label {
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .form-input {
-      background: rgba(0, 0, 0, 0.35);
-      border: 1px solid var(--border-subtle);
-      color: var(--text-main);
-      padding: 8px 10px;
-      border-radius: var(--radius-sm);
-      font-size: 13px;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-
-    .form-input:focus {
-      border-color: var(--border-focus);
-    }
-
-    /* Archetype Card Grid */
-    .archetype-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 6px;
-    }
-
-    .archetype-card {
-      background: rgba(0, 0, 0, 0.25);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-sm);
-      padding: 8px 4px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 3px;
-      cursor: pointer;
-      transition: all 0.15s ease;
-      user-select: none;
-    }
-
-    .archetype-card:hover {
-      background: rgba(255, 255, 255, 0.06);
-      transform: translateY(-2px);
-    }
-
-    .archetype-card.active {
-      border-color: var(--border-focus);
-      background: rgba(0, 229, 255, 0.12);
-      box-shadow: 0 0 12px rgba(0, 229, 255, 0.2);
-    }
-
-    .panel-a .archetype-card.active {
-      border-color: var(--accent-red);
-      background: rgba(255, 51, 102, 0.12);
-      box-shadow: 0 0 12px rgba(255, 51, 102, 0.2);
-    }
-
-    .archetype-icon {
-      font-size: 18px;
-    }
-
-    .archetype-name {
-      font-size: 10px;
-      font-weight: 700;
-      text-transform: capitalize;
-    }
-
-    /* Color picker & Swatches */
-    .color-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .color-picker {
-      -webkit-appearance: none;
-      -moz-appearance: none;
-      appearance: none;
-      width: 36px;
-      height: 32px;
-      border: none;
-      cursor: pointer;
-      background: transparent;
-      border-radius: 6px;
-    }
-
-    .color-picker::-webkit-color-swatch-wrapper {
-      padding: 0;
-    }
-
-    .color-picker::-webkit-color-swatch {
-      border: 1px solid var(--border-subtle);
-      border-radius: 6px;
-    }
-
-    .swatches {
-      display: flex;
-      gap: 5px;
-      flex-wrap: wrap;
-    }
-
-    .swatch {
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      cursor: pointer;
-      border: 2px solid transparent;
-      transition: transform 0.15s;
-    }
-
-    .swatch:hover {
-      transform: scale(1.2);
-    }
-
-    /* Sliders */
-    .slider-row {
-      display: flex;
-      justify-content: space-between;
-      font-size: 11px;
-      color: var(--text-muted);
-    }
-
-    .slider {
-      accent-color: var(--border-focus);
-      width: 100%;
-      cursor: pointer;
-    }
-
-    .panel-a .slider {
-      accent-color: var(--accent-red);
-    }
-
-    /* Center Viewport Container */
-    .viewport-panel {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      position: relative;
-    }
-
-    .viewport-wrapper {
-      width: 100%;
-      background: #06070a;
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-md);
-      position: relative;
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 420px;
-      max-height: 480px;
-    }
-
-    #previewImg {
-      max-height: 460px;
-      max-width: 100%;
-      object-fit: contain;
-      border-radius: var(--radius-sm);
-      transition: opacity 0.2s ease;
-    }
-
-    #videoPlayer {
-      max-height: 460px;
-      max-width: 100%;
-      border-radius: var(--radius-sm);
-      display: none;
-    }
-
-    .preview-badge {
-      position: absolute;
-      top: 12px;
-      left: 12px;
-      background: rgba(0, 0, 0, 0.7);
-      backdrop-filter: blur(8px);
-      border: 1px solid var(--border-subtle);
-      padding: 3px 9px;
-      border-radius: 20px;
-      font-size: 10px;
-      font-weight: 700;
-      color: #00e5ff;
-      letter-spacing: 0.5px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .preview-badge.live-dot::before {
-      content: "";
-      width: 6px;
-      height: 6px;
-      background: #00e5ff;
-      border-radius: 50%;
-      box-shadow: 0 0 8px #00e5ff;
-    }
-
-    /* Mode Navigation Tabs */
-    .mode-tabs {
-      display: flex;
-      gap: 8px;
-      background: rgba(0, 0, 0, 0.4);
-      padding: 4px;
-      border-radius: var(--radius-sm);
-      border: 1px solid var(--border-subtle);
-      width: 100%;
-    }
-
-    .mode-tab {
-      flex: 1;
-      padding: 8px 12px;
-      text-align: center;
-      font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
-      border-radius: var(--radius-sm);
-      color: var(--text-muted);
-      transition: all 0.2s;
-    }
-
-    .mode-tab:hover {
-      color: var(--text-main);
-    }
-
-    .mode-tab.active {
-      background: rgba(255, 255, 255, 0.12);
-      color: var(--text-main);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-    }
-
-    /* Visual Timeline Sequencer Section */
-    .timeline-container {
-      display: none;
-      flex-direction: column;
-      gap: 12px;
-      background: rgba(0, 0, 0, 0.3);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-md);
-      padding: 14px;
-      width: 100%;
-    }
-
-    .timeline-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 13px;
-      font-weight: 700;
-    }
-
-    .timeline-quick-actions {
-      display: flex;
-      gap: 5px;
-      flex-wrap: wrap;
-      background: rgba(0, 0, 0, 0.25);
-      padding: 8px;
-      border-radius: var(--radius-sm);
-      border: 1px solid var(--border-subtle);
-    }
-
-    .action-chip {
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid var(--border-subtle);
-      color: var(--text-main);
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-size: 11px;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      transition: all 0.15s;
-    }
-
-    .action-chip:hover {
-      background: rgba(255, 255, 255, 0.15);
-      transform: translateY(-1px);
-    }
-
-    /* Event Tracks View */
-    .timeline-tracks {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      max-height: 220px;
-      overflow-y: auto;
-      padding-right: 4px;
-    }
-
-    .timeline-tracks::-webkit-scrollbar {
-      width: 4px;
-    }
-    .timeline-tracks::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.15);
-      border-radius: 4px;
-    }
-
-    .timeline-event-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid var(--border-subtle);
-      padding: 6px 10px;
-      border-radius: var(--radius-sm);
-      font-size: 12px;
-      transition: background 0.15s;
-    }
-
-    .timeline-event-row:hover {
-      background: rgba(255, 255, 255, 0.07);
-    }
-
-    .event-time-badge {
-      background: rgba(0, 0, 0, 0.5);
-      border: 1px solid var(--border-subtle);
-      color: var(--accent-gold);
-      font-weight: 700;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-size: 11px;
-      min-width: 42px;
-      text-align: center;
-    }
-
-    .event-actor-badge {
-      font-weight: 700;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-size: 11px;
-    }
-
-    .event-actor-badge.actor-A {
-      background: rgba(255, 51, 102, 0.2);
-      color: var(--accent-red);
-      border: 1px solid rgba(255, 51, 102, 0.4);
-    }
-
-    .event-actor-badge.actor-B {
-      background: rgba(0, 210, 255, 0.2);
-      color: var(--accent-blue);
-      border: 1px solid rgba(0, 210, 255, 0.4);
-    }
-
-    .event-actor-badge.actor-scene {
-      background: rgba(255, 183, 0, 0.2);
-      color: var(--accent-gold);
-      border: 1px solid rgba(255, 183, 0, 0.4);
-    }
-
-    .event-action-name {
-      flex: 1;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .event-del-btn {
-      background: transparent;
-      border: none;
-      color: #ff5252;
-      cursor: pointer;
-      font-size: 14px;
-      padding: 2px 6px;
-      border-radius: 4px;
-    }
-
-    .event-del-btn:hover {
-      background: rgba(255, 82, 82, 0.2);
-    }
-
-    /* Add Event Form Box */
-    .add-event-box {
-      display: grid;
-      grid-template-columns: 60px 80px 1fr 60px 32px;
-      gap: 6px;
-      align-items: center;
-      background: rgba(0, 0, 0, 0.35);
-      padding: 8px;
-      border-radius: var(--radius-sm);
-      border: 1px solid var(--border-subtle);
-    }
-
-    .add-btn-icon {
-      background: var(--accent-blue);
-      color: #000;
-      border: none;
-      height: 32px;
-      border-radius: var(--radius-sm);
-      font-weight: 800;
-      font-size: 16px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .add-btn-icon:hover {
-      background: #40e8ff;
-    }
-
-    /* Action Controls & Progress Bar */
-    .render-section {
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .btn-render {
-      background: linear-gradient(135deg, #ff3366, #ff7b00);
-      color: #ffffff;
-      border: none;
-      padding: 14px 24px;
-      border-radius: var(--radius-md);
-      font-size: 15px;
-      font-weight: 800;
-      letter-spacing: 0.5px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      box-shadow: 0 6px 20px rgba(255, 51, 102, 0.35);
-      transition: all 0.2s ease;
-      width: 100%;
-    }
-
-    .btn-render:hover {
-      box-shadow: 0 8px 28px rgba(255, 51, 102, 0.55);
-      transform: translateY(-2px);
-    }
-
-    .btn-render:disabled {
-      background: #333945;
-      color: #777e8a;
-      box-shadow: none;
-      cursor: not-allowed;
-      transform: none;
-    }
-
-    .progress-box {
-      display: none;
-      flex-direction: column;
-      gap: 6px;
-      background: rgba(0, 0, 0, 0.4);
-      padding: 10px 12px;
-      border-radius: var(--radius-sm);
-      border: 1px solid var(--border-subtle);
-    }
-
-    .progress-bar-bg {
-      width: 100%;
-      height: 8px;
-      background: rgba(255, 255, 255, 0.08);
-      border-radius: 6px;
-      overflow: hidden;
-    }
-
-    .progress-bar-fill {
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg, #ff3366, #00d2ff);
-      border-radius: 6px;
-      transition: width 0.2s ease;
-    }
-
-    .progress-text {
-      display: flex;
-      justify-content: space-between;
-      font-size: 11px;
-      color: var(--text-muted);
-    }
-
-    .btn-download {
-      background: rgba(0, 230, 118, 0.15);
-      color: var(--accent-green);
-      border: 1px solid rgba(0, 230, 118, 0.4);
-      padding: 10px 16px;
-      border-radius: var(--radius-sm);
-      font-size: 12px;
-      font-weight: 700;
-      text-decoration: none;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      transition: background 0.2s;
-    }
-
-    .btn-download:hover {
-      background: rgba(0, 230, 118, 0.25);
-    }
-
-    /* Radio Pills (Weapons / Environments / Formats) */
-    .pills {
-      display: flex;
-      gap: 5px;
-    }
-
-    .pill-btn {
-      flex: 1;
-      padding: 7px 8px;
-      background: rgba(0, 0, 0, 0.3);
-      border: 1px solid var(--border-subtle);
-      color: var(--text-muted);
-      border-radius: var(--radius-sm);
-      font-size: 11px;
-      font-weight: 600;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-
-    .pill-btn:hover {
-      color: var(--text-main);
-      background: rgba(255, 255, 255, 0.05);
-    }
-
-    .pill-btn.active {
-      color: var(--text-main);
-      background: rgba(255, 255, 255, 0.15);
-      border-color: rgba(255, 255, 255, 0.4);
-    }
-
-    .toggle-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 12px;
-    }
-
-    .toggle-switch {
-      position: relative;
-      display: inline-block;
-      width: 34px;
-      height: 18px;
-    }
-
-    .toggle-switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
-
-    .slider-toggle {
-      position: absolute;
-      cursor: pointer;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background-color: rgba(255, 255, 255, 0.15);
-      transition: 0.3s;
-      border-radius: 20px;
-    }
-
-    .slider-toggle:before {
-      position: absolute;
-      content: "";
-      height: 12px;
-      width: 12px;
-      left: 3px;
-      bottom: 3px;
-      background-color: white;
-      transition: 0.3s;
-      border-radius: 50%;
-    }
-
-    input:checked + .slider-toggle {
-      background-color: var(--accent-blue);
-    }
-
-    input:checked + .slider-toggle:before {
-      transform: translateX(16px);
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stick Fight Studio</title>
+<style>
+:root{
+  --bg0:#121418;--bg1:#181b21;--bg2:#1f232b;--bg3:#272c36;--line:#2e3440;--line2:#3a4150;
+  --tx:#d5dae3;--tx2:#8d96a6;--tx3:#5f6879;--acc:#5b9dff;--accd:#2a4a7d;
+  --a:#ff6b7f;--b:#4cc2ff;--s:#f2b84b;--ok:#4cd49a;--err:#ff5d5d;
+  --ui:"Segoe UI","SF Pro Text",Inter,system-ui,sans-serif;--mono:"Cascadia Mono",Consolas,Menlo,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg0);color:var(--tx);font:12px/1.35 var(--ui);display:grid;grid-template-rows:26px 36px 1fr 22px;user-select:none}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:1px solid var(--acc);outline-offset:1px}
+/* menu bar */
+#menubar{background:var(--bg1);border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 6px;gap:2px;position:relative;z-index:50}
+.logo{font-weight:700;color:var(--tx);padding:0 10px 0 4px;letter-spacing:.2px}
+.logo i{display:inline-block;width:8px;height:8px;background:var(--a);margin-right:7px;transform:rotate(45deg)}
+.menu{position:relative}
+.menu>button{background:none;border:0;padding:3px 9px;border-radius:3px;cursor:default}
+.menu>button:hover,.menu.open>button{background:var(--bg3)}
+.drop{display:none;position:absolute;top:100%;left:0;min-width:210px;background:var(--bg2);border:1px solid var(--line2);border-radius:4px;padding:3px;box-shadow:0 10px 30px #0009}
+.menu.open .drop{display:block}
+.drop button{display:flex;justify-content:space-between;gap:24px;width:100%;background:none;border:0;padding:4px 10px;border-radius:3px;text-align:left;cursor:default}
+.drop button:hover{background:var(--accd)}
+.drop kbd{color:var(--tx3);font:11px var(--mono)}
+.drop hr{border:0;border-top:1px solid var(--line);margin:3px 2px}
+#title{margin-left:auto;color:var(--tx3);padding-right:8px}
+/* toolbar */
+#toolbar{background:var(--bg2);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:6px;padding:0 8px}
+.tb{background:var(--bg3);border:1px solid var(--line2);border-radius:3px;padding:4px 10px;cursor:pointer}
+.tb:hover{border-color:var(--tx3)}
+.tb.primary{background:var(--acc);border-color:var(--acc);color:#07101f;font-weight:600}
+.tb.primary:hover{filter:brightness(1.1)}
+.tb:disabled{opacity:.45;cursor:not-allowed}
+.sep{width:1px;height:20px;background:var(--line2);margin:0 4px}
+.seg{display:flex;border:1px solid var(--line2);border-radius:3px;overflow:hidden}
+.seg button{background:var(--bg1);border:0;padding:4px 12px;cursor:pointer;color:var(--tx2)}
+.seg button+button{border-left:1px solid var(--line2)}
+.seg button.on{background:var(--accd);color:#fff}
+#prog{margin-left:auto;display:none;align-items:center;gap:8px;color:var(--tx2)}
+#prog .bar{width:180px;height:6px;background:var(--bg0);border:1px solid var(--line2);border-radius:3px;overflow:hidden}
+#prog .bar i{display:block;height:100%;width:0;background:var(--acc)}
+/* workspace */
+#ws{display:grid;grid-template-columns:264px 1fr 250px;grid-template-rows:1fr 232px;gap:1px;background:var(--line);min-height:0}
+.dock{background:var(--bg1);display:flex;flex-direction:column;min-height:0;min-width:0}
+.dh{height:26px;flex:none;background:var(--bg2);border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 10px;color:var(--tx2);gap:8px}
+.dh b{color:var(--tx);font-weight:600}
+.dh .sp{margin-left:auto}
+.db{overflow:auto;flex:1;padding:10px}
+.db::-webkit-scrollbar,.lanes::-webkit-scrollbar{width:9px;height:9px}
+.db::-webkit-scrollbar-thumb,.lanes::-webkit-scrollbar-thumb{background:var(--bg3);border:2px solid var(--bg1);border-radius:5px}
+#left{grid-row:1/3}
+.tabs{display:flex;background:var(--bg0);flex:none}
+.tabs button{flex:1;background:none;border:0;border-bottom:2px solid transparent;padding:6px;color:var(--tx2);cursor:pointer}
+.tabs button.on{background:var(--bg1);color:var(--tx)}
+.tabs button[data-s=a].on{border-color:var(--a)}
+.tabs button[data-s=b].on{border-color:var(--b)}
+.grp{margin-bottom:12px}
+.grp>label,.lbl{display:block;color:var(--tx2);margin-bottom:4px}
+.row{display:flex;align-items:center;gap:6px}
+input[type=text],input[type=number],select{width:100%;background:var(--bg0);border:1px solid var(--line2);border-radius:3px;padding:4px 7px;user-select:text}
+input:focus,select:focus{border-color:var(--acc);outline:0}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
+.opt{background:var(--bg0);border:1px solid var(--line2);border-radius:3px;padding:5px 2px;text-align:center;cursor:pointer;color:var(--tx2)}
+.opt:hover{color:var(--tx);border-color:var(--tx3)}
+.opt.on{color:#fff;background:var(--accd);border-color:var(--acc)}
+input[type=color]{-webkit-appearance:none;appearance:none;width:30px;height:24px;border:1px solid var(--line2);border-radius:3px;background:none;padding:1px;cursor:pointer;flex:none}
+input[type=color]::-webkit-color-swatch-wrapper{padding:0}input[type=color]::-webkit-color-swatch{border:0;border-radius:2px}
+.sw{width:16px;height:16px;border-radius:3px;border:1px solid var(--line2);cursor:pointer;flex:none}
+input[type=range]{width:100%;accent-color:var(--acc)}
+.val{font:11px var(--mono);color:var(--tx);margin-left:auto}
+.tog{display:flex;align-items:center;justify-content:space-between}
+.tog input{accent-color:var(--acc)}
+/* viewport */
+#view{background:var(--bg0);position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;
+  background-image:linear-gradient(45deg,#15181d 25%,transparent 25%,transparent 75%,#15181d 75%),linear-gradient(45deg,#15181d 25%,transparent 25%,transparent 75%,#15181d 75%);
+  background-size:20px 20px;background-position:0 0,10px 10px}
+#view img,#view video{max-width:calc(100% - 24px);max-height:calc(100% - 24px);box-shadow:0 0 0 1px var(--line2),0 8px 30px #000a}
+#view video{display:none}
+#vbadge{position:absolute;top:8px;left:8px;background:#000a;border:1px solid var(--line2);border-radius:3px;padding:2px 8px;color:var(--tx2);font:11px var(--mono)}
+#dl{position:absolute;top:8px;right:8px;display:none;text-decoration:none}
+/* timeline */
+#tl{grid-column:2}
+.tlbody{display:grid;grid-template-columns:86px 1fr;flex:1;min-height:0}
+.heads{background:var(--bg2);border-right:1px solid var(--line);padding-top:22px}
+.heads div{height:34px;display:flex;align-items:center;padding:0 10px;border-bottom:1px solid var(--line);font-weight:600}
+.lanes{overflow:auto;position:relative}
+.ruler{height:22px;position:sticky;top:0;background:var(--bg2);border-bottom:1px solid var(--line);z-index:3}
+.ruler span{position:absolute;top:5px;padding-left:4px;border-left:1px solid var(--line2);height:17px;font:10px var(--mono);color:var(--tx3)}
+.lane{height:34px;border-bottom:1px solid var(--line);position:relative;background-image:repeating-linear-gradient(90deg,transparent 0 79px,#ffffff08 79px 80px)}
+.ev{position:absolute;top:5px;height:24px;border-radius:3px;padding:0 6px;line-height:22px;white-space:nowrap;overflow:hidden;cursor:pointer;font-size:11px;border:1px solid;min-width:14px}
+.ev.A{background:#ff6b7f30;border-color:var(--a);color:#ffc0c8}
+.ev.B{background:#4cc2ff30;border-color:var(--b);color:#bfeaff}
+.ev.scene{background:#f2b84b30;border-color:var(--s);color:#fbe3ae}
+.ev.sel{box-shadow:0 0 0 2px #fff8}
+.empty{padding:14px;color:var(--tx3)}
+.addbar{flex:none;display:grid;grid-template-columns:64px 110px 1fr 64px auto auto;gap:6px;padding:6px 8px;background:var(--bg2);border-top:1px solid var(--line)}
+#tl.dim .tlbody{opacity:.4;pointer-events:none}
+/* right */
+.kv{display:grid;grid-template-columns:1fr auto;gap:2px 8px;font:11px var(--mono);color:var(--tx2)}
+.kv b{color:var(--tx);font-weight:400}
+/* status */
+#status{background:var(--accd);display:flex;align-items:center;gap:16px;padding:0 10px;font-size:11px;color:#dbe7ff}
+#status .r{margin-left:auto}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--ok);margin-right:5px}
+/* palette */
+#pal{display:none;position:fixed;inset:0;background:#0008;z-index:99;align-items:flex-start;justify-content:center;padding-top:14vh}
+#pal.on{display:flex}
+#pal div{width:460px;background:var(--bg2);border:1px solid var(--line2);border-radius:6px;padding:8px;box-shadow:0 20px 60px #000}
+#pal ul{list-style:none;margin-top:6px;max-height:280px;overflow:auto}
+#pal li{padding:5px 8px;border-radius:3px;cursor:default}
+#pal li.on{background:var(--accd)}
+@media(max-width:1000px){#ws{grid-template-columns:230px 1fr}#right{display:none}}
+</style>
 </head>
 <body>
 
-  <header>
-    <div class="brand">
-      <span class="brand-icon">⚔️</span>
-      <span class="brand-title">STICK FIGHT STUDIO</span>
-      <span class="brand-tag">TIMELINE PRO</span>
+<div id="menubar">
+  <span class="logo"><i></i>Stick Fight Studio</span>
+  <div class="menu"><button>File</button><div class="drop">
+    <button onclick="startRender()">Render video<kbd>Ctrl+Enter</kbd></button>
+    <hr>
+    <button onclick="loadPreset('ninja_vs_samurai')">Preset: Ninja vs Samurai</button>
+    <button onclick="loadPreset('cyborg_vs_ninja')">Preset: Cyber Clash</button>
+    <button onclick="loadPreset('brawler_vs_monk')">Preset: Street vs Shaolin</button>
+    <button onclick="loadPreset('realistic_boxing')">Preset: Boxing Title</button>
+    <button onclick="loadPreset('realistic_mma')">Preset: MMA Championship</button>
+    <button onclick="loadPreset('classic_showdown')">Preset: Classic Duel</button></div></div>
+  <div class="menu"><button>Edit</button><div class="drop">
+    <button onclick="randomizeAll()">Randomize fighters<kbd>Ctrl+R</kbd></button>
+    <button onclick="deleteSelected()">Delete selected action<kbd>Del</kbd></button>
+    <button onclick="clearTimeline()">Clear timeline</button></div></div>
+  <div class="menu"><button>View</button><div class="drop">
+    <button onclick="switchChoreographyMode('procedural')">Procedural mode</button>
+    <button onclick="switchChoreographyMode('timeline')">Timeline mode</button>
+    <hr><button onclick="schedulePreview()">Refresh preview<kbd>F5</kbd></button></div></div>
+  <div class="menu"><button>Tools</button><div class="drop">
+    <button onclick="openPalette()">Command palette<kbd>Ctrl+K</kbd></button></div></div>
+  <span id="title">Untitled fight</span>
+</div>
+
+<div id="toolbar">
+  <button class="tb primary" id="btnRender" onclick="startRender()">Render video</button>
+  <a class="tb" id="btnDownload" href="#" download style="display:none;text-decoration:none">Download MP4</a>
+  <span class="sep"></span>
+  <div class="seg" id="modeSeg">
+    <button id="tabProcedural" class="on" onclick="switchChoreographyMode('procedural')">Procedural</button>
+    <button id="tabTimeline" onclick="switchChoreographyMode('timeline')">Timeline</button>
+  </div>
+  <span class="sep"></span>
+  <button class="tb" onclick="randomizeAll()">Randomize</button>
+  <button class="tb" onclick="openPalette()">Commands</button>
+  <div id="prog"><span id="progressStatus">Rendering</span><div class="bar"><i id="progressBarFill"></i></div><span id="progressPct" style="font-family:var(--mono)">0%</span></div>
+</div>
+
+<div id="ws">
+  <!-- Left: fighter inspector -->
+  <section class="dock" id="left">
+    <div class="dh"><b>Fighter inspector</b></div>
+    <div class="tabs"><button data-s="a" class="on" onclick="setSide('a')">Fighter A</button><button data-s="b" onclick="setSide('b')">Fighter B</button></div>
+    <div class="db">
+      <div class="grp"><label>Name</label><input type="text" id="f_name" oninput="schedulePreview()"></div>
+      <div class="grp"><label>Archetype</label><div class="grid3" id="f_arch"></div></div>
+      <div class="grp"><label>Weapon</label><div class="grid3" id="f_weapon"></div></div>
+      <div class="grp"><label>Suit color</label><div class="row"><input type="color" id="f_color" oninput="schedulePreview()"><span id="sw_suit" class="row"></span></div></div>
+      <div class="grp"><label>Headband color</label><div class="row"><input type="color" id="f_headband" oninput="schedulePreview()"><span id="sw_band" class="row"></span></div></div>
+      <div class="grp"><label class="row">Scale<span class="val" id="f_scale_lbl">1.0x</span></label><input type="range" id="f_scale" min="0.8" max="1.3" step="0.05" value="1" oninput="schedulePreview()"></div>
     </div>
+  </section>
 
-    <div class="presets-bar">
-      <button class="preset-btn" onclick="loadPreset('ninja_vs_samurai')">🗡️ Ninja vs Samurai</button>
-      <button class="preset-btn" onclick="loadPreset('cyborg_vs_ninja')">⚡ Cyber Clash</button>
-      <button class="preset-btn" onclick="loadPreset('brawler_vs_monk')">🥊 Street vs Shaolin</button>
-      <button class="preset-btn" onclick="loadPreset('realistic_boxing')">🥊 Boxing Title</button>
-      <button class="preset-btn" onclick="loadPreset('realistic_mma')">🥋 MMA Championship</button>
-      <button class="preset-btn" onclick="loadPreset('classic_showdown')">⚪ Classic Duel</button>
-      <button class="preset-btn random-btn" onclick="randomizeAll()">🎲 Randomize</button>
+  <!-- Center: viewport -->
+  <section class="dock" style="grid-column:2">
+    <div class="dh"><b>Viewport</b><span id="vdim"></span></div>
+    <div id="view">
+      <span id="vbadge">SNAPSHOT</span>
+      <img id="previewImg" alt="Fight preview" src="">
+      <video id="videoPlayer" controls loop playsinline></video>
     </div>
-  </header>
+  </section>
 
-  <main>
-    <!-- LEFT PANEL: FIGHTER A -->
-    <div class="panel panel-a">
-      <div class="panel-header">
-        <span class="panel-title">
-          <span>🥋 Fighter A</span>
-          <span class="badge-fighter-a">Challenger 1</span>
-        </span>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Fighter Name</label>
-        <input type="text" id="fa_name" class="form-input" value="Shadow" oninput="schedulePreview()">
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Character Design</label>
-        <div class="archetype-grid" id="fa_archetypes">
-          <div class="archetype-card active" data-type="ninja" onclick="selectArchetype('a', 'ninja')">
-            <span class="archetype-icon">🥷</span>
-            <span class="archetype-name">Ninja</span>
-          </div>
-          <div class="archetype-card" data-type="warrior" onclick="selectArchetype('a', 'warrior')">
-            <span class="archetype-icon">⚔️</span>
-            <span class="archetype-name">Warrior</span>
-          </div>
-          <div class="archetype-card" data-type="monk" onclick="selectArchetype('a', 'monk')">
-            <span class="archetype-icon">🥢</span>
-            <span class="archetype-name">Monk</span>
-          </div>
-          <div class="archetype-card" data-type="cyber" onclick="selectArchetype('a', 'cyber')">
-            <span class="archetype-icon">🤖</span>
-            <span class="archetype-name">Cyber</span>
-          </div>
-          <div class="archetype-card" data-type="brawler" onclick="selectArchetype('a', 'brawler')">
-            <span class="archetype-icon">🥊</span>
-            <span class="archetype-name">Brawler</span>
-          </div>
-          <div class="archetype-card" data-type="classic" onclick="selectArchetype('a', 'classic')">
-            <span class="archetype-icon">⚪</span>
-            <span class="archetype-name">Classic</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Equipped Weapon</label>
-        <div class="pills" id="fa_weapon">
-          <div class="pill-btn" data-val="none" onclick="selectWeapon('a', 'none')">Bare Hands</div>
-          <div class="pill-btn active" data-val="sword" onclick="selectWeapon('a', 'sword')">Katana</div>
-          <div class="pill-btn" data-val="staff" onclick="selectWeapon('a', 'staff')">Bo Staff</div>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Suit Color</label>
-        <div class="color-row">
-          <input type="color" id="fa_color" class="color-picker" value="#2d3038" oninput="schedulePreview()">
-          <div class="swatches">
-            <div class="swatch" style="background:#2d3038" onclick="setFighterColor('a', '#2d3038')"></div>
-            <div class="swatch" style="background:#e63946" onclick="setFighterColor('a', '#e63946')"></div>
-            <div class="swatch" style="background:#00d2ff" onclick="setFighterColor('a', '#00d2ff')"></div>
-            <div class="swatch" style="background:#f58c23" onclick="setFighterColor('a', '#f58c23')"></div>
-            <div class="swatch" style="background:#f0f3f8" onclick="setFighterColor('a', '#f0f3f8')"></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Headband / Ribbon Color</label>
-        <div class="color-row">
-          <input type="color" id="fa_headband" class="color-picker" value="#eb2d2d" oninput="schedulePreview()">
-          <div class="swatches">
-            <div class="swatch" style="background:#eb2d2d" onclick="setHeadbandColor('a', '#eb2d2d')"></div>
-            <div class="swatch" style="background:#ffb700" onclick="setHeadbandColor('a', '#ffb700')"></div>
-            <div class="swatch" style="background:#00e5ff" onclick="setHeadbandColor('a', '#00e5ff')"></div>
-            <div class="swatch" style="background:#ffffff" onclick="setHeadbandColor('a', '#ffffff')"></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <div class="slider-row">
-          <span>Scale Size</span>
-          <span id="fa_scale_lbl">1.0x</span>
-        </div>
-        <input type="range" id="fa_scale" class="slider" min="0.8" max="1.3" step="0.05" value="1.0" oninput="updateLabel('fa_scale', 'fa_scale_lbl', 'x'); schedulePreview()">
-      </div>
+  <!-- Right: scene -->
+  <section class="dock" id="right" style="grid-row:1/3;grid-column:3">
+    <div class="dh"><b>Scene</b></div>
+    <div class="db">
+      <div class="grp"><label>Combat style</label><div class="grid3" style="grid-template-columns:1fr 1fr" id="style_sel"></div></div>
+      <div class="grp"><label>Environment</label><div class="grid3" style="grid-template-columns:1fr 1fr" id="env_sel"></div></div>
+      <div class="grp"><label>Aspect ratio</label><div class="grid3" id="fmt_sel"></div></div>
+      <div class="grp" id="durGroup"><label class="row">Duration<span class="val" id="duration_lbl">6.5s</span></label><input type="range" id="duration" min="3" max="12" step="0.5" value="6.5" oninput="updateDuration()"></div>
+      <div class="grp tog"><label style="margin:0">Fighting game UI bars</label><input type="checkbox" id="show_ui" checked onchange="schedulePreview()"></div>
+      <hr style="border:0;border-top:1px solid var(--line);margin:4px 0 10px">
+      <div class="lbl">Project</div>
+      <div class="kv"><span>Mode</span><b id="k_mode"></b><span>Style</span><b id="k_style"></b><span>Actions</span><b id="k_ev"></b><span>Output</span><b id="k_out"></b></div>
     </div>
+  </section>
 
-    <!-- CENTER PANEL: LIVE VIEWPORT & CHOREOGRAPHY SEQUENCER -->
-    <div class="panel viewport-panel">
-      <!-- Mode Tabs: AI Generator vs Timeline Choreographer -->
-      <div class="mode-tabs">
-        <div class="mode-tab active" id="tabProcedural" onclick="switchChoreographyMode('procedural')">
-          ⚡ AI Fight Generator
-        </div>
-        <div class="mode-tab" id="tabTimeline" onclick="switchChoreographyMode('timeline')">
-          🎬 Visual Timeline Choreographer
-        </div>
-      </div>
-
-      <div class="viewport-wrapper">
-        <div class="preview-badge live-dot" id="previewBadge">LIVE PREVIEW</div>
-        <img id="previewImg" alt="Fight Preview" src="">
-        <video id="videoPlayer" controls loop playsinline></video>
-      </div>
-
-      <!-- VISUAL TIMELINE SEQUENCER CONTAINER -->
-      <div class="timeline-container" id="timelineContainer">
-        <div class="timeline-header">
-          <span>Choreographed Action Sequence (<span id="eventCount">0</span> actions)</span>
-          <div style="display: flex; gap: 6px;">
-            <button class="preset-btn" style="padding: 3px 8px; font-size: 11px;" onclick="loadPresetTimeline()">📋 Load Preset</button>
-            <button class="preset-btn" style="padding: 3px 8px; font-size: 11px; color: #ff5252;" onclick="clearTimeline()">🗑️ Clear</button>
-          </div>
-        </div>
-
-        <!-- Quick Action Add Chips -->
-        <div class="timeline-quick-actions">
-          <span style="font-size: 11px; font-weight: 700; color: var(--text-muted); align-self: center; margin-right: 4px;">Quick Add:</span>
-          <div class="action-chip" onclick="quickAddAction('A', 'jab')">🥊 A: Jab</div>
-          <div class="action-chip" onclick="quickAddAction('B', 'cross')">💥 B: Cross</div>
-          <div class="action-chip" onclick="quickAddAction('A', 'hook')">🥊 A: Hook</div>
-          <div class="action-chip" onclick="quickAddAction('B', 'slip')">💫 B: Slip</div>
-          <div class="action-chip" onclick="quickAddAction('A', 'bob_weave')">🛡️ A: Bob&Weave</div>
-          <div class="action-chip" onclick="quickAddAction('A', 'low_kick')">🦵 A: Low Kick</div>
-          <div class="action-chip" onclick="quickAddAction('B', 'check_kick')">🛡️ B: Check Kick</div>
-          <div class="action-chip" onclick="quickAddAction('A', 'clinch_knee')">🦵 A: Clinch Knee</div>
-          <div class="action-chip" onclick="quickAddAction('A', 'takedown')">🤼 A: Takedown</div>
-          <div class="action-chip" onclick="quickAddAction('A', 'ground_pound')">💥 A: Ground&Pound</div>
-          <div class="action-chip" onclick="quickAddAction('B', 'fall')">💀 B: Fall (KO)</div>
-          <div class="action-chip" onclick="quickAddAction('scene', 'caption')">💬 Caption</div>
-        </div>
-
-        <!-- Sequenced Events Track List -->
-        <div class="timeline-tracks" id="timelineTracks">
-          <!-- Dynamically populated -->
-        </div>
-
-        <!-- Add Custom Action Row -->
-        <div class="add-event-box">
-          <input type="number" id="add_time" class="form-input" style="padding: 5px;" placeholder="Time" value="1.0" step="0.1" min="0">
-          <select id="add_actor" class="form-input" style="padding: 4px;">
-            <option value="A">🔴 Fighter A</option>
-            <option value="B">🔵 Fighter B</option>
-            <option value="scene">🟡 Scene</option>
-          </select>
-          <select id="add_action" class="form-input" style="padding: 4px;">
-            <optgroup label="🥊 Realistic Combat">
-              <option value="jab">🥊 Lead Jab</option>
-              <option value="cross">💥 Rear Cross</option>
-              <option value="hook">🥊 Hook Punch</option>
-              <option value="low_kick">🦵 Low Leg Kick</option>
-              <option value="check_kick">🛡️ Shin Check Kick</option>
-              <option value="slip">💫 Head Slip</option>
-              <option value="bob_weave">🛡️ Bob & Weave</option>
-              <option value="clinch_knee">🦵 Clinch Knee Strike</option>
-              <option value="takedown">🤼 Double-Leg Takedown</option>
-              <option value="ground_pound">💥 Ground & Pound Strike</option>
-              <option value="stagger">😵 Heavy Stagger</option>
-            </optgroup>
-            <optgroup label="⚡ Arcade & Martial Arts">
-              <option value="throw">🤼 Grappling Throw / Slam</option>
-              <option value="dive_kick">🦅 Aerial Dive Kick</option>
-              <option value="air_juggle">🌪️ Air Juggle Strike</option>
-              <option value="wall_bounce">🧱 Wall Bounce</option>
-              <option value="punch">👊 Classic Punch</option>
-              <option value="kick">🦶 High Kick</option>
-              <option value="uppercut">💥 Uppercut</option>
-              <option value="sweep">🧹 Sweep</option>
-              <option value="slash">🗡️ Sword Slash</option>
-              <option value="staff_strike">🥢 Staff Strike</option>
-              <option value="block">🛡️ Block / Parry</option>
-              <option value="dodge">🌪️ Matrix Dodge</option>
-              <option value="jump">🤸 Jump / Flip</option>
-              <option value="knockback">💫 Knockback</option>
-              <option value="fall">💀 Fall Down (KO)</option>
-              <option value="walk_to">🏃 Walk To Target</option>
-              <option value="caption">💬 Screen Caption</option>
-            </optgroup>
-          </select>
-          <input type="number" id="add_dur" class="form-input" style="padding: 5px;" placeholder="Dur" value="0.4" step="0.05" min="0.1">
-          <button class="add-btn-icon" onclick="addCustomAction()" title="Add to Timeline">+</button>
-        </div>
-
-      </div>
-
-      <!-- Action & Render Controls -->
-      <div class="render-section">
-        <div class="progress-box" id="progressBox">
-          <div class="progress-text">
-            <span id="progressStatus">Rendering frames...</span>
-            <span id="progressPct">0%</span>
-          </div>
-          <div class="progress-bar-bg">
-            <div class="progress-bar-fill" id="progressBarFill"></div>
-          </div>
-          <div class="progress-text" style="font-size: 11px;">
-            <span id="progressFrames">Frame 0 / 0</span>
-            <span id="progressFps">0.0 fps</span>
-          </div>
-        </div>
-
-        <button class="btn-render" id="btnRender" onclick="startRender()">
-          <span>⚔️ GENERATE FIGHT VIDEO</span>
-        </button>
-
-        <a class="btn-download" id="btnDownload" href="#" download>
-          <span>⬇️ DOWNLOAD FINISHED MP4</span>
-        </a>
-      </div>
+  <!-- Bottom: timeline -->
+  <section class="dock" id="tl">
+    <div class="dh"><b>Timeline</b><span id="eventCount">0 actions</span>
+      <span class="sp row"><button class="tb" style="padding:1px 8px" onclick="loadPresetTimeline()">Load preset</button><button class="tb" style="padding:1px 8px" onclick="clearTimeline()">Clear</button></span></div>
+    <div class="tlbody">
+      <div class="heads"><div style="color:var(--a)">Fighter A</div><div style="color:var(--b)">Fighter B</div><div style="color:var(--s)">Scene</div></div>
+      <div class="lanes" id="lanes"></div>
     </div>
-
-    <!-- RIGHT PANEL: FIGHTER B & ARENA CONFIG -->
-    <div class="panel panel-b">
-      <div class="panel-header">
-        <span class="panel-title">
-          <span>🥋 Fighter B</span>
-          <span class="badge-fighter-b">Challenger 2</span>
-        </span>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Fighter Name</label>
-        <input type="text" id="fb_name" class="form-input" value="Kensei" oninput="schedulePreview()">
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Character Design</label>
-        <div class="archetype-grid" id="fb_archetypes">
-          <div class="archetype-card" data-type="ninja" onclick="selectArchetype('b', 'ninja')">
-            <span class="archetype-icon">🥷</span>
-            <span class="archetype-name">Ninja</span>
-          </div>
-          <div class="archetype-card active" data-type="warrior" onclick="selectArchetype('b', 'warrior')">
-            <span class="archetype-icon">⚔️</span>
-            <span class="archetype-name">Warrior</span>
-          </div>
-          <div class="archetype-card" data-type="monk" onclick="selectArchetype('b', 'monk')">
-            <span class="archetype-icon">🥢</span>
-            <span class="archetype-name">Monk</span>
-          </div>
-          <div class="archetype-card" data-type="cyber" onclick="selectArchetype('b', 'cyber')">
-            <span class="archetype-icon">🤖</span>
-            <span class="archetype-name">Cyber</span>
-          </div>
-          <div class="archetype-card" data-type="brawler" onclick="selectArchetype('b', 'brawler')">
-            <span class="archetype-icon">🥊</span>
-            <span class="archetype-name">Brawler</span>
-          </div>
-          <div class="archetype-card" data-type="classic" onclick="selectArchetype('b', 'classic')">
-            <span class="archetype-icon">⚪</span>
-            <span class="archetype-name">Classic</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Equipped Weapon</label>
-        <div class="pills" id="fb_weapon">
-          <div class="pill-btn" data-val="none" onclick="selectWeapon('b', 'none')">Bare Hands</div>
-          <div class="pill-btn active" data-val="sword" onclick="selectWeapon('b', 'sword')">Katana</div>
-          <div class="pill-btn" data-val="staff" onclick="selectWeapon('b', 'staff')">Bo Staff</div>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Suit Color</label>
-        <div class="color-row">
-          <input type="color" id="fb_color" class="color-picker" value="#e6ebf5" oninput="schedulePreview()">
-          <div class="swatches">
-            <div class="swatch" style="background:#e6ebf5" onclick="setFighterColor('b', '#e6ebf5')"></div>
-            <div class="swatch" style="background:#2d3038" onclick="setFighterColor('b', '#2d3038')"></div>
-            <div class="swatch" style="background:#ffb700" onclick="setFighterColor('b', '#ffb700')"></div>
-            <div class="swatch" style="background:#00d2ff" onclick="setFighterColor('b', '#00d2ff')"></div>
-            <div class="swatch" style="background:#eb3c3c" onclick="setFighterColor('b', '#eb3c3c')"></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Headband / Ribbon Color</label>
-        <div class="color-row">
-          <input type="color" id="fb_headband" class="color-picker" value="#ebbe2d" oninput="schedulePreview()">
-          <div class="swatches">
-            <div class="swatch" style="background:#ebbe2d" onclick="setHeadbandColor('b', '#ebbe2d')"></div>
-            <div class="swatch" style="background:#eb2d2d" onclick="setHeadbandColor('b', '#eb2d2d')"></div>
-            <div class="swatch" style="background:#00e5ff" onclick="setHeadbandColor('b', '#00e5ff')"></div>
-            <div class="swatch" style="background:#ffffff" onclick="setHeadbandColor('b', '#ffffff')"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ARENA & FORMAT SETTINGS -->
-      <div class="panel-header" style="margin-top: 10px;">
-        <span class="panel-title">
-          <span>🏟️ Combat & Video Settings</span>
-        </span>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Combat Style & Physics</label>
-        <div class="pills" id="style_selector">
-          <div class="pill-btn active" data-val="arcade" onclick="selectStyle('arcade')">⚡ Arcade / Anime</div>
-          <div class="pill-btn" data-val="realistic" onclick="selectStyle('realistic')">🥊 Realistic MMA</div>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Background Environment</label>
-        <div class="pills" id="env_selector">
-          <div class="pill-btn active" data-val="dojo" onclick="selectEnv('dojo')">⛩️ Dojo</div>
-          <div class="pill-btn" data-val="cyberpunk" onclick="selectEnv('cyberpunk')">⚡ Cyber</div>
-          <div class="pill-btn" data-val="city" onclick="selectEnv('city')">🏢 City</div>
-          <div class="pill-btn" data-val="plain" onclick="selectEnv('plain')">⬛ Plain</div>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Aspect Ratio</label>
-        <div class="pills" id="format_selector">
-          <div class="pill-btn active" data-val="vertical" onclick="selectFormat('vertical')">📱 9:16 (Shorts)</div>
-          <div class="pill-btn" data-val="horizontal" onclick="selectFormat('horizontal')">🖥️ 16:9</div>
-          <div class="pill-btn" data-val="square" onclick="selectFormat('square')">⏹️ 1:1</div>
-        </div>
-      </div>
-
-      <div class="form-group" id="durationGroup">
-        <div class="slider-row">
-          <span>Fight Duration</span>
-          <span id="duration_lbl">6.5s</span>
-        </div>
-        <input type="range" id="duration" class="slider" min="3.0" max="12.0" step="0.5" value="6.5" oninput="updateLabel('duration', 'duration_lbl', 's')">
-      </div>
-
-      <div class="toggle-row">
-        <span>Fighting Game UI Bars</span>
-        <label class="toggle-switch">
-          <input type="checkbox" id="show_ui" checked onchange="schedulePreview()">
-          <span class="slider-toggle"></span>
-        </label>
-      </div>
+    <div class="addbar">
+      <input type="number" id="add_time" value="1.0" step="0.1" min="0" title="Start time (s)">
+      <select id="add_actor"><option value="A">Fighter A</option><option value="B">Fighter B</option><option value="scene">Scene</option></select>
+      <select id="add_action"></select>
+      <input type="number" id="add_dur" value="0.4" step="0.05" min="0.1" title="Duration (s)">
+      <button class="tb" onclick="addCustomAction()">Add action</button>
+      <button class="tb" onclick="deleteSelected()">Delete</button>
     </div>
-  </main>
+  </section>
+</div>
 
-  <script>
-    let state = {
-      mode: "procedural", // "procedural" | "timeline"
-      style: "arcade",    // "arcade" | "realistic"
-      fighter_a: {
-        name: "Shadow",
-        archetype: "ninja",
-        weapon: "sword",
-        color: "#2d3038",
-        headband_color: "#eb2d2d",
-        scale: 1.0,
-        health: 100,
-        line_width: 10
-      },
-      fighter_b: {
-        name: "Kensei",
-        archetype: "warrior",
-        weapon: "sword",
-        color: "#e6ebf5",
-        headband_color: "#ebbe2d",
-        scale: 1.0,
-        health: 100,
-        line_width: 10
-      },
-      environment: "dojo",
-      format: "vertical",
-      duration: 6.5,
-      show_ui: true,
-      timeline: []
-    };
+<div id="status">
+  <span><span class="dot" id="sdot"></span><span id="sconn">Backend ready</span></span>
+  <span id="sframe">Idle</span>
+  <span class="r" id="sfmt"></span>
+</div>
 
-    let currentPresets = [];
-    let previewTimer = null;
+<div id="pal"><div><input type="text" id="palIn" placeholder="Type a command"><ul id="palList"></ul></div></div>
 
-    const ACTION_ICONS = {
-      jab: "🥊",
-      cross: "💥",
-      hook: "🥊",
-      low_kick: "🦵",
-      check_kick: "🛡️",
-      slip: "💫",
-      bob_weave: "🛡️",
-      clinch_knee: "🦵",
-      takedown: "🤼",
-      ground_pound: "💥",
-      stagger: "😵",
-      throw: "🤼",
-      dive_kick: "🦅",
-      air_juggle: "🌪️",
-      wall_bounce: "🧱",
-      punch: "👊",
-      kick: "🦶",
-      uppercut: "💥",
-      sweep: "🧹",
-      slash: "🗡️",
-      staff_strike: "🥢",
-      block: "🛡️",
-      dodge: "🌪️",
-      jump: "🤸",
-      knockback: "💫",
-      fall: "💀",
-      walk_to: "🏃",
-      run_to: "⚡",
-      counter: "⚡",
-      combo: "🔥",
-      caption: "💬",
-      shake: "📳"
-    };
+<script>
+const PX=80;
+const state={mode:"procedural",style:"arcade",
+  fighter_a:{name:"Shadow",archetype:"ninja",weapon:"sword",color:"#2d3038",headband_color:"#eb2d2d",scale:1.0,health:100,line_width:10},
+  fighter_b:{name:"Kensei",archetype:"warrior",weapon:"sword",color:"#e6ebf5",headband_color:"#ebbe2d",scale:1.0,health:100,line_width:10},
+  environment:"dojo",format:"vertical",duration:6.5,show_ui:true,timeline:[]};
+let side='a',currentPresets=[],previewTimer=null,selected=-1;
 
+const ARCH=['ninja','warrior','monk','cyber','brawler','classic'];
+const WEAP=[['none','Bare hands'],['sword','Katana'],['staff','Bo staff']];
+const STYLES=[['arcade','Arcade'],['realistic','Realistic']];
+const ENVS=[['dojo','Dojo'],['cyberpunk','Cyber'],['city','City'],['plain','Plain']];
+const FMTS=[['vertical','9:16'],['horizontal','16:9'],['square','1:1']];
+const ACTIONS={"Realistic combat":[['jab','Lead jab'],['cross','Rear cross'],['hook','Hook punch'],['low_kick','Low kick'],['check_kick','Check kick'],['slip','Head slip'],['bob_weave','Bob and weave'],['clinch_knee','Clinch knee'],['takedown','Double-leg takedown'],['ground_pound','Ground and pound'],['stagger','Heavy stagger']],
+"Arcade and martial arts":[['throw','Throw / slam'],['dive_kick','Aerial dive kick'],['air_juggle','Air juggle'],['wall_bounce','Wall bounce'],['punch','Punch'],['kick','High kick'],['uppercut','Uppercut'],['sweep','Sweep'],['slash','Sword slash'],['staff_strike','Staff strike'],['block','Block / parry'],['dodge','Matrix dodge'],['jump','Jump / flip'],['knockback','Knockback'],['fall','Fall (KO)'],['walk_to','Walk to target'],['caption','Screen caption']]};
+const SWS={suit:['#2d3038','#e63946','#00d2ff','#f58c23','#e6ebf5'],band:['#eb2d2d','#ffb700','#00e5ff','#ffffff']};
+const $=id=>document.getElementById(id);
+const F=()=>state['fighter_'+side];
 
-    function switchChoreographyMode(mode) {
-      state.mode = mode;
-      document.getElementById('tabProcedural').classList.toggle('active', mode === 'procedural');
-      document.getElementById('tabTimeline').classList.toggle('active', mode === 'timeline');
+function seg(el,items,cur,fn){el.innerHTML='';items.forEach(it=>{const [v,l]=Array.isArray(it)?it:[it,it[0].toUpperCase()+it.slice(1)];
+  const d=document.createElement('div');d.className='opt'+(v===cur?' on':'');d.dataset.v=v;d.textContent=l;d.onclick=()=>fn(v);el.appendChild(d)})}
+function mark(el,v){el.querySelectorAll('.opt').forEach(o=>o.classList.toggle('on',o.dataset.v===v))}
 
-      const timelineContainer = document.getElementById('timelineContainer');
-      const durationGroup = document.getElementById('durationGroup');
+function buildStatic(){
+  const sel=$('add_action');Object.entries(ACTIONS).forEach(([g,list])=>{const og=document.createElement('optgroup');og.label=g;
+    list.forEach(([v,l])=>{const o=document.createElement('option');o.value=v;o.textContent=l;og.appendChild(o)});sel.appendChild(og)});
+  seg($('style_sel'),STYLES,state.style,selectStyle);seg($('env_sel'),ENVS,state.environment,selectEnv);seg($('fmt_sel'),FMTS,state.format,selectFormat);
+  [['sw_suit',SWS.suit,'f_color'],['sw_band',SWS.band,'f_headband']].forEach(([id,list,inp])=>{
+    list.forEach(c=>{const s=document.createElement('span');s.className='sw';s.style.background=c;s.onclick=()=>{$(inp).value=c;schedulePreview()};$(id).appendChild(s)})});
+}
+function loadInspector(){
+  const f=F();$('f_name').value=f.name;$('f_color').value=f.color;$('f_headband').value=f.headband_color;$('f_scale').value=f.scale;$('f_scale_lbl').textContent=f.scale.toFixed(2)+'x';
+  seg($('f_arch'),ARCH,f.archetype,selectArchetype);seg($('f_weapon'),WEAP,f.weapon,selectWeapon);
+  document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.s===side));
+}
+function setSide(s){side=s;loadInspector()}
+function selectArchetype(t){F().archetype=t;mark($('f_arch'),t);schedulePreview()}
+function selectWeapon(w){F().weapon=w;mark($('f_weapon'),w);schedulePreview()}
+function selectStyle(v){state.style=v;mark($('style_sel'),v);refreshInfo()}
+function selectEnv(v){state.environment=v;mark($('env_sel'),v);schedulePreview()}
+function selectFormat(v){state.format=v;mark($('fmt_sel'),v);schedulePreview()}
+function updateDuration(){state.duration=parseFloat($('duration').value);$('duration_lbl').textContent=state.duration+'s';refreshInfo()}
+function refreshInfo(){$('k_mode').textContent=state.mode;$('k_style').textContent=state.style;$('k_ev').textContent=state.timeline.length;
+  const f=FMTS.find(x=>x[0]===state.format);$('k_out').textContent=f?f[1]:'';$('sfmt').textContent=state.environment+'  |  '+(f?f[1]:'');
+  $('title').textContent=state.fighter_a.name+' vs '+state.fighter_b.name}
 
-      if (mode === 'timeline') {
-        timelineContainer.style.display = 'flex';
-        durationGroup.style.opacity = '0.5';
-        if (state.timeline.length === 0) {
-          loadPresetTimeline();
-        } else {
-          renderTimelineTracks();
-        }
-      } else {
-        timelineContainer.style.display = 'none';
-        durationGroup.style.opacity = '1.0';
-      }
-    }
+function switchChoreographyMode(m){state.mode=m;
+  $('tabProcedural').classList.toggle('on',m==='procedural');$('tabTimeline').classList.toggle('on',m==='timeline');
+  $('tl').classList.toggle('dim',m!=='timeline');$('durGroup').style.opacity=m==='timeline'?.45:1;
+  if(m==='timeline'&&!state.timeline.length)loadPresetTimeline();else renderTimelineTracks();refreshInfo()}
 
-    function renderTimelineTracks() {
-      const container = document.getElementById('timelineTracks');
-      container.innerHTML = '';
+function renderTimelineTracks(){
+  state.timeline.sort((a,b)=>parseFloat(a.time)-parseFloat(b.time));
+  const end=Math.max(state.duration,...state.timeline.map(e=>parseFloat(e.time)+parseFloat(e.duration||.5)))+1;
+  const w=Math.ceil(end)*PX,L=$('lanes');L.innerHTML='';
+  const ruler=document.createElement('div');ruler.className='ruler';ruler.style.width=w+'px';
+  for(let i=0;i<=Math.ceil(end);i++){const s=document.createElement('span');s.style.left=i*PX+'px';s.textContent=i+'s';ruler.appendChild(s)}
+  L.appendChild(ruler);
+  const lanes={A:null,B:null,scene:null};
+  Object.keys(lanes).forEach(k=>{const d=document.createElement('div');d.className='lane';d.style.width=w+'px';lanes[k]=d;L.appendChild(d)});
+  state.timeline.forEach((ev,i)=>{const b=document.createElement('div');b.className='ev '+ev.actor+(i===selected?' sel':'');
+    b.style.left=parseFloat(ev.time)*PX+'px';b.style.width=Math.max(14,parseFloat(ev.duration||.5)*PX)+'px';
+    b.textContent=ev.action.replace(/_/g,' ')+(ev.text?': '+ev.text:'');b.title=ev.action+' at '+parseFloat(ev.time).toFixed(2)+'s';
+    b.onclick=()=>{selected=i;renderTimelineTracks()};(lanes[ev.actor]||lanes.scene).appendChild(b)});
+  $('eventCount').textContent=state.timeline.length+' actions';refreshInfo()}
 
-      // Sort timeline by time
-      state.timeline.sort((a, b) => parseFloat(a.time) - parseFloat(b.time));
-      document.getElementById('eventCount').innerText = state.timeline.length;
+function deleteSelected(){if(selected<0)return;state.timeline.splice(selected,1);selected=-1;renderTimelineTracks()}
+function clearTimeline(){state.timeline=[];selected=-1;renderTimelineTracks()}
+function addCustomAction(){
+  const t=parseFloat($('add_time').value)||0,actor=$('add_actor').value,action=$('add_action').value,dur=parseFloat($('add_dur').value)||.5;
+  const ev={time:t,actor,action,duration:dur};
+  if(action==='caption')ev.text=prompt('Caption text:','ROUND 1')||'ROUND 1';
+  state.timeline.push(ev);$('add_time').value=(t+.6).toFixed(1);renderTimelineTracks()}
+function loadPresetTimeline(){
+  const m=currentPresets.find(p=>p.fighter_a.archetype===state.fighter_a.archetype)||currentPresets[0];
+  if(m&&m.timeline)state.timeline=JSON.parse(JSON.stringify(m.timeline));renderTimelineTracks()}
 
-      state.timeline.forEach((ev, idx) => {
-        const row = document.createElement('div');
-        row.className = 'timeline-event-row';
+function schedulePreview(){
+  const f=F();f.name=$('f_name').value;f.color=$('f_color').value;f.headband_color=$('f_headband').value;f.scale=parseFloat($('f_scale').value);
+  $('f_scale_lbl').textContent=f.scale.toFixed(2)+'x';state.show_ui=$('show_ui').checked;refreshInfo();
+  clearTimeout(previewTimer);previewTimer=setTimeout(fetchPreview,120)}
+async function fetchPreview(){
+  try{const r=await fetch('/api/preview',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(state)});
+    if(r.ok){const b=await r.blob(),img=$('previewImg');img.src=URL.createObjectURL(b);
+      img.onload=()=>$('vdim').textContent=img.naturalWidth+' x '+img.naturalHeight+' px';switchViewMode('preview');conn(true)}
+  }catch(e){conn(false)}}
+function conn(ok){$('sdot').style.background=ok?'var(--ok)':'var(--err)';$('sconn').textContent=ok?'Backend ready':'Backend unreachable'}
+function switchViewMode(m){const v=m==='video';$('previewImg').style.display=v?'none':'block';$('videoPlayer').style.display=v?'block':'none';$('vbadge').textContent=v?'RENDERED VIDEO':'SNAPSHOT'}
 
-        const actorBadge = document.createElement('span');
-        actorBadge.className = `event-actor-badge actor-${ev.actor}`;
-        actorBadge.innerText = ev.actor === 'scene' ? 'SCENE' : (ev.actor === 'A' ? 'FIGHTER A' : 'FIGHTER B');
+function setBusy(on){$('btnRender').disabled=on;$('btnRender').textContent=on?'Rendering...':'Render video';$('prog').style.display=on?'flex':'none'}
+async function startRender(){
+  schedulePreview();setBusy(true);$('btnDownload').style.display='none';$('progressBarFill').style.width='0';
+  try{const r=await fetch('/api/render',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(state)});
+    if(r.ok)pollProgress();else{const d=await r.json();alert('Render failed: '+(d.error||'Unknown error'));setBusy(false)}
+  }catch(e){alert('Render error: '+e);setBusy(false)}}
+async function pollProgress(){
+  try{const d=await(await fetch('/api/status')).json();
+    if(d.status==='rendering'){const p=Math.round(d.progress*100);$('progressBarFill').style.width=p+'%';$('progressPct').textContent=p+'%';
+      $('sframe').textContent='Frame '+d.frame+' / '+d.total_frames+'  |  '+d.fps.toFixed(1)+' fps';setTimeout(pollProgress,250)}
+    else if(d.status==='done'){setBusy(false);$('sframe').textContent='Render complete';
+      const v=$('videoPlayer');v.src=d.video_url+'?t='+Date.now();switchViewMode('video');v.play().catch(()=>{});
+      const dl=$('btnDownload');dl.href=d.video_url;dl.style.display='inline-block'}
+    else if(d.status==='error'){setBusy(false);$('sframe').textContent='Render failed: '+d.error}
+    else setTimeout(pollProgress,400)
+  }catch(e){setTimeout(pollProgress,500)}}
 
-        const timeBadge = document.createElement('span');
-        timeBadge.className = 'event-time-badge';
-        timeBadge.innerText = `${parseFloat(ev.time).toFixed(1)}s`;
+async function loadPreset(id){
+  try{currentPresets=await(await fetch('/api/presets')).json();const p=currentPresets.find(i=>i.id===id);if(!p)return;
+    Object.assign(state.fighter_a,{name:p.fighter_a.name,color:p.fighter_a.color,archetype:p.fighter_a.archetype,weapon:p.fighter_a.weapon||'none',scale:p.fighter_a.scale||1});
+    if(p.fighter_a.headband_color)state.fighter_a.headband_color=p.fighter_a.headband_color;
+    Object.assign(state.fighter_b,{name:p.fighter_b.name,color:p.fighter_b.color,archetype:p.fighter_b.archetype,weapon:p.fighter_b.weapon||'none'});
+    if(p.fighter_b.headband_color)state.fighter_b.headband_color=p.fighter_b.headband_color;
+    selectStyle(p.style||'arcade');selectEnv(p.environment||'dojo');selectFormat(p.format||'vertical');
+    if(p.duration){$('duration').value=p.duration;updateDuration()}
+    if(p.timeline){state.timeline=JSON.parse(JSON.stringify(p.timeline));renderTimelineTracks()}
+    loadInspector();schedulePreview()}catch(e){console.error(e)}}
+function randomizeAll(){
+  const r=a=>a[Math.floor(Math.random()*a.length)],cols=['#2d3038','#e6ebf5','#e63946','#00d2ff','#f58c23','#9b5de5','#00f5d4'];
+  const ca=r(cols);let cb=r(cols);if(ca===cb)cb='#f0f3f8';
+  Object.assign(state.fighter_a,{archetype:r(ARCH),weapon:r(WEAP)[0],color:ca});Object.assign(state.fighter_b,{archetype:r(ARCH),weapon:r(WEAP)[0],color:cb});
+  selectEnv(r(ENVS)[0]);loadInspector();schedulePreview()}
 
-        const nameSpan = document.createElement('span');
-        nameSpan.className = 'event-action-name';
-        const icon = ACTION_ICONS[ev.action] || "⚡";
-        let detail = ev.action.replace('_', ' ').toUpperCase();
-        if (ev.text) detail += `: "${ev.text}"`;
-        if (ev.target_x) detail += ` to X:${ev.target_x}`;
-        nameSpan.innerHTML = `<span>${icon}</span> <span>${detail}</span>`;
+/* menus */
+document.querySelectorAll('.menu>button').forEach(b=>b.onclick=e=>{e.stopPropagation();const m=b.parentElement,o=m.classList.contains('open');
+  document.querySelectorAll('.menu').forEach(x=>x.classList.remove('open'));if(!o)m.classList.add('open')});
+document.addEventListener('click',()=>document.querySelectorAll('.menu').forEach(x=>x.classList.remove('open')));
 
-        const durBadge = document.createElement('span');
-        durBadge.style.fontSize = '11px';
-        durBadge.style.color = 'var(--text-muted)';
-        durBadge.innerText = `(${parseFloat(ev.duration || 0.5).toFixed(2)}s)`;
+/* command palette */
+const CMDS=[['Render video',()=>startRender()],['Randomize fighters',randomizeAll],['Switch to timeline mode',()=>switchChoreographyMode('timeline')],['Switch to procedural mode',()=>switchChoreographyMode('procedural')],['Clear timeline',clearTimeline],['Refresh preview',schedulePreview],
+  ...['ninja_vs_samurai','cyborg_vs_ninja','brawler_vs_monk','realistic_boxing','realistic_mma','classic_showdown'].map(id=>['Load preset: '+id.replace(/_/g,' '),()=>loadPreset(id)])];
+let pi=0,pv=CMDS;
+function drawPal(){const q=$('palIn').value.toLowerCase();pv=CMDS.filter(c=>c[0].toLowerCase().includes(q));pi=Math.min(pi,Math.max(0,pv.length-1));
+  $('palList').innerHTML='';pv.forEach((c,i)=>{const li=document.createElement('li');li.textContent=c[0];li.className=i===pi?'on':'';li.onclick=()=>runPal(i);$('palList').appendChild(li)})}
+function openPalette(){$('pal').classList.add('on');$('palIn').value='';pi=0;drawPal();$('palIn').focus()}
+function runPal(i){$('pal').classList.remove('on');if(pv[i])pv[i][1]()}
+$('palIn').oninput=()=>{pi=0;drawPal()};
+$('pal').onclick=e=>{if(e.target===$('pal'))$('pal').classList.remove('on')};
+$('palIn').onkeydown=e=>{if(e.key==='ArrowDown'){pi=Math.min(pi+1,pv.length-1);drawPal()}else if(e.key==='ArrowUp'){pi=Math.max(pi-1,0);drawPal()}else if(e.key==='Enter')runPal(pi);else if(e.key==='Escape')$('pal').classList.remove('on')};
 
-        const delBtn = document.createElement('button');
-        delBtn.className = 'event-del-btn';
-        delBtn.innerText = '✕';
-        delBtn.onclick = () => deleteTimelineEvent(idx);
+/* shortcuts */
+document.addEventListener('keydown',e=>{
+  const typing=/INPUT|SELECT/.test(document.activeElement.tagName);
+  if(e.ctrlKey&&e.key==='Enter'){e.preventDefault();startRender()}
+  else if(e.ctrlKey&&e.key.toLowerCase()==='k'){e.preventDefault();openPalette()}
+  else if(e.ctrlKey&&e.key.toLowerCase()==='r'){e.preventDefault();randomizeAll()}
+  else if(e.key==='F5'){e.preventDefault();schedulePreview()}
+  else if(e.key==='Delete'&&!typing)deleteSelected()});
 
-        row.appendChild(timeBadge);
-        row.appendChild(actorBadge);
-        row.appendChild(nameSpan);
-        row.appendChild(durBadge);
-        row.appendChild(delBtn);
-
-        container.appendChild(row);
-      });
-    }
-
-    function deleteTimelineEvent(index) {
-      state.timeline.splice(index, 1);
-      renderTimelineTracks();
-    }
-
-    function clearTimeline() {
-      state.timeline = [];
-      renderTimelineTracks();
-    }
-
-    function quickAddAction(actor, action) {
-      let maxTime = 0.0;
-      if (state.timeline.length > 0) {
-        maxTime = Math.max(...state.timeline.map(e => parseFloat(e.time)));
-      }
-      const nextTime = parseFloat((maxTime + 0.6).toFixed(1));
-
-      const newEvent = {
-        time: nextTime,
-        actor: actor,
-        action: action,
-        duration: action === 'fall' ? 1.3 : 0.45
-      };
-
-      if (action === 'caption') {
-        newEvent.text = prompt("Enter screen caption text:", "CLASH!") || "FIGHT!";
-      }
-
-      state.timeline.push(newEvent);
-      renderTimelineTracks();
-    }
-
-    function addCustomAction() {
-      const t = parseFloat(document.getElementById('add_time').value) || 0.0;
-      const actor = document.getElementById('add_actor').value;
-      const action = document.getElementById('add_action').value;
-      const dur = parseFloat(document.getElementById('add_dur').value) || 0.5;
-
-      const newEvent = {
-        time: t,
-        actor: actor,
-        action: action,
-        duration: dur
-      };
-
-      if (action === 'caption') {
-        newEvent.text = prompt("Enter screen caption text:", "ROUND 1") || "ROUND 1";
-      }
-
-      state.timeline.push(newEvent);
-      renderTimelineTracks();
-
-      // Advance next time input
-      document.getElementById('add_time').value = (t + 0.6).toFixed(1);
-    }
-
-    function loadPresetTimeline() {
-      // Look for matching preset timeline or default to Blade & Shadow
-      const match = currentPresets.find(p => p.fighter_a.archetype === state.fighter_a.archetype);
-      if (match && match.timeline) {
-        state.timeline = JSON.parse(JSON.stringify(match.timeline));
-      } else if (currentPresets.length > 0 && currentPresets[0].timeline) {
-        state.timeline = JSON.parse(JSON.stringify(currentPresets[0].timeline));
-      }
-      renderTimelineTracks();
-    }
-
-    function selectArchetype(side, type) {
-      state['fighter_' + side].archetype = type;
-      const container = document.getElementById(`f${side}_archetypes`);
-      container.querySelectorAll('.archetype-card').forEach(card => {
-        card.classList.toggle('active', card.getAttribute('data-type') === type);
-      });
-      schedulePreview();
-    }
-
-    function selectWeapon(side, weapon) {
-      state['fighter_' + side].weapon = weapon;
-      const container = document.getElementById(`f${side}_weapon`);
-      container.querySelectorAll('.pill-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.getAttribute('data-val') === weapon);
-      });
-      schedulePreview();
-    }
-
-    function setFighterColor(side, hex) {
-      document.getElementById(`f${side}_color`).value = hex;
-      state['fighter_' + side].color = hex;
-      schedulePreview();
-    }
-
-    function setHeadbandColor(side, hex) {
-      document.getElementById(`f${side}_headband`).value = hex;
-      state['fighter_' + side].headband_color = hex;
-      schedulePreview();
-    }
-
-    function selectStyle(style) {
-      state.style = style;
-      document.querySelectorAll('#style_selector .pill-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.getAttribute('data-val') === style);
-      });
-    }
-
-    function selectEnv(env) {
-      state.environment = env;
-      document.querySelectorAll('#env_selector .pill-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.getAttribute('data-val') === env);
-      });
-      schedulePreview();
-    }
-
-    function selectFormat(fmt) {
-      state.format = fmt;
-      document.querySelectorAll('#format_selector .pill-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.getAttribute('data-val') === fmt);
-      });
-      schedulePreview();
-    }
-
-    function updateLabel(inputId, labelId, suffix) {
-      const val = document.getElementById(inputId).value;
-      document.getElementById(labelId).innerText = val + suffix;
-      if (inputId === 'fa_scale') state.fighter_a.scale = parseFloat(val);
-      if (inputId === 'fb_scale') state.fighter_b.scale = parseFloat(val);
-      if (inputId === 'duration') state.duration = parseFloat(val);
-    }
-
-    function schedulePreview() {
-      // Gather latest inputs
-      state.fighter_a.name = document.getElementById('fa_name').value;
-      state.fighter_a.color = document.getElementById('fa_color').value;
-      state.fighter_a.headband_color = document.getElementById('fa_headband').value;
-      state.fighter_a.scale = parseFloat(document.getElementById('fa_scale').value);
-
-      state.fighter_b.name = document.getElementById('fb_name').value;
-      state.fighter_b.color = document.getElementById('fb_color').value;
-      state.fighter_b.headband_color = document.getElementById('fb_headband').value;
-
-      state.show_ui = document.getElementById('show_ui').checked;
-
-      clearTimeout(previewTimer);
-      previewTimer = setTimeout(fetchPreview, 120);
-    }
-
-    async function fetchPreview() {
-      try {
-        const resp = await fetch('/api/preview', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(state)
-        });
-        if (resp.ok) {
-          const blob = await resp.blob();
-          const img = document.getElementById('previewImg');
-          img.src = URL.createObjectURL(blob);
-          switchViewMode('preview');
-        }
-      } catch (err) {
-        console.error("Preview fetch error:", err);
-      }
-    }
-
-    function switchViewMode(mode) {
-      const img = document.getElementById('previewImg');
-      const vid = document.getElementById('videoPlayer');
-      const badge = document.getElementById('previewBadge');
-
-      if (mode === 'preview') {
-        img.style.display = 'block';
-        vid.style.display = 'none';
-        badge.innerText = 'LIVE SNAPSHOT';
-        badge.style.display = 'flex';
-      } else {
-        img.style.display = 'none';
-        vid.style.display = 'block';
-        badge.innerText = 'RENDERED VIDEO';
-        badge.style.display = 'flex';
-      }
-    }
-
-    async function startRender() {
-      schedulePreview();
-      const btn = document.getElementById('btnRender');
-      const box = document.getElementById('progressBox');
-      const downloadBtn = document.getElementById('btnDownload');
-
-      btn.disabled = true;
-      btn.innerText = "⏳ RENDERING IN PROGRESS...";
-      box.style.display = 'flex';
-      downloadBtn.style.display = 'none';
-
-      try {
-        const resp = await fetch('/api/render', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(state)
-        });
-
-        if (resp.ok) {
-          pollProgress();
-        } else {
-          const data = await resp.json();
-          alert("Render failed: " + (data.error || "Unknown error"));
-          btn.disabled = false;
-          btn.innerText = "⚔️ GENERATE FIGHT VIDEO";
-        }
-      } catch (err) {
-        alert("Render error: " + err);
-        btn.disabled = false;
-        btn.innerText = "⚔️ GENERATE FIGHT VIDEO";
-      }
-    }
-
-    async function pollProgress() {
-      try {
-        const resp = await fetch('/api/status');
-        const data = await resp.json();
-
-        if (data.status === 'rendering') {
-          const pct = Math.round(data.progress * 100);
-          document.getElementById('progressBarFill').style.width = pct + '%';
-          document.getElementById('progressPct').innerText = pct + '%';
-          document.getElementById('progressFrames').innerText = `Frame ${data.frame} / ${data.total_frames}`;
-          document.getElementById('progressFps').innerText = `${data.fps.toFixed(1)} FPS`;
-          document.getElementById('progressStatus').innerText = 'Rendering video frames & audio...';
-          setTimeout(pollProgress, 250);
-        } else if (data.status === 'done') {
-          document.getElementById('progressBarFill').style.width = '100%';
-          document.getElementById('progressPct').innerText = '100%';
-          document.getElementById('progressStatus').innerText = '✅ Video Render Complete!';
-
-          const btn = document.getElementById('btnRender');
-          btn.disabled = false;
-          btn.innerText = "⚔️ GENERATE FIGHT VIDEO";
-
-          // Show video player
-          const vid = document.getElementById('videoPlayer');
-          vid.src = data.video_url + '?t=' + Date.now();
-          switchViewMode('video');
-          vid.play().catch(() => {});
-
-          // Show download button
-          const dl = document.getElementById('btnDownload');
-          dl.href = data.video_url;
-          dl.style.display = 'flex';
-        } else if (data.status === 'error') {
-          document.getElementById('progressStatus').innerText = '❌ Error: ' + data.error;
-          const btn = document.getElementById('btnRender');
-          btn.disabled = false;
-          btn.innerText = "⚔️ GENERATE FIGHT VIDEO";
-        }
-      } catch (err) {
-        setTimeout(pollProgress, 500);
-      }
-    }
-
-    async function loadPreset(presetId) {
-      try {
-        const resp = await fetch('/api/presets');
-        currentPresets = await resp.json();
-        const p = currentPresets.find(item => item.id === presetId);
-        if (!p) return;
-
-        // Apply Fighter A
-        document.getElementById('fa_name').value = p.fighter_a.name;
-        document.getElementById('fa_color').value = p.fighter_a.color;
-        if (p.fighter_a.headband_color) {
-          document.getElementById('fa_headband').value = p.fighter_a.headband_color;
-        }
-        document.getElementById('fa_scale').value = p.fighter_a.scale || 1.0;
-        updateLabel('fa_scale', 'fa_scale_lbl', 'x');
-        selectArchetype('a', p.fighter_a.archetype);
-        selectWeapon('a', p.fighter_a.weapon || 'none');
-
-        // Apply Fighter B
-        document.getElementById('fb_name').value = p.fighter_b.name;
-        document.getElementById('fb_color').value = p.fighter_b.color;
-        if (p.fighter_b.headband_color) {
-          document.getElementById('fb_headband').value = p.fighter_b.headband_color;
-        }
-        selectArchetype('b', p.fighter_b.archetype);
-        selectWeapon('b', p.fighter_b.weapon || 'none');
-
-        // Apply Style, Environment & Format
-        selectStyle(p.style || 'arcade');
-        selectEnv(p.environment || 'dojo');
-        selectFormat(p.format || 'vertical');
-        if (p.duration) {
-          document.getElementById('duration').value = p.duration;
-          updateLabel('duration', 'duration_lbl', 's');
-        }
-
-        if (p.timeline) {
-          state.timeline = JSON.parse(JSON.stringify(p.timeline));
-          renderTimelineTracks();
-        }
-
-        schedulePreview();
-      } catch (err) {
-        console.error("Load preset error:", err);
-      }
-    }
-
-    function randomizeAll() {
-      const archetypes = ['ninja', 'warrior', 'monk', 'cyber', 'brawler', 'classic'];
-      const weapons = ['none', 'sword', 'staff'];
-      const envs = ['dojo', 'cyberpunk', 'city', 'plain'];
-      const colors = ['#2d3038', '#e6ebf5', '#e63946', '#00d2ff', '#f58c23', '#9b5de5', '#00f5d4'];
-
-      const archA = archetypes[Math.floor(Math.random() * archetypes.length)];
-      const archB = archetypes[Math.floor(Math.random() * archetypes.length)];
-      const wepA = weapons[Math.floor(Math.random() * weapons.length)];
-      const wepB = weapons[Math.floor(Math.random() * weapons.length)];
-      const env = envs[Math.floor(Math.random() * envs.length)];
-      const colA = colors[Math.floor(Math.random() * colors.length)];
-      let colB = colors[Math.floor(Math.random() * colors.length)];
-      if (colA === colB) colB = '#f0f3f8';
-
-      selectArchetype('a', archA);
-      selectArchetype('b', archB);
-      selectWeapon('a', wepA);
-      selectWeapon('b', wepB);
-      selectEnv(env);
-      setFighterColor('a', colA);
-      setFighterColor('b', colB);
-      schedulePreview();
-    }
-
-    // Initialize on page load
-    window.addEventListener('DOMContentLoaded', async () => {
-      try {
-        const resp = await fetch('/api/presets');
-        currentPresets = await resp.json();
-      } catch (e) {}
-      schedulePreview();
-    });
-  </script>
+window.addEventListener('DOMContentLoaded',async()=>{
+  buildStatic();loadInspector();switchChoreographyMode('procedural');
+  try{currentPresets=await(await fetch('/api/presets')).json()}catch(e){}
+  schedulePreview()});
+</script>
 </body>
 </html>
