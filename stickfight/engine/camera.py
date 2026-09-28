@@ -32,6 +32,11 @@ class Camera:
         self.min_zoom: float = 0.75
         self.max_zoom: float = 1.4
 
+        # Director lock: while > 0, automatic fighter-framing (frame_fighters)
+        # is suppressed so a scripted CameraAction (cut/pan/zoom) can hold its
+        # shot without being overridden on the next scene.update() tick.
+        self.director_lock: float = 0.0
+
     def shake(self, intensity: float = 12.0, duration: float = 0.25):
         """Triggers a camera shake effect."""
         self.shake_intensity = max(self.shake_intensity, intensity)
@@ -44,7 +49,13 @@ class Camera:
             self.target_zoom = max(self.min_zoom, min(self.max_zoom, zoom))
 
     def frame_fighters(self, fighters: List, padding: float = 300.0):
-        """Automatically centers on and frames all active fighters."""
+        """Automatically centers on and frames all active fighters.
+
+        Suppressed while director_lock is active, so a scripted camera shot
+        (see CameraAction) isn't immediately overridden by auto-tracking.
+        """
+        if self.director_lock > 0.0:
+            return
         if not fighters:
             return
 
@@ -66,6 +77,9 @@ class Camera:
         self.set_target(center_x, center_y, desired_zoom)
 
     def update(self, dt: float):
+        if self.director_lock > 0.0:
+            self.director_lock = max(0.0, self.director_lock - dt)
+
         # Smooth camera movement lerp
         smoothing = 6.0
         t = 1.0 - math.exp(-smoothing * dt)
