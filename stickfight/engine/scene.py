@@ -249,7 +249,12 @@ class FightScene:
     # RENDER & PREVIEW MODES
     # ========================================================================
 
-    def render(self, output_path: str = "output/videos/fight001.mp4", duration: Optional[float] = None):
+    def render(
+        self,
+        output_path: str = "output/videos/fight001.mp4",
+        duration: Optional[float] = None,
+        progress_callback=None,
+    ):
         """Renders complete video to MP4 using FFmpeg pipe."""
         os.environ["SDL_VIDEODRIVER"] = "dummy"
         pygame.init()
@@ -287,6 +292,8 @@ class FightScene:
                 elapsed = time.time() - start_time
                 fps_render = (frame_idx + 1) / max(0.01, elapsed)
                 print(f"   [{pct:3d}%] Frame {frame_idx + 1}/{total_frames} ({fps_render:.1f} fps)")
+                if progress_callback is not None:
+                    progress_callback(frame_idx + 1, total_frames, (frame_idx + 1) / total_frames)
 
         ret = exporter.finish()
         if os.path.exists(temp_audio):
