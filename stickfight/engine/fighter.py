@@ -76,6 +76,54 @@ from stickfight.scripting.actions import (
 )
 
 
+DESIGN_PRESETS = {
+    "classic": {
+        "color": (240, 240, 240),
+        "line_width": 10,
+        "scale": 1.0,
+        "render_style": "segmented",
+    },
+    "ninja": {
+        "color": (45, 48, 56),
+        "line_width": 10,
+        "scale": 1.0,
+        "render_style": "silhouette",
+        "headband_color": (235, 45, 45),
+        "proportions": PROPORTIONS_NINJA,
+    },
+    "samurai": {
+        "color": (230, 235, 245),
+        "line_width": 10,
+        "scale": 1.0,
+        "render_style": "segmented",
+        "headband_color": (235, 190, 45),
+        "proportions": PROPORTIONS_SAMURAI,
+    },
+    "brawler": {
+        "color": (235, 60, 60),
+        "line_width": 12,
+        "scale": 1.1,
+        "render_style": "segmented",
+        "proportions": PROPORTIONS_BRAWLER,
+    },
+    "monk": {
+        "color": (245, 140, 35),
+        "line_width": 10,
+        "scale": 1.0,
+        "render_style": "segmented",
+        "headband_color": (245, 200, 70),
+        "proportions": PROPORTIONS_MONK,
+    },
+    "cyborg": {
+        "color": (50, 220, 255),
+        "line_width": 10,
+        "scale": 1.0,
+        "render_style": "tech",
+        "proportions": PROPORTIONS_CYBORG,
+    },
+}
+
+
 class Fighter:
     def __init__(
         self,
