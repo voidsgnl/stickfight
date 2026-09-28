@@ -31,3 +31,18 @@ B = scene.add_fighter("B", x=730, y=1500, render_style="ink_fight")
 2. Render a short preview using `render_style="ink_fight"`.
 3. Inspect the generated frames for pose readability, limb overlap, weapon clarity, and motion-line quality.
 4. Refine the ink renderer based on the actual preview rather than changing the physics/choreography layer.
+
+
+## 2026-09-28 — Fix GUI Preview Generator Parameter Mismatch
+
+### What I did
+- Updated `generate_fight()` to accept the render parameters already supplied by `gui/app.py`: `width`, `height`, `fps`, `ground_y`, and `style`.
+- Replaced the generator's hard-coded 1080×1920/30 FPS scene configuration with the supplied values.
+- Preserved the existing procedural choreography, fighter builders, combat logic, physics, and collision behavior.
+- This fixes the `TypeError: generate_fight() got an unexpected keyword argument 'width'` that caused `POST /api/preview` to return HTTP 500.
+- Kept the style value optional and attached it to the scene without coupling the generator to a specific renderer.
+
+### Validation
+- Repository source updated successfully.
+- The exact GUI-to-generator parameter mismatch is resolved at the function interface.
+- A local preview render still needs to be run to validate the complete rendering path.
