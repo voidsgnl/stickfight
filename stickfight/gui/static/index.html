@@ -4,379 +4,291 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Stick Fight Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{
-  --bg0:#121418;--bg1:#181b21;--bg2:#1f232b;--bg3:#272c36;--line:#2e3440;--line2:#3a4150;
-  --tx:#d5dae3;--tx2:#8d96a6;--tx3:#5f6879;--acc:#5b9dff;--accd:#2a4a7d;
-  --a:#ff6b7f;--b:#4cc2ff;--s:#f2b84b;--ok:#4cd49a;--err:#ff5d5d;
-  --ui:"Segoe UI","SF Pro Text",Inter,system-ui,sans-serif;--mono:"Cascadia Mono",Consolas,Menlo,monospace;
-}
+:root{--g:#12181b;--p:#161e21;--p1:#1a2226;--p2:#222c31;--ln:#2f3b41;--ln2:#3a474d;--tx:#e6e2d6;--tx2:#9aa5a8;--a:#ff6a4d;--b:#63d0e6;--amb:#ffc247;--ok:#4cd49a;--err:#ff6b6b}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;overflow:hidden}
-body{background:var(--bg0);color:var(--tx);font:12px/1.35 var(--ui);display:grid;grid-template-rows:26px 36px 1fr 22px;user-select:none}
-button,input,select{font:inherit;color:inherit}
-:focus-visible{outline:1px solid var(--acc);outline-offset:1px}
-/* menu bar */
-#menubar{background:var(--bg1);border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 6px;gap:2px;position:relative;z-index:50}
-.logo{font-weight:700;color:var(--tx);padding:0 10px 0 4px;letter-spacing:.2px}
-.logo i{display:inline-block;width:8px;height:8px;background:var(--a);margin-right:7px;transform:rotate(45deg)}
+body{background:var(--g);color:var(--tx);font:13px/1.35 Barlow,"Segoe UI",system-ui,sans-serif;display:grid;grid-template-rows:32px 44px 1fr 24px;user-select:none}
+button,input,select{font:inherit;color:inherit}button{cursor:pointer}
+:focus-visible{outline:1px solid var(--amb);outline-offset:1px}
+.cond{font-family:"Barlow Condensed",Barlow,sans-serif}
+.bar{display:flex;align-items:center;gap:6px;padding:0 10px;background:var(--p1);border-bottom:1px solid var(--ln)}
 .menu{position:relative}
-.menu>button{background:none;border:0;padding:3px 9px;border-radius:3px;cursor:default}
-.menu>button:hover,.menu.open>button{background:var(--bg3)}
-.drop{display:none;position:absolute;top:100%;left:0;min-width:210px;background:var(--bg2);border:1px solid var(--line2);border-radius:4px;padding:3px;box-shadow:0 10px 30px #0009}
+.menu>button,.mn{background:none;border:0;padding:4px 9px;border-radius:3px;color:#c9c5b8}
+.menu>button:hover,.menu.open>button,.mn:hover{background:var(--p2)}
+.drop{display:none;position:absolute;top:100%;left:0;min-width:220px;background:var(--p2);border:1px solid var(--ln2);border-radius:4px;padding:3px;box-shadow:0 12px 32px #000a;z-index:60}
 .menu.open .drop{display:block}
-.drop button{display:flex;justify-content:space-between;gap:24px;width:100%;background:none;border:0;padding:4px 10px;border-radius:3px;text-align:left;cursor:default}
-.drop button:hover{background:var(--accd)}
-.drop kbd{color:var(--tx3);font:11px var(--mono)}
-.drop hr{border:0;border-top:1px solid var(--line);margin:3px 2px}
-#title{margin-left:auto;color:var(--tx3);padding-right:8px}
-/* toolbar */
-#toolbar{background:var(--bg2);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:6px;padding:0 8px}
-.tb{background:var(--bg3);border:1px solid var(--line2);border-radius:3px;padding:4px 10px;cursor:pointer}
-.tb:hover{border-color:var(--tx3)}
-.tb.primary{background:var(--acc);border-color:var(--acc);color:#07101f;font-weight:600}
-.tb.primary:hover{filter:brightness(1.1)}
-.tb:disabled{opacity:.45;cursor:not-allowed}
-.sep{width:1px;height:20px;background:var(--line2);margin:0 4px}
-.seg{display:flex;border:1px solid var(--line2);border-radius:3px;overflow:hidden}
-.seg button{background:var(--bg1);border:0;padding:4px 12px;cursor:pointer;color:var(--tx2)}
-.seg button+button{border-left:1px solid var(--line2)}
-.seg button.on{background:var(--accd);color:#fff}
-#prog{margin-left:auto;display:none;align-items:center;gap:8px;color:var(--tx2)}
-#prog .bar{width:180px;height:6px;background:var(--bg0);border:1px solid var(--line2);border-radius:3px;overflow:hidden}
-#prog .bar i{display:block;height:100%;width:0;background:var(--acc)}
-/* workspace */
-#ws{display:grid;grid-template-columns:264px 1fr 250px;grid-template-rows:1fr 232px;gap:1px;background:var(--line);min-height:0}
-.dock{background:var(--bg1);display:flex;flex-direction:column;min-height:0;min-width:0}
-.dh{height:26px;flex:none;background:var(--bg2);border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 10px;color:var(--tx2);gap:8px}
-.dh b{color:var(--tx);font-weight:600}
-.dh .sp{margin-left:auto}
-.db{overflow:auto;flex:1;padding:10px}
-.db::-webkit-scrollbar,.lanes::-webkit-scrollbar{width:9px;height:9px}
-.db::-webkit-scrollbar-thumb,.lanes::-webkit-scrollbar-thumb{background:var(--bg3);border:2px solid var(--bg1);border-radius:5px}
-#left{grid-row:1/3}
-.tabs{display:flex;background:var(--bg0);flex:none}
-.tabs button{flex:1;background:none;border:0;border-bottom:2px solid transparent;padding:6px;color:var(--tx2);cursor:pointer}
-.tabs button.on{background:var(--bg1);color:var(--tx)}
-.tabs button[data-s=a].on{border-color:var(--a)}
-.tabs button[data-s=b].on{border-color:var(--b)}
-.grp{margin-bottom:12px}
-.grp>label,.lbl{display:block;color:var(--tx2);margin-bottom:4px}
-.row{display:flex;align-items:center;gap:6px}
-input[type=text],input[type=number],select{width:100%;background:var(--bg0);border:1px solid var(--line2);border-radius:3px;padding:4px 7px;user-select:text}
-input:focus,select:focus{border-color:var(--acc);outline:0}
-.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
-.opt{background:var(--bg0);border:1px solid var(--line2);border-radius:3px;padding:5px 2px;text-align:center;cursor:pointer;color:var(--tx2)}
-.opt:hover{color:var(--tx);border-color:var(--tx3)}
-.opt.on{color:#fff;background:var(--accd);border-color:var(--acc)}
-input[type=color]{-webkit-appearance:none;appearance:none;width:30px;height:24px;border:1px solid var(--line2);border-radius:3px;background:none;padding:1px;cursor:pointer;flex:none}
+.drop button{display:flex;justify-content:space-between;gap:24px;width:100%;background:none;border:0;padding:5px 10px;border-radius:3px;text-align:left}
+.drop button:hover{background:#2a3a40}.drop kbd{color:var(--tx2);font:11px Barlow}
+.drop hr{border:0;border-top:1px solid var(--ln);margin:3px}
+.ib{min-width:30px;height:28px;padding:0 8px;display:flex;align-items:center;justify-content:center;background:var(--p2);border:1px solid var(--ln);border-radius:3px}
+.ib:hover{border-color:var(--tx2)}.ib.on{background:#3a3210;border-color:var(--amb);color:var(--amb)}.ib:disabled{opacity:.4;cursor:not-allowed}
+.go{background:var(--amb);color:var(--g);border:0;border-radius:3px;padding:5px 16px;font-weight:600}.go:disabled{opacity:.5;cursor:not-allowed}
+.tab{padding:5px 14px;background:none;border:0;color:var(--tx2);height:44px}.tab.on{color:var(--tx);box-shadow:inset 0 -2px var(--amb)}
+.vs{width:1px;height:22px;background:var(--ln2);margin:0 8px}
+#ws{display:grid;grid-template-columns:250px 1fr 300px;gap:1px;background:var(--ln);min-height:0}
+.pn{background:var(--p);display:flex;flex-direction:column;min-height:0;min-width:0}
+.dh{height:28px;flex:none;display:flex;align-items:center;gap:8px;padding:0 12px;background:var(--p1);border-bottom:1px solid var(--ln);color:var(--tx2);font-weight:600}
+.dh b{color:var(--tx);font-weight:600}.dh .r{margin-left:auto}
+.sc{overflow:auto;flex:1}
+.sc::-webkit-scrollbar,.lanes::-webkit-scrollbar{width:9px;height:9px}.sc::-webkit-scrollbar-thumb,.lanes::-webkit-scrollbar-thumb{background:var(--p2);border-radius:5px}
+.grp{height:26px;padding:0 12px;display:flex;align-items:center;color:var(--tx2);font-weight:600;margin-top:8px}
+.row{display:flex;align-items:center;gap:8px;height:26px;padding:0 12px;color:#c9c5b8;cursor:default}
+.row:hover{background:var(--p2)}.row.sel{background:#2a3a40;color:#fff}
+.row .d{width:8px;height:8px;border-radius:2px;flex:none}.row .m{margin-left:auto;color:var(--tx2)}
+#mid{display:grid;grid-template-rows:1fr 290px;gap:1px;background:var(--ln);min-height:0;min-width:0}
+#stage{background:#0f1416;position:relative;display:flex;align-items:center;justify-content:center;min-height:0;overflow:hidden}
+#stage img,#stage video{max-height:calc(100% - 28px);max-width:calc(100% - 28px);box-shadow:0 0 0 1px var(--ln2),0 14px 40px #000c}
+#stage video{display:none}
+#stage .t{position:absolute;color:var(--tx2);font-size:12px}
+.sec{padding:10px 12px;border-bottom:1px solid var(--ln)}
+.sec h3{margin-bottom:8px;font-size:13px;font-weight:600;display:flex;justify-content:space-between}
+.kv{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.f{display:flex;flex-direction:column;gap:3px;color:var(--tx2);font-size:12px;margin-bottom:8px}
+.kv .f{margin:0}
+.f input[type=text],.f input[type=number],.f select{background:#0f1416;border:1px solid var(--ln);border-radius:3px;padding:4px 8px;font-size:13px;width:100%;user-select:text}
+.f input:focus,.f select:focus{border-color:var(--amb);outline:0}
+.f .v{display:flex;justify-content:space-between}.f .v i{font-style:normal;color:var(--tx)}
+input[type=range]{width:100%;accent-color:var(--amb)}
+.chips{display:flex;flex-wrap:wrap;gap:4px}
+.chip{padding:3px 9px;background:#0f1416;border:1px solid var(--ln);border-radius:3px;color:var(--tx2);cursor:pointer}
+.chip:hover{color:var(--tx)}.chip.on{color:var(--g);background:var(--tx);border-color:var(--tx)}
+.cr{display:flex;align-items:center;gap:6px}
+input[type=color]{-webkit-appearance:none;appearance:none;width:30px;height:22px;border:1px solid var(--ln2);border-radius:3px;background:none;padding:1px;cursor:pointer}
 input[type=color]::-webkit-color-swatch-wrapper{padding:0}input[type=color]::-webkit-color-swatch{border:0;border-radius:2px}
-.sw{width:16px;height:16px;border-radius:3px;border:1px solid var(--line2);cursor:pointer;flex:none}
-input[type=range]{width:100%;accent-color:var(--acc)}
-.val{font:11px var(--mono);color:var(--tx);margin-left:auto}
-.tog{display:flex;align-items:center;justify-content:space-between}
-.tog input{accent-color:var(--acc)}
-/* viewport */
-#view{background:var(--bg0);position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;
-  background-image:linear-gradient(45deg,#15181d 25%,transparent 25%,transparent 75%,#15181d 75%),linear-gradient(45deg,#15181d 25%,transparent 25%,transparent 75%,#15181d 75%);
-  background-size:20px 20px;background-position:0 0,10px 10px}
-#view img,#view video{max-width:calc(100% - 24px);max-height:calc(100% - 24px);box-shadow:0 0 0 1px var(--line2),0 8px 30px #000a}
-#view video{display:none}
-#vbadge{position:absolute;top:8px;left:8px;background:#000a;border:1px solid var(--line2);border-radius:3px;padding:2px 8px;color:var(--tx2);font:11px var(--mono)}
-#dl{position:absolute;top:8px;right:8px;display:none;text-decoration:none}
+.sw{width:18px;height:18px;border-radius:3px;border:1px solid #4a5a61;cursor:pointer}
+.empty{padding:12px;color:var(--tx2)}
 /* timeline */
-#tl{grid-column:2}
-.tlbody{display:grid;grid-template-columns:86px 1fr;flex:1;min-height:0}
-.heads{background:var(--bg2);border-right:1px solid var(--line);padding-top:22px}
-.heads div{height:34px;display:flex;align-items:center;padding:0 10px;border-bottom:1px solid var(--line);font-weight:600}
+#tlbody{display:grid;grid-template-columns:150px 1fr;flex:1;min-height:0}
+#heads{background:var(--p1);border-right:1px solid var(--ln);padding-top:24px}
+#heads div{height:34px;display:flex;align-items:center;gap:8px;padding:0 12px;border-bottom:1px solid var(--ln);font-weight:600}
+#heads i{width:8px;height:8px;border-radius:2px}
 .lanes{overflow:auto;position:relative}
-.ruler{height:22px;position:sticky;top:0;background:var(--bg2);border-bottom:1px solid var(--line);z-index:3}
-.ruler span{position:absolute;top:5px;padding-left:4px;border-left:1px solid var(--line2);height:17px;font:10px var(--mono);color:var(--tx3)}
-.lane{height:34px;border-bottom:1px solid var(--line);position:relative;background-image:repeating-linear-gradient(90deg,transparent 0 79px,#ffffff08 79px 80px)}
-.ev{position:absolute;top:5px;height:24px;border-radius:3px;padding:0 6px;line-height:22px;white-space:nowrap;overflow:hidden;cursor:pointer;font-size:11px;border:1px solid;min-width:14px}
-.ev.A{background:#ff6b7f30;border-color:var(--a);color:#ffc0c8}
-.ev.B{background:#4cc2ff30;border-color:var(--b);color:#bfeaff}
-.ev.scene{background:#f2b84b30;border-color:var(--s);color:#fbe3ae}
-.ev.sel{box-shadow:0 0 0 2px #fff8}
-.empty{padding:14px;color:var(--tx3)}
-.addbar{flex:none;display:grid;grid-template-columns:64px 110px 1fr 64px auto auto;gap:6px;padding:6px 8px;background:var(--bg2);border-top:1px solid var(--line)}
-#tl.dim .tlbody{opacity:.4;pointer-events:none}
-/* right */
-.kv{display:grid;grid-template-columns:1fr auto;gap:2px 8px;font:11px var(--mono);color:var(--tx2)}
-.kv b{color:var(--tx);font-weight:400}
-/* status */
-#status{background:var(--accd);display:flex;align-items:center;gap:16px;padding:0 10px;font-size:11px;color:#dbe7ff}
+.rl{height:24px;position:sticky;top:0;background:var(--p1);border-bottom:1px solid var(--ln);z-index:4;cursor:text}
+.rl span{position:absolute;top:5px;padding-left:4px;border-left:1px solid #4a5a61;height:14px;font:500 11px "Barlow Condensed",sans-serif;color:var(--tx2);pointer-events:none}
+.lane{height:34px;border-bottom:1px solid var(--ln);position:relative;background-image:repeating-linear-gradient(90deg,transparent 0 99px,#ffffff0d 99px 100px)}
+.c{position:absolute;top:6px;height:22px;border-radius:3px;padding:0 9px 0 7px;line-height:20px;font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;border:1px solid;cursor:grab;min-width:12px}
+.c .rz{position:absolute;right:0;top:0;bottom:0;width:6px;cursor:ew-resize}
+.c.A{background:#4a2118;border-color:var(--a);color:#ffd0c6}.c.B{background:#143843;border-color:var(--b);color:#c6f0f8}
+.c.X{background:#2a2f33;border-color:#8a969b;color:#d5dadc}.c.K{background:#3a3210;border-color:var(--amb);color:#ffe6ae}
+.c.sel{box-shadow:0 0 0 2px var(--amb)}.c.A.sel{background:var(--a);color:var(--g)}.c.B.sel{background:var(--b);color:var(--g)}
+#ph{position:absolute;top:0;width:2px;background:var(--amb);z-index:5;pointer-events:none}
+#ph::before{content:"";position:absolute;left:-7px;top:0;width:16px;height:12px;background:var(--amb);clip-path:polygon(0 0,100% 0,50% 100%)}
+#tl.dim #tlbody{opacity:.45;pointer-events:none}
+#status{background:#0f1416;border-top:1px solid var(--ln);display:flex;align-items:center;gap:18px;padding:0 10px;font-size:12px;color:var(--tx2)}
 #status .r{margin-left:auto}
-.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--ok);margin-right:5px}
-/* palette */
-#pal{display:none;position:fixed;inset:0;background:#0008;z-index:99;align-items:flex-start;justify-content:center;padding-top:14vh}
+#prog{display:none;align-items:center;gap:8px;margin-left:auto;color:var(--tx2)}
+#prog .bar2{width:180px;height:6px;background:#0f1416;border:1px solid var(--ln2);border-radius:3px;overflow:hidden}
+#prog i{display:block;height:100%;width:0;background:var(--amb)}
+#pal{display:none;position:fixed;inset:0;background:#0009;z-index:99;align-items:flex-start;justify-content:center;padding-top:14vh}
 #pal.on{display:flex}
-#pal div{width:460px;background:var(--bg2);border:1px solid var(--line2);border-radius:6px;padding:8px;box-shadow:0 20px 60px #000}
-#pal ul{list-style:none;margin-top:6px;max-height:280px;overflow:auto}
-#pal li{padding:5px 8px;border-radius:3px;cursor:default}
-#pal li.on{background:var(--accd)}
-@media(max-width:1000px){#ws{grid-template-columns:230px 1fr}#right{display:none}}
+#pal div{width:460px;background:var(--p2);border:1px solid var(--ln2);border-radius:6px;padding:8px;box-shadow:0 20px 60px #000}
+#pal input{width:100%;background:#0f1416;border:1px solid var(--ln2);border-radius:3px;padding:6px 8px;user-select:text}
+#pal ul{list-style:none;margin-top:6px;max-height:280px;overflow:auto}#pal li{padding:5px 8px;border-radius:3px}#pal li.on{background:#2a3a40}
+@media(max-width:1100px){#ws{grid-template-columns:220px 1fr}#insp{display:none}}
 </style>
 </head>
 <body>
 
-<div id="menubar">
-  <span class="logo"><i></i>Stick Fight Studio</span>
+<div class="bar" style="background:var(--p1)">
+  <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="3.5" r="2.5" fill="#ff6a4d"/><path d="M9 6v6M9 8l-4 3M9 8l4-2M9 12l-3 4M9 12l4 4" stroke="#e6e2d6" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>
+  <span class="cond" style="font-size:16px;font-weight:700;letter-spacing:.3px;margin:0 12px 0 2px">Stick Fight Studio</span>
   <div class="menu"><button>File</button><div class="drop">
-    <button onclick="startRender()">Render video<kbd>Ctrl+Enter</kbd></button>
-    <hr>
-    <button onclick="loadPreset('ninja_vs_samurai')">Preset: Ninja vs Samurai</button>
-    <button onclick="loadPreset('cyborg_vs_ninja')">Preset: Cyber Clash</button>
-    <button onclick="loadPreset('brawler_vs_monk')">Preset: Street vs Shaolin</button>
-    <button onclick="loadPreset('realistic_boxing')">Preset: Boxing Title</button>
-    <button onclick="loadPreset('realistic_mma')">Preset: MMA Championship</button>
-    <button onclick="loadPreset('classic_showdown')">Preset: Classic Duel</button></div></div>
+    <button onclick="startRender()">Render MP4<kbd>Ctrl+Enter</kbd></button><hr>
+    <button onclick="loadPreset('ninja_vs_samurai')">Preset: Ninja vs Samurai</button><button onclick="loadPreset('cyborg_vs_ninja')">Preset: Cyber Clash</button><button onclick="loadPreset('brawler_vs_monk')">Preset: Street vs Shaolin</button><button onclick="loadPreset('realistic_boxing')">Preset: Boxing Title</button><button onclick="loadPreset('realistic_mma')">Preset: MMA Championship</button><button onclick="loadPreset('classic_showdown')">Preset: Classic Duel</button></div></div>
   <div class="menu"><button>Edit</button><div class="drop">
-    <button onclick="randomizeAll()">Randomize fighters<kbd>Ctrl+R</kbd></button>
-    <button onclick="deleteSelected()">Delete selected action<kbd>Del</kbd></button>
-    <button onclick="clearTimeline()">Clear timeline</button></div></div>
+    <button onclick="randomizeAll()">Randomize fighters<kbd>Ctrl+R</kbd></button><button onclick="deleteSelected()">Delete clip<kbd>Del</kbd></button><button onclick="clearTimeline()">Clear timeline</button></div></div>
   <div class="menu"><button>View</button><div class="drop">
-    <button onclick="switchChoreographyMode('procedural')">Procedural mode</button>
-    <button onclick="switchChoreographyMode('timeline')">Timeline mode</button>
-    <hr><button onclick="schedulePreview()">Refresh preview<kbd>F5</kbd></button></div></div>
-  <div class="menu"><button>Tools</button><div class="drop">
-    <button onclick="openPalette()">Command palette<kbd>Ctrl+K</kbd></button></div></div>
-  <span id="title">Untitled fight</span>
+    <button onclick="setMode('timeline')">Choreograph mode</button><button onclick="setMode('procedural')">Procedural mode</button><hr><button onclick="schedulePreview()">Refresh preview<kbd>F5</kbd></button></div></div>
+  <div class="menu"><button>Tools</button><div class="drop"><button onclick="openPalette()">Command palette<kbd>Ctrl+K</kbd></button></div></div>
+  <span id="title" style="margin:0 auto;color:var(--tx2)"></span>
+  <button class="go" id="btnRender" onclick="startRender()">Render MP4</button>
 </div>
 
-<div id="toolbar">
-  <button class="tb primary" id="btnRender" onclick="startRender()">Render video</button>
-  <a class="tb" id="btnDownload" href="#" download style="display:none;text-decoration:none">Download MP4</a>
-  <span class="sep"></span>
-  <div class="seg" id="modeSeg">
-    <button id="tabProcedural" class="on" onclick="switchChoreographyMode('procedural')">Procedural</button>
-    <button id="tabTimeline" onclick="switchChoreographyMode('timeline')">Timeline</button>
-  </div>
-  <span class="sep"></span>
-  <button class="tb" onclick="randomizeAll()">Randomize</button>
-  <button class="tb" onclick="openPalette()">Commands</button>
-  <div id="prog"><span id="progressStatus">Rendering</span><div class="bar"><i id="progressBarFill"></i></div><span id="progressPct" style="font-family:var(--mono)">0%</span></div>
+<div class="bar" style="background:#1f292d">
+  <button class="ib" aria-label="Go to start" onclick="seek(0)"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M3 2v10M12 2L5 7l7 5z" stroke="currentColor" stroke-width="1.5" fill="none"/></svg></button>
+  <button class="ib" id="btnPlay" aria-label="Play rendered video" onclick="togglePlay()" disabled><svg width="14" height="14" viewBox="0 0 14 14"><path d="M3 2l9 5-9 5z" fill="currentColor"/></svg></button>
+  <span class="cond" id="tc" style="font-size:26px;font-weight:600;margin:0 8px 0 14px;color:var(--amb);letter-spacing:1px">00:00.00</span>
+  <span id="tcof" style="color:var(--tx2)"></span>
+  <span class="vs"></span>
+  <button class="ib on" id="btnSnap" onclick="toggleSnap()">Snap</button>
+  <a class="ib" id="btnDownload" href="#" download style="display:none;text-decoration:none;margin-left:6px">Download MP4</a>
+  <div id="prog"><span id="progressStatus">Rendering</span><div class="bar2"><i id="progressBarFill"></i></div><span id="progressPct" class="cond" style="font-size:14px">0%</span></div>
+  <span style="margin-left:auto"></span>
+  <button class="tab" id="tabTimeline" onclick="setMode('timeline')">Choreograph</button>
+  <button class="tab" id="tabProcedural" onclick="setMode('procedural')">Procedural</button>
+  <span class="vs"></span><span id="fmtinfo" style="color:var(--tx2)"></span>
 </div>
 
 <div id="ws">
-  <!-- Left: fighter inspector -->
-  <section class="dock" id="left">
-    <div class="dh"><b>Fighter inspector</b></div>
-    <div class="tabs"><button data-s="a" class="on" onclick="setSide('a')">Fighter A</button><button data-s="b" onclick="setSide('b')">Fighter B</button></div>
-    <div class="db">
-      <div class="grp"><label>Name</label><input type="text" id="f_name" oninput="schedulePreview()"></div>
-      <div class="grp"><label>Archetype</label><div class="grid3" id="f_arch"></div></div>
-      <div class="grp"><label>Weapon</label><div class="grid3" id="f_weapon"></div></div>
-      <div class="grp"><label>Suit color</label><div class="row"><input type="color" id="f_color" oninput="schedulePreview()"><span id="sw_suit" class="row"></span></div></div>
-      <div class="grp"><label>Headband color</label><div class="row"><input type="color" id="f_headband" oninput="schedulePreview()"><span id="sw_band" class="row"></span></div></div>
-      <div class="grp"><label class="row">Scale<span class="val" id="f_scale_lbl">1.0x</span></label><input type="range" id="f_scale" min="0.8" max="1.3" step="0.05" value="1" oninput="schedulePreview()"></div>
+  <div class="pn">
+    <div class="dh"><b>Scene</b></div>
+    <div class="sc">
+      <div class="grp" style="margin-top:6px">Fighters</div>
+      <div class="row" id="o_fa" onclick="selectItem('fa')"><span class="d" style="background:var(--a)"></span><span id="o_fa_n"></span><span class="m" id="o_fa_m"></span></div>
+      <div class="row" id="o_fb" onclick="selectItem('fb')"><span class="d" style="background:var(--b)"></span><span id="o_fb_n"></span><span class="m" id="o_fb_m"></span></div>
+      <div class="grp">Stage</div>
+      <div class="row" id="o_scene" onclick="selectItem('scene')"><span class="d" style="background:#8a969b"></span>Scene settings<span class="m" id="o_scene_m"></span></div>
+      <div class="row"><span class="d" style="background:var(--amb)"></span>Captions<span class="m" id="o_cap"></span></div>
+      <div class="grp">Presets</div>
+      <div class="row" onclick="loadPreset('ninja_vs_samurai')">Ninja vs Samurai</div><div class="row" onclick="loadPreset('cyborg_vs_ninja')">Cyber Clash</div><div class="row" onclick="loadPreset('brawler_vs_monk')">Street vs Shaolin</div><div class="row" onclick="loadPreset('realistic_boxing')">Boxing Title</div><div class="row" onclick="loadPreset('realistic_mma')">MMA Championship</div><div class="row" onclick="loadPreset('classic_showdown')">Classic Duel</div>
     </div>
-  </section>
+    <div style="padding:10px 12px;border-top:1px solid var(--ln)"><button class="ib" style="width:100%" onclick="randomizeAll()">Randomize fighters</button></div>
+  </div>
 
-  <!-- Center: viewport -->
-  <section class="dock" style="grid-column:2">
-    <div class="dh"><b>Viewport</b><span id="vdim"></span></div>
-    <div id="view">
-      <span id="vbadge">SNAPSHOT</span>
+  <div id="mid">
+    <div id="stage">
+      <span class="t" style="left:14px;bottom:10px" id="vbadge">Live snapshot</span>
+      <span class="t" style="right:14px;bottom:10px" id="vdim"></span>
       <img id="previewImg" alt="Fight preview" src="">
       <video id="videoPlayer" controls loop playsinline></video>
     </div>
-  </section>
+    <div class="pn" id="tl">
+      <div class="dh"><b>Timeline</b><span id="eventCount">0 actions</span>
+        <span class="r" style="display:flex;gap:6px"><button class="ib" style="height:20px" onclick="loadPresetTimeline()">Load preset</button><button class="ib" style="height:20px" onclick="clearTimeline()">Clear</button></span></div>
+      <div id="tlbody"><div id="heads"></div><div class="lanes" id="lanes"></div></div>
+    </div>
+  </div>
 
-  <!-- Right: scene -->
-  <section class="dock" id="right" style="grid-row:1/3;grid-column:3">
-    <div class="dh"><b>Scene</b></div>
-    <div class="db">
-      <div class="grp"><label>Combat style</label><div class="grid3" style="grid-template-columns:1fr 1fr" id="style_sel"></div></div>
-      <div class="grp"><label>Environment</label><div class="grid3" style="grid-template-columns:1fr 1fr" id="env_sel"></div></div>
-      <div class="grp"><label>Aspect ratio</label><div class="grid3" id="fmt_sel"></div></div>
-      <div class="grp" id="durGroup"><label class="row">Duration<span class="val" id="duration_lbl">6.5s</span></label><input type="range" id="duration" min="3" max="12" step="0.5" value="6.5" oninput="updateDuration()"></div>
-      <div class="grp tog"><label style="margin:0">Fighting game UI bars</label><input type="checkbox" id="show_ui" checked onchange="schedulePreview()"></div>
-      <hr style="border:0;border-top:1px solid var(--line);margin:4px 0 10px">
-      <div class="lbl">Project</div>
-      <div class="kv"><span>Mode</span><b id="k_mode"></b><span>Style</span><b id="k_style"></b><span>Actions</span><b id="k_ev"></b><span>Output</span><b id="k_out"></b></div>
-    </div>
-  </section>
-
-  <!-- Bottom: timeline -->
-  <section class="dock" id="tl">
-    <div class="dh"><b>Timeline</b><span id="eventCount">0 actions</span>
-      <span class="sp row"><button class="tb" style="padding:1px 8px" onclick="loadPresetTimeline()">Load preset</button><button class="tb" style="padding:1px 8px" onclick="clearTimeline()">Clear</button></span></div>
-    <div class="tlbody">
-      <div class="heads"><div style="color:var(--a)">Fighter A</div><div style="color:var(--b)">Fighter B</div><div style="color:var(--s)">Scene</div></div>
-      <div class="lanes" id="lanes"></div>
-    </div>
-    <div class="addbar">
-      <input type="number" id="add_time" value="1.0" step="0.1" min="0" title="Start time (s)">
-      <select id="add_actor"><option value="A">Fighter A</option><option value="B">Fighter B</option><option value="scene">Scene</option></select>
-      <select id="add_action"></select>
-      <input type="number" id="add_dur" value="0.4" step="0.05" min="0.1" title="Duration (s)">
-      <button class="tb" onclick="addCustomAction()">Add action</button>
-      <button class="tb" onclick="deleteSelected()">Delete</button>
-    </div>
-  </section>
+  <div class="pn" id="insp"><div class="dh"><b id="insp_t">Inspector</b></div><div class="sc" id="insp_b"></div></div>
 </div>
 
-<div id="status">
-  <span><span class="dot" id="sdot"></span><span id="sconn">Backend ready</span></span>
-  <span id="sframe">Idle</span>
-  <span class="r" id="sfmt"></span>
-</div>
-
+<div id="status"><span id="sdot" style="color:var(--ok)">&#9679;</span><span id="sconn" style="margin-left:-12px">Engine connected</span><span id="sframe">Idle</span><span class="r">Ctrl+K commands &nbsp; Del remove clip &nbsp; Drag clips to move, drag right edge to resize</span></div>
 <div id="pal"><div><input type="text" id="palIn" placeholder="Type a command"><ul id="palList"></ul></div></div>
 
 <script>
-const PX=80;
+const PX=100,$=id=>document.getElementById(id);
 const state={mode:"procedural",style:"arcade",
   fighter_a:{name:"Shadow",archetype:"ninja",weapon:"sword",color:"#2d3038",headband_color:"#eb2d2d",scale:1.0,health:100,line_width:10},
   fighter_b:{name:"Kensei",archetype:"warrior",weapon:"sword",color:"#e6ebf5",headband_color:"#ebbe2d",scale:1.0,health:100,line_width:10},
   environment:"dojo",format:"vertical",duration:6.5,show_ui:true,timeline:[]};
-let side='a',currentPresets=[],previewTimer=null,selected=-1;
+let sel={t:'fa'},presets=[],pt=null,ph=0,snap=true,busy=false;
+const ARCH=['ninja','warrior','monk','cyber','brawler','classic'],WEAP=[['none','Bare hands'],['sword','Katana'],['staff','Bo staff']],
+ STY=[['arcade','Arcade'],['realistic','Realistic']],ENV=[['dojo','Dojo'],['cyberpunk','Cyber'],['city','City'],['plain','Plain']],FMT=[['vertical','9:16'],['horizontal','16:9'],['square','1:1']];
+const ACT={"Realistic combat":[['jab','Lead jab'],['cross','Rear cross'],['hook','Hook punch'],['low_kick','Low kick'],['check_kick','Check kick'],['slip','Head slip'],['bob_weave','Bob and weave'],['clinch_knee','Clinch knee'],['takedown','Double-leg takedown'],['ground_pound','Ground and pound'],['stagger','Heavy stagger']],
+"Arcade and martial arts":[['throw','Throw / slam'],['dive_kick','Aerial dive kick'],['air_juggle','Air juggle'],['wall_bounce','Wall bounce'],['punch','Punch'],['kick','High kick'],['uppercut','Uppercut'],['sweep','Sweep'],['slash','Sword slash'],['staff_strike','Staff strike'],['block','Block / parry'],['dodge','Matrix dodge'],['jump','Jump / flip'],['knockback','Knockback'],['fall','Fall (KO)'],['walk_to','Walk to target'],['shake','Camera shake'],['caption','Screen caption']]};
+const nice=a=>a.replace(/_/g,' ').replace(/^./,c=>c.toUpperCase());
+const fx=n=>state['fighter_'+n];
+const laneOf=e=>e.actor==='A'?0:e.actor==='B'?1:e.action==='caption'?3:2;
+const tc=s=>{s=Math.max(0,s);return String(Math.floor(s/60)).padStart(2,'0')+':'+(s%60).toFixed(2).padStart(5,'0')};
+const opts=(list,cur)=>list.map(([v,l])=>`<option value="${v}"${v===cur?' selected':''}>${l}</option>`).join('');
+const chips=(list,cur,fn)=>`<div class="chips">${list.map(x=>{const v=Array.isArray(x)?x[0]:x,l=Array.isArray(x)?x[1]:nice(x);return `<span class="chip${v===cur?' on':''}" onclick="${fn}('${v}')">${l}</span>`}).join('')}</div>`;
 
-const ARCH=['ninja','warrior','monk','cyber','brawler','classic'];
-const WEAP=[['none','Bare hands'],['sword','Katana'],['staff','Bo staff']];
-const STYLES=[['arcade','Arcade'],['realistic','Realistic']];
-const ENVS=[['dojo','Dojo'],['cyberpunk','Cyber'],['city','City'],['plain','Plain']];
-const FMTS=[['vertical','9:16'],['horizontal','16:9'],['square','1:1']];
-const ACTIONS={"Realistic combat":[['jab','Lead jab'],['cross','Rear cross'],['hook','Hook punch'],['low_kick','Low kick'],['check_kick','Check kick'],['slip','Head slip'],['bob_weave','Bob and weave'],['clinch_knee','Clinch knee'],['takedown','Double-leg takedown'],['ground_pound','Ground and pound'],['stagger','Heavy stagger']],
-"Arcade and martial arts":[['throw','Throw / slam'],['dive_kick','Aerial dive kick'],['air_juggle','Air juggle'],['wall_bounce','Wall bounce'],['punch','Punch'],['kick','High kick'],['uppercut','Uppercut'],['sweep','Sweep'],['slash','Sword slash'],['staff_strike','Staff strike'],['block','Block / parry'],['dodge','Matrix dodge'],['jump','Jump / flip'],['knockback','Knockback'],['fall','Fall (KO)'],['walk_to','Walk to target'],['caption','Screen caption']]};
-const SWS={suit:['#2d3038','#e63946','#00d2ff','#f58c23','#e6ebf5'],band:['#eb2d2d','#ffb700','#00e5ff','#ffffff']};
-const $=id=>document.getElementById(id);
-const F=()=>state['fighter_'+side];
+/* outliner + inspector */
+function outline(){
+  [['fa','a'],['fb','b']].forEach(([k,s])=>{const f=fx(s);$('o_'+k+'_n').textContent=f.name||'Fighter';$('o_'+k+'_m').textContent=nice(f.archetype)+' · '+(WEAP.find(w=>w[0]===f.weapon)||[0,'Bare hands'])[1]});
+  $('o_scene_m').textContent=nice(state.environment);$('o_cap').textContent=state.timeline.filter(e=>e.action==='caption').length;
+  ['fa','fb','scene'].forEach(k=>$('o_'+k).classList.toggle('sel',sel.t===k));
+  $('title').textContent=state.fighter_a.name+' vs '+state.fighter_b.name;
+  const f=FMT.find(x=>x[0]===state.format);$('fmtinfo').textContent=f?f[1]+'  ·  '+nice(state.environment):''}
+function selectItem(t,i){sel={t,i};outline();renderTL();inspector()}
+function inspector(){
+  const b=$('insp_b');
+  if(sel.t==='clip'&&state.timeline[sel.i]){const e=state.timeline[sel.i];$('insp_t').textContent='Clip';
+    b.innerHTML=`<div class="sec"><h3>${nice(e.action)}<span style="color:${e.actor==='A'?'var(--a)':e.actor==='B'?'var(--b)':'var(--amb)'}">${e.actor==='scene'?'Scene':fx(e.actor.toLowerCase()).name}</span></h3>
+    <div class="f">Move<select onchange="editClip('action',this.value)">${Object.values(ACT).map((l,i)=>`<optgroup label="${Object.keys(ACT)[i]}">${opts(l,e.action)}</optgroup>`).join('')}</select></div>
+    <div class="f">Performed by<select onchange="editClip('actor',this.value)">${opts([['A',state.fighter_a.name],['B',state.fighter_b.name],['scene','Scene']],e.actor)}</select></div>
+    <div class="kv"><div class="f">Start (s)<input type="number" step="0.05" min="0" value="${(+e.time).toFixed(2)}" onchange="editClip('time',this.value)"></div><div class="f">Length (s)<input type="number" step="0.05" min="0.1" value="${(+(e.duration||.5)).toFixed(2)}" onchange="editClip('duration',this.value)"></div></div>
+    ${e.action==='caption'?`<div class="f" style="margin-top:8px">Caption text<input type="text" value="${(e.text||'').replace(/"/g,'&quot;')}" oninput="editClip('text',this.value,1)"></div>`:''}</div>
+    <div class="sec" style="border:0"><button class="ib" onclick="deleteSelected()">Delete clip</button></div>`;return}
+  if(sel.t==='scene'){$('insp_t').textContent='Scene';
+    b.innerHTML=`<div class="sec"><div class="f">Combat style</div>${chips(STY,state.style,'selectStyle')}</div>
+    <div class="sec"><div class="f">Environment</div>${chips(ENV,state.environment,'selectEnv')}</div>
+    <div class="sec"><div class="f">Aspect ratio</div>${chips(FMT,state.format,'selectFormat')}</div>
+    <div class="sec"><div class="f"><div class="v">Duration<i id="dl">${state.duration}s</i></div><input type="range" min="3" max="12" step="0.5" value="${state.duration}" oninput="setDuration(this.value)"></div>
+    <label class="cr"><input type="checkbox" ${state.show_ui?'checked':''} onchange="state.show_ui=this.checked;schedulePreview()"> Fighting game UI bars</label></div>`;return}
+  const s=sel.t==='fb'?'b':'a',f=fx(s);$('insp_t').textContent=f.name||'Fighter';
+  const sw=(l,k)=>`<div class="f">${l}<div class="cr"><input type="color" value="${f[k]}" oninput="editF('${k}',this.value)">${l==='Suit'?['#2d3038','#e63946','#00d2ff','#f58c23','#e6ebf5']:['#eb2d2d','#ffb700','#00e5ff','#ffffff']}</div></div>`;
+  const sws=(l,k,list)=>`<div class="f">${l}<div class="cr"><input type="color" value="${f[k]}" oninput="editF('${k}',this.value)">${list.map(c=>`<span class="sw" style="background:${c}" onclick="editF('${k}','${c}',1)"></span>`).join('')}</div></div>`;
+  b.innerHTML=`<div class="sec"><div class="f">Name<input type="text" value="${(f.name||'').replace(/"/g,'&quot;')}" oninput="editF('name',this.value)"></div></div>
+  <div class="sec"><div class="f">Archetype</div>${chips(ARCH,f.archetype,'setArch')}</div>
+  <div class="sec"><div class="f">Weapon</div>${chips(WEAP,f.weapon,'setWeapon')}</div>
+  <div class="sec">${sws('Suit','color',['#2d3038','#e63946','#00d2ff','#f58c23','#e6ebf5'])}${sws('Headband','headband_color',['#eb2d2d','#ffb700','#00e5ff','#ffffff'])}</div>
+  <div class="sec" style="border:0"><div class="f"><div class="v">Scale<i id="sl">${f.scale.toFixed(2)}x</i></div><input type="range" min="0.8" max="1.3" step="0.05" value="${f.scale}" oninput="editF('scale',parseFloat(this.value));$('sl').textContent=parseFloat(this.value).toFixed(2)+'x'"></div></div>`}
+function side(){return sel.t==='fb'?'b':'a'}
+function editF(k,v,redraw){fx(side())[k]=v;if(redraw)inspector();outline();schedulePreview()}
+function setArch(v){fx(side()).archetype=v;inspector();outline();schedulePreview()}
+function setWeapon(v){fx(side()).weapon=v;inspector();outline();schedulePreview()}
+function selectStyle(v){state.style=v;inspector()}
+function selectEnv(v){state.environment=v;inspector();outline();schedulePreview()}
+function selectFormat(v){state.format=v;inspector();outline();schedulePreview()}
+function setDuration(v){state.duration=parseFloat(v);$('dl').textContent=v+'s';renderTL()}
 
-function seg(el,items,cur,fn){el.innerHTML='';items.forEach(it=>{const [v,l]=Array.isArray(it)?it:[it,it[0].toUpperCase()+it.slice(1)];
-  const d=document.createElement('div');d.className='opt'+(v===cur?' on':'');d.dataset.v=v;d.textContent=l;d.onclick=()=>fn(v);el.appendChild(d)})}
-function mark(el,v){el.querySelectorAll('.opt').forEach(o=>o.classList.toggle('on',o.dataset.v===v))}
+/* timeline */
+function setMode(m){state.mode=m;$('tabTimeline').classList.toggle('on',m==='timeline');$('tabProcedural').classList.toggle('on',m==='procedural');$('tl').classList.toggle('dim',m!=='timeline');
+  if(m==='timeline'&&!state.timeline.length)loadPresetTimeline();else renderTL()}
+function renderTL(){
+  const sk=state.timeline[sel.i];state.timeline.sort((a,b)=>+a.time-+b.time);if(sel.t==='clip')sel.i=state.timeline.indexOf(sk);
+  const end=Math.max(state.duration,...state.timeline.map(e=>+e.time+(+e.duration||.5)))+1,w=Math.ceil(end)*PX,L=$('lanes');
+  $('heads').innerHTML=[['var(--a)',state.fighter_a.name],['var(--b)',state.fighter_b.name],['#8a969b','Camera'],['var(--amb)','Captions']].map(([c,n])=>`<div><i style="background:${c}"></i>${n||'Fighter'}</div>`).join('');
+  L.innerHTML=`<div class="rl" id="rl" style="width:${w}px">${Array.from({length:Math.ceil(end)+1},(_,i)=>`<span style="left:${i*PX}px">${i}s</span>`).join('')}</div>`+[0,1,2,3].map(i=>`<div class="lane" id="ln${i}" style="width:${w}px"></div>`).join('')+`<div id="ph"></div>`;
+  state.timeline.forEach((e,i)=>{const d=document.createElement('div'),k=e.actor==='scene'?(e.action==='caption'?'K':'X'):e.actor;
+    d.className='c '+k+(sel.t==='clip'&&sel.i===i?' sel':'');d.style.left=e.time*PX+'px';d.style.width=Math.max(12,(e.duration||.5)*PX)+'px';
+    d.textContent=nice(e.action)+(e.text?': '+e.text:'');d.title=nice(e.action)+' at '+(+e.time).toFixed(2)+'s';
+    d.innerHTML+='<div class="rz"></div>';d.onmousedown=ev=>dragStart(ev,i,d);$('ln'+laneOf(e)).appendChild(d)});
+  $('rl').onmousedown=ev=>{seekFromX(ev);const mv=e=>seekFromX(e),up=()=>{document.removeEventListener('mousemove',mv);document.removeEventListener('mouseup',up)};document.addEventListener('mousemove',mv);document.addEventListener('mouseup',up)};
+  $('eventCount').textContent=state.timeline.length+' actions';placePh();outline()}
+function seekFromX(ev){const r=$('rl').getBoundingClientRect();seek(Math.max(0,(ev.clientX-r.left)/PX))}
+function placePh(){const p=$('ph');if(p){p.style.left=ph*PX+'px';p.style.height=$('lanes').scrollHeight+'px'}$('tc').textContent=tc(ph);$('tcof').textContent='of '+tc(state.mode==='timeline'?Math.max(...state.timeline.map(e=>+e.time+(+e.duration||.5)),0):state.duration)}
+function seek(t){ph=t;const v=$('videoPlayer');if(v.src&&v.style.display==='block')v.currentTime=t;placePh()}
+function dragStart(ev,i,el){ev.preventDefault();ev.stopPropagation();const e=state.timeline[i],rz=ev.target.classList.contains('rz'),x0=ev.clientX,t0=+e.time,d0=+e.duration||.5;let moved=false;
+  const q=v=>snap?Math.round(v/.05)*.05:v;
+  const mv=m=>{moved=true;const dx=(m.clientX-x0)/PX;if(rz){e.duration=Math.max(.1,+q(d0+dx).toFixed(2));el.style.width=e.duration*PX+'px'}else{e.time=Math.max(0,+q(t0+dx).toFixed(2));el.style.left=e.time*PX+'px'}};
+  const up=()=>{document.removeEventListener('mousemove',mv);document.removeEventListener('mouseup',up);sel={t:'clip',i};renderTL();inspector()};
+  document.addEventListener('mousemove',mv);document.addEventListener('mouseup',up)}
+function editClip(k,v,keep){const e=state.timeline[sel.i];if(!e)return;e[k]=(k==='time'||k==='duration')?parseFloat(v)||0:v;
+  if(k==='actor'&&v!=='scene'&&e.action==='caption')e.action='jab';renderTL();if(!keep)inspector()}
+function deleteSelected(){if(sel.t!=='clip')return;state.timeline.splice(sel.i,1);sel={t:'fa'};renderTL();inspector()}
+function clearTimeline(){state.timeline=[];sel={t:'fa'};renderTL();inspector()}
+function toggleSnap(){snap=!snap;$('btnSnap').classList.toggle('on',snap)}
+function loadPresetTimeline(){const m=presets.find(p=>p.fighter_a.archetype===state.fighter_a.archetype)||presets[0];if(m&&m.timeline)state.timeline=JSON.parse(JSON.stringify(m.timeline));renderTL()}
 
-function buildStatic(){
-  const sel=$('add_action');Object.entries(ACTIONS).forEach(([g,list])=>{const og=document.createElement('optgroup');og.label=g;
-    list.forEach(([v,l])=>{const o=document.createElement('option');o.value=v;o.textContent=l;og.appendChild(o)});sel.appendChild(og)});
-  seg($('style_sel'),STYLES,state.style,selectStyle);seg($('env_sel'),ENVS,state.environment,selectEnv);seg($('fmt_sel'),FMTS,state.format,selectFormat);
-  [['sw_suit',SWS.suit,'f_color'],['sw_band',SWS.band,'f_headband']].forEach(([id,list,inp])=>{
-    list.forEach(c=>{const s=document.createElement('span');s.className='sw';s.style.background=c;s.onclick=()=>{$(inp).value=c;schedulePreview()};$(id).appendChild(s)})});
-}
-function loadInspector(){
-  const f=F();$('f_name').value=f.name;$('f_color').value=f.color;$('f_headband').value=f.headband_color;$('f_scale').value=f.scale;$('f_scale_lbl').textContent=f.scale.toFixed(2)+'x';
-  seg($('f_arch'),ARCH,f.archetype,selectArchetype);seg($('f_weapon'),WEAP,f.weapon,selectWeapon);
-  document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.s===side));
-}
-function setSide(s){side=s;loadInspector()}
-function selectArchetype(t){F().archetype=t;mark($('f_arch'),t);schedulePreview()}
-function selectWeapon(w){F().weapon=w;mark($('f_weapon'),w);schedulePreview()}
-function selectStyle(v){state.style=v;mark($('style_sel'),v);refreshInfo()}
-function selectEnv(v){state.environment=v;mark($('env_sel'),v);schedulePreview()}
-function selectFormat(v){state.format=v;mark($('fmt_sel'),v);schedulePreview()}
-function updateDuration(){state.duration=parseFloat($('duration').value);$('duration_lbl').textContent=state.duration+'s';refreshInfo()}
-function refreshInfo(){$('k_mode').textContent=state.mode;$('k_style').textContent=state.style;$('k_ev').textContent=state.timeline.length;
-  const f=FMTS.find(x=>x[0]===state.format);$('k_out').textContent=f?f[1]:'';$('sfmt').textContent=state.environment+'  |  '+(f?f[1]:'');
-  $('title').textContent=state.fighter_a.name+' vs '+state.fighter_b.name}
-
-function switchChoreographyMode(m){state.mode=m;
-  $('tabProcedural').classList.toggle('on',m==='procedural');$('tabTimeline').classList.toggle('on',m==='timeline');
-  $('tl').classList.toggle('dim',m!=='timeline');$('durGroup').style.opacity=m==='timeline'?.45:1;
-  if(m==='timeline'&&!state.timeline.length)loadPresetTimeline();else renderTimelineTracks();refreshInfo()}
-
-function renderTimelineTracks(){
-  state.timeline.sort((a,b)=>parseFloat(a.time)-parseFloat(b.time));
-  const end=Math.max(state.duration,...state.timeline.map(e=>parseFloat(e.time)+parseFloat(e.duration||.5)))+1;
-  const w=Math.ceil(end)*PX,L=$('lanes');L.innerHTML='';
-  const ruler=document.createElement('div');ruler.className='ruler';ruler.style.width=w+'px';
-  for(let i=0;i<=Math.ceil(end);i++){const s=document.createElement('span');s.style.left=i*PX+'px';s.textContent=i+'s';ruler.appendChild(s)}
-  L.appendChild(ruler);
-  const lanes={A:null,B:null,scene:null};
-  Object.keys(lanes).forEach(k=>{const d=document.createElement('div');d.className='lane';d.style.width=w+'px';lanes[k]=d;L.appendChild(d)});
-  state.timeline.forEach((ev,i)=>{const b=document.createElement('div');b.className='ev '+ev.actor+(i===selected?' sel':'');
-    b.style.left=parseFloat(ev.time)*PX+'px';b.style.width=Math.max(14,parseFloat(ev.duration||.5)*PX)+'px';
-    b.textContent=ev.action.replace(/_/g,' ')+(ev.text?': '+ev.text:'');b.title=ev.action+' at '+parseFloat(ev.time).toFixed(2)+'s';
-    b.onclick=()=>{selected=i;renderTimelineTracks()};(lanes[ev.actor]||lanes.scene).appendChild(b)});
-  $('eventCount').textContent=state.timeline.length+' actions';refreshInfo()}
-
-function deleteSelected(){if(selected<0)return;state.timeline.splice(selected,1);selected=-1;renderTimelineTracks()}
-function clearTimeline(){state.timeline=[];selected=-1;renderTimelineTracks()}
-function addCustomAction(){
-  const t=parseFloat($('add_time').value)||0,actor=$('add_actor').value,action=$('add_action').value,dur=parseFloat($('add_dur').value)||.5;
-  const ev={time:t,actor,action,duration:dur};
-  if(action==='caption')ev.text=prompt('Caption text:','ROUND 1')||'ROUND 1';
-  state.timeline.push(ev);$('add_time').value=(t+.6).toFixed(1);renderTimelineTracks()}
-function loadPresetTimeline(){
-  const m=currentPresets.find(p=>p.fighter_a.archetype===state.fighter_a.archetype)||currentPresets[0];
-  if(m&&m.timeline)state.timeline=JSON.parse(JSON.stringify(m.timeline));renderTimelineTracks()}
-
-function schedulePreview(){
-  const f=F();f.name=$('f_name').value;f.color=$('f_color').value;f.headband_color=$('f_headband').value;f.scale=parseFloat($('f_scale').value);
-  $('f_scale_lbl').textContent=f.scale.toFixed(2)+'x';state.show_ui=$('show_ui').checked;refreshInfo();
-  clearTimeout(previewTimer);previewTimer=setTimeout(fetchPreview,120)}
-async function fetchPreview(){
-  try{const r=await fetch('/api/preview',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(state)});
-    if(r.ok){const b=await r.blob(),img=$('previewImg');img.src=URL.createObjectURL(b);
-      img.onload=()=>$('vdim').textContent=img.naturalWidth+' x '+img.naturalHeight+' px';switchViewMode('preview');conn(true)}
-  }catch(e){conn(false)}}
-function conn(ok){$('sdot').style.background=ok?'var(--ok)':'var(--err)';$('sconn').textContent=ok?'Backend ready':'Backend unreachable'}
-function switchViewMode(m){const v=m==='video';$('previewImg').style.display=v?'none':'block';$('videoPlayer').style.display=v?'block':'none';$('vbadge').textContent=v?'RENDERED VIDEO':'SNAPSHOT'}
-
-function setBusy(on){$('btnRender').disabled=on;$('btnRender').textContent=on?'Rendering...':'Render video';$('prog').style.display=on?'flex':'none'}
-async function startRender(){
-  schedulePreview();setBusy(true);$('btnDownload').style.display='none';$('progressBarFill').style.width='0';
+/* preview + render */
+function schedulePreview(){outline();clearTimeout(pt);pt=setTimeout(fetchPreview,120)}
+async function fetchPreview(){try{const r=await fetch('/api/preview',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(state)});
+  if(r.ok){const b=await r.blob(),i=$('previewImg');i.onload=()=>$('vdim').textContent=i.naturalWidth+' x '+i.naturalHeight+' px';i.src=URL.createObjectURL(b);view('img');conn(true)}}catch(e){conn(false)}}
+function conn(ok){$('sdot').style.color=ok?'var(--ok)':'var(--err)';$('sconn').textContent=ok?'Engine connected':'Engine unreachable'}
+function view(m){const v=m==='vid';$('previewImg').style.display=v?'none':'block';$('videoPlayer').style.display=v?'block':'none';$('vbadge').textContent=v?'Rendered video':'Live snapshot';$('btnPlay').disabled=!v}
+function togglePlay(){const v=$('videoPlayer');v.paused?v.play():v.pause()}
+$('videoPlayer').addEventListener('timeupdate',()=>{ph=$('videoPlayer').currentTime;placePh()});
+function setBusy(on){busy=on;$('btnRender').disabled=on;$('btnRender').textContent=on?'Rendering...':'Render MP4';$('prog').style.display=on?'flex':'none'}
+async function startRender(){if(busy)return;schedulePreview();setBusy(true);$('btnDownload').style.display='none';$('progressBarFill').style.width='0';
   try{const r=await fetch('/api/render',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(state)});
-    if(r.ok)pollProgress();else{const d=await r.json();alert('Render failed: '+(d.error||'Unknown error'));setBusy(false)}
-  }catch(e){alert('Render error: '+e);setBusy(false)}}
-async function pollProgress(){
-  try{const d=await(await fetch('/api/status')).json();
-    if(d.status==='rendering'){const p=Math.round(d.progress*100);$('progressBarFill').style.width=p+'%';$('progressPct').textContent=p+'%';
-      $('sframe').textContent='Frame '+d.frame+' / '+d.total_frames+'  |  '+d.fps.toFixed(1)+' fps';setTimeout(pollProgress,250)}
-    else if(d.status==='done'){setBusy(false);$('sframe').textContent='Render complete';
-      const v=$('videoPlayer');v.src=d.video_url+'?t='+Date.now();switchViewMode('video');v.play().catch(()=>{});
-      const dl=$('btnDownload');dl.href=d.video_url;dl.style.display='inline-block'}
-    else if(d.status==='error'){setBusy(false);$('sframe').textContent='Render failed: '+d.error}
-    else setTimeout(pollProgress,400)
-  }catch(e){setTimeout(pollProgress,500)}}
+    if(r.ok)poll();else{const d=await r.json();alert('Render failed: '+(d.error||'Unknown error'));setBusy(false)}}catch(e){alert('Render error: '+e);setBusy(false)}}
+async function poll(){try{const d=await(await fetch('/api/status')).json();
+  if(d.status==='rendering'){const p=Math.round(d.progress*100);$('progressBarFill').style.width=p+'%';$('progressPct').textContent=p+'%';$('sframe').textContent='Frame '+d.frame+' / '+d.total_frames+'  ·  '+d.fps.toFixed(1)+' fps';setTimeout(poll,250)}
+  else if(d.status==='done'){setBusy(false);$('sframe').textContent='Render complete';const v=$('videoPlayer');v.src=d.video_url+'?t='+Date.now();view('vid');v.play().catch(()=>{});const dl=$('btnDownload');dl.href=d.video_url;dl.style.display='flex'}
+  else if(d.status==='error'){setBusy(false);$('sframe').textContent='Render failed: '+d.error}else setTimeout(poll,400)}catch(e){setTimeout(poll,500)}}
 
-async function loadPreset(id){
-  try{currentPresets=await(await fetch('/api/presets')).json();const p=currentPresets.find(i=>i.id===id);if(!p)return;
-    Object.assign(state.fighter_a,{name:p.fighter_a.name,color:p.fighter_a.color,archetype:p.fighter_a.archetype,weapon:p.fighter_a.weapon||'none',scale:p.fighter_a.scale||1});
-    if(p.fighter_a.headband_color)state.fighter_a.headband_color=p.fighter_a.headband_color;
-    Object.assign(state.fighter_b,{name:p.fighter_b.name,color:p.fighter_b.color,archetype:p.fighter_b.archetype,weapon:p.fighter_b.weapon||'none'});
-    if(p.fighter_b.headband_color)state.fighter_b.headband_color=p.fighter_b.headband_color;
-    selectStyle(p.style||'arcade');selectEnv(p.environment||'dojo');selectFormat(p.format||'vertical');
-    if(p.duration){$('duration').value=p.duration;updateDuration()}
-    if(p.timeline){state.timeline=JSON.parse(JSON.stringify(p.timeline));renderTimelineTracks()}
-    loadInspector();schedulePreview()}catch(e){console.error(e)}}
-function randomizeAll(){
-  const r=a=>a[Math.floor(Math.random()*a.length)],cols=['#2d3038','#e6ebf5','#e63946','#00d2ff','#f58c23','#9b5de5','#00f5d4'];
-  const ca=r(cols);let cb=r(cols);if(ca===cb)cb='#f0f3f8';
-  Object.assign(state.fighter_a,{archetype:r(ARCH),weapon:r(WEAP)[0],color:ca});Object.assign(state.fighter_b,{archetype:r(ARCH),weapon:r(WEAP)[0],color:cb});
-  selectEnv(r(ENVS)[0]);loadInspector();schedulePreview()}
+/* presets + random */
+async function loadPreset(id){try{presets=await(await fetch('/api/presets')).json();const p=presets.find(i=>i.id===id);if(!p)return;
+  Object.assign(state.fighter_a,{name:p.fighter_a.name,color:p.fighter_a.color,archetype:p.fighter_a.archetype,weapon:p.fighter_a.weapon||'none',scale:p.fighter_a.scale||1});if(p.fighter_a.headband_color)state.fighter_a.headband_color=p.fighter_a.headband_color;
+  Object.assign(state.fighter_b,{name:p.fighter_b.name,color:p.fighter_b.color,archetype:p.fighter_b.archetype,weapon:p.fighter_b.weapon||'none'});if(p.fighter_b.headband_color)state.fighter_b.headband_color=p.fighter_b.headband_color;
+  state.style=p.style||'arcade';state.environment=p.environment||'dojo';state.format=p.format||'vertical';if(p.duration)state.duration=p.duration;
+  if(p.timeline)state.timeline=JSON.parse(JSON.stringify(p.timeline));sel={t:'fa'};renderTL();inspector();schedulePreview()}catch(e){console.error(e)}}
+function randomizeAll(){const r=a=>a[Math.floor(Math.random()*a.length)],c=['#2d3038','#e6ebf5','#e63946','#00d2ff','#f58c23','#9b5de5','#00f5d4'],ca=r(c);let cb=r(c);if(ca===cb)cb='#f0f3f8';
+  Object.assign(state.fighter_a,{archetype:r(ARCH),weapon:r(WEAP)[0],color:ca});Object.assign(state.fighter_b,{archetype:r(ARCH),weapon:r(WEAP)[0],color:cb});state.environment=r(ENV)[0];inspector();schedulePreview()}
 
-/* menus */
-document.querySelectorAll('.menu>button').forEach(b=>b.onclick=e=>{e.stopPropagation();const m=b.parentElement,o=m.classList.contains('open');
-  document.querySelectorAll('.menu').forEach(x=>x.classList.remove('open'));if(!o)m.classList.add('open')});
+/* menus, palette, shortcuts */
+document.querySelectorAll('.menu>button').forEach(b=>b.onclick=e=>{e.stopPropagation();const m=b.parentElement,o=m.classList.contains('open');document.querySelectorAll('.menu').forEach(x=>x.classList.remove('open'));if(!o)m.classList.add('open')});
 document.addEventListener('click',()=>document.querySelectorAll('.menu').forEach(x=>x.classList.remove('open')));
-
-/* command palette */
-const CMDS=[['Render video',()=>startRender()],['Randomize fighters',randomizeAll],['Switch to timeline mode',()=>switchChoreographyMode('timeline')],['Switch to procedural mode',()=>switchChoreographyMode('procedural')],['Clear timeline',clearTimeline],['Refresh preview',schedulePreview],
-  ...['ninja_vs_samurai','cyborg_vs_ninja','brawler_vs_monk','realistic_boxing','realistic_mma','classic_showdown'].map(id=>['Load preset: '+id.replace(/_/g,' '),()=>loadPreset(id)])];
+const CMDS=[['Render MP4',()=>startRender()],['Randomize fighters',randomizeAll],['Choreograph mode',()=>setMode('timeline')],['Procedural mode',()=>setMode('procedural')],['Clear timeline',clearTimeline],['Refresh preview',schedulePreview],
+ ...[['ninja_vs_samurai','Ninja vs Samurai'],['cyborg_vs_ninja','Cyber Clash'],['brawler_vs_monk','Street vs Shaolin'],['realistic_boxing','Boxing Title'],['realistic_mma','MMA Championship'],['classic_showdown','Classic Duel']].map(([id,n])=>['Load preset: '+n,()=>loadPreset(id)])];
 let pi=0,pv=CMDS;
-function drawPal(){const q=$('palIn').value.toLowerCase();pv=CMDS.filter(c=>c[0].toLowerCase().includes(q));pi=Math.min(pi,Math.max(0,pv.length-1));
-  $('palList').innerHTML='';pv.forEach((c,i)=>{const li=document.createElement('li');li.textContent=c[0];li.className=i===pi?'on':'';li.onclick=()=>runPal(i);$('palList').appendChild(li)})}
+function drawPal(){const q=$('palIn').value.toLowerCase();pv=CMDS.filter(c=>c[0].toLowerCase().includes(q));pi=Math.min(pi,Math.max(0,pv.length-1));$('palList').innerHTML=pv.map((c,i)=>`<li class="${i===pi?'on':''}" onclick="runPal(${i})">${c[0]}</li>`).join('')}
 function openPalette(){$('pal').classList.add('on');$('palIn').value='';pi=0;drawPal();$('palIn').focus()}
 function runPal(i){$('pal').classList.remove('on');if(pv[i])pv[i][1]()}
-$('palIn').oninput=()=>{pi=0;drawPal()};
-$('pal').onclick=e=>{if(e.target===$('pal'))$('pal').classList.remove('on')};
+$('palIn').oninput=()=>{pi=0;drawPal()};$('pal').onclick=e=>{if(e.target===$('pal'))$('pal').classList.remove('on')};
 $('palIn').onkeydown=e=>{if(e.key==='ArrowDown'){pi=Math.min(pi+1,pv.length-1);drawPal()}else if(e.key==='ArrowUp'){pi=Math.max(pi-1,0);drawPal()}else if(e.key==='Enter')runPal(pi);else if(e.key==='Escape')$('pal').classList.remove('on')};
+document.addEventListener('keydown',e=>{const ty=/INPUT|SELECT/.test(document.activeElement.tagName);
+  if(e.ctrlKey&&e.key==='Enter'){e.preventDefault();startRender()}else if(e.ctrlKey&&e.key.toLowerCase()==='k'){e.preventDefault();openPalette()}
+  else if(e.ctrlKey&&e.key.toLowerCase()==='r'){e.preventDefault();randomizeAll()}else if(e.key==='F5'){e.preventDefault();schedulePreview()}
+  else if(e.key==='Delete'&&!ty)deleteSelected();else if(e.code==='Space'&&!ty&&!$('btnPlay').disabled){e.preventDefault();togglePlay()}});
 
-/* shortcuts */
-document.addEventListener('keydown',e=>{
-  const typing=/INPUT|SELECT/.test(document.activeElement.tagName);
-  if(e.ctrlKey&&e.key==='Enter'){e.preventDefault();startRender()}
-  else if(e.ctrlKey&&e.key.toLowerCase()==='k'){e.preventDefault();openPalette()}
-  else if(e.ctrlKey&&e.key.toLowerCase()==='r'){e.preventDefault();randomizeAll()}
-  else if(e.key==='F5'){e.preventDefault();schedulePreview()}
-  else if(e.key==='Delete'&&!typing)deleteSelected()});
-
-window.addEventListener('DOMContentLoaded',async()=>{
-  buildStatic();loadInspector();switchChoreographyMode('procedural');
-  try{currentPresets=await(await fetch('/api/presets')).json()}catch(e){}
-  schedulePreview()});
+window.addEventListener('DOMContentLoaded',async()=>{setMode('procedural');inspector();outline();
+  try{presets=await(await fetch('/api/presets')).json()}catch(e){}schedulePreview()});
 </script>
 </body>
 </html>
