@@ -46,3 +46,17 @@ B = scene.add_fighter("B", x=730, y=1500, render_style="ink_fight")
 - Repository source updated successfully.
 - The exact GUI-to-generator parameter mismatch is resolved at the function interface.
 - A local preview render still needs to be run to validate the complete rendering path.
+
+
+## 2026-09-28 — Fix Missing Fighter Design Presets
+
+### What I did
+- Defined the missing `DESIGN_PRESETS` registry used by `Fighter.__init__()`.
+- Added presets for classic, ninja, samurai, brawler, monk, and cyborg designs.
+- Reused the repository's existing archetype colors, render styles, scales, headband colors, and skeleton proportions.
+- This fixes `NameError: name 'DESIGN_PRESETS' is not defined`.
+
+### Validation
+- The missing symbol is now defined before `Fighter` uses it.
+- Changes committed to the repository.
+- A full local preview run is still required to catch any subsequent integration errors.
