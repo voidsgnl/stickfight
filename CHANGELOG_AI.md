@@ -71,3 +71,14 @@ B = scene.add_fighter("B", x=730, y=1500, render_style="ink_fight")
 ### Validation
 - Confirmed the referenced proportion constants are defined in `stickfight/engine/skeleton.py`.
 - The next step is to run `python3 gui.py` locally and continue resolving any remaining runtime errors.
+
+## 2026-09-28 — Fix Render Progress Callback API
+
+### What I did
+- Updated `FightScene.render()` to accept the GUI's `progress_callback` argument.
+- The callback is invoked during rendering with `(frame, total_frames, progress)` so the GUI can update its render status.
+- Preserved the existing rendering, simulation, FFmpeg export, audio, physics, and choreography flow.
+
+### Validation
+- Fixed the runtime mismatch causing `FightScene.render() got an unexpected keyword argument 'progress_callback'`.
+- Next step: rerun `python3 gui.py` and start another render/preview.
