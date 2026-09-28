@@ -22,12 +22,17 @@ from stickfight.scripting.actions import Action, HitAction, KnockbackAction, Par
 
 
 class FightScene:
-    def __init__(self, width: int = 1080, height: int = 1920, fps: int = 30, ground_y: float = 1500.0):
+    def __init__(self, width: int = 1080, height: int = 1920, fps: int = 30, ground_y: float = 1500.0,
+                 style: str = "arcade"):
         self.width = width
         self.height = height
         self.fps = fps
         self.ground_y = ground_y
         self.bg_style = "plain"
+        # Choreography style applied to fighters added without an explicit
+        # style: "arcade" (weapon/flash fights) or "realistic" (boxing /
+        # Muay Thai / MMA mechanics).
+        self.style = style
 
         self.fighters: List[Fighter] = []
         self._fighter_map: Dict[str, Fighter] = {}
@@ -53,6 +58,10 @@ class FightScene:
         scale: float = 1.0,
         render_style: str = "segmented",
         proportions: Optional[BodyProportions] = None,
+        head_radius: Optional[float] = None,
+        headband_color: Optional[Tuple[int, int, int]] = None,
+        design: Optional[str] = None,
+        style: Optional[str] = None,
     ) -> Fighter:
         """Adds a fighter to the scene."""
         ground_contact = y if y is not None else self.ground_y
@@ -65,7 +74,7 @@ class FightScene:
             # Face center / towards opponent
             facing = 1 if x < self.width / 2 else -1
 
-        fighter = Fighter(
+        kwargs = dict(
             name=name,
             x=x,
             y=ground_contact,
@@ -75,7 +84,14 @@ class FightScene:
             scale=scale,
             render_style=render_style,
             proportions=proportions,
+            headband_color=headband_color,
+            style=style if style is not None else self.style,
         )
+        if head_radius is not None:
+            kwargs["head_radius"] = head_radius
+        if design is not None:
+            kwargs["design"] = design
+        fighter = Fighter(**kwargs)
         self.fighters.append(fighter)
         self._fighter_map[name] = fighter
         return fighter

@@ -26,8 +26,14 @@ class Pose:
     def get(self, joint_name: str, default: Tuple[float, float] = (0.0, 0.0)) -> Tuple[float, float]:
         return self.joints.get(joint_name, default)
 
-    def set(self, joint_name: str, x: float, y: float) -> Pose:
-        self.joints[joint_name] = (float(x), float(y))
+    def set(self, joint_name: str, x, y=None) -> Pose:
+        """Set a joint position. Accepts either ``set(name, x, y)`` or
+        the tuple form ``set(name, (x, y))``."""
+        if y is None:
+            px, py = x
+        else:
+            px, py = x, y
+        self.joints[joint_name] = (float(px), float(py))
         return self
 
     def lerp(self, target: Pose, t: float) -> Pose:
