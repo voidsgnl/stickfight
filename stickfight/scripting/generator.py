@@ -32,12 +32,29 @@ def generate_fight(
     fighter_b_type: str = "samurai",
     environment: str = "dojo",
     seed: Optional[int] = None,
+    width: int = 1080,
+    height: int = 1920,
+    fps: int = 30,
+    ground_y: float = 1500.0,
+    style: str = "arcade",
 ) -> FightScene:
     """Procedurally generates a complete scripted fight scene."""
     rng = random.Random(seed)
 
-    scene = FightScene(width=1080, height=1920, fps=30, ground_y=1500.0)
+    scene = FightScene(
+        width=int(width),
+        height=int(height),
+        fps=int(fps),
+        ground_y=float(ground_y),
+    )
     scene.background(environment)
+
+    # The GUI may provide a render style. Keep style optional here because
+    # fighter render styles are applied by the character/rendering layer.
+    # Preserve it on the scene when supported without coupling the generator
+    # to a specific renderer implementation.
+    if style:
+        setattr(scene, "style", style)
 
     # 1. Spawn fighters
     builder_a = ARCHETYPE_BUILDERS.get(fighter_a_type.lower(), create_ninja)
