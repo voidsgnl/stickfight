@@ -60,3 +60,14 @@ B = scene.add_fighter("B", x=730, y=1500, render_style="ink_fight")
 - The missing symbol is now defined before `Fighter` uses it.
 - Changes committed to the repository.
 - A full local preview run is still required to catch any subsequent integration errors.
+
+## 2026-09-28 — Fix Missing Fighter Proportion Imports
+
+### What I did
+- Fixed the startup `NameError: name 'PROPORTIONS_NINJA' is not defined` in `stickfight/engine/fighter.py`.
+- Imported all archetype proportion presets from `stickfight.engine.skeleton`: ninja, samurai, brawler, monk, and cyborg.
+- Kept the existing design presets and renderer architecture unchanged.
+
+### Validation
+- Confirmed the referenced proportion constants are defined in `stickfight/engine/skeleton.py`.
+- The next step is to run `python3 gui.py` locally and continue resolving any remaining runtime errors.
