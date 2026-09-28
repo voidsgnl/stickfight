@@ -868,7 +868,7 @@ class TakedownAction(Action):
 
         d.health = max(0.0, d.health - self.damage)
         d.state = "fallen"
-        d.set_animation("grounded_guard", loop=True)
+        d.set_animation("fall", loop=False)
         d.physics.vx = 0.0
         d.physics.vy = 0.0
         d.physics.is_grounded = True

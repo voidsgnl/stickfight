@@ -93,7 +93,25 @@ class Fighter:
         render_style: str = "segmented",
         proportions: Optional[BodyProportions] = None,
         style: str = "arcade",
+        design: Optional[str] = None,
     ):
+        # Character design preset ("classic", "ninja", "samurai"/"warrior",
+        # "brawler", "monk", "cyber"/"cyborg"). Applied first so any explicit
+        # keyword arguments below override the preset's look.
+        self.design = (design or "classic").lower()
+        if self.design in ("cyber", "cyborg"):
+            self.design = "cyborg"
+        elif self.design == "warrior":
+            self.design = "samurai"
+        preset = DESIGN_PRESETS.get(self.design)
+        if preset is not None:
+            color = preset.get("color", color)
+            line_width = preset.get("line_width", line_width)
+            scale = preset.get("scale", scale)
+            render_style = preset.get("render_style", render_style)
+            headband_color = preset.get("headband_color", headband_color)
+            if proportions is None and "proportions" in preset:
+                proportions = preset["proportions"]
         self.name = name
         self.x = float(x)
         self.y = float(y)  # Base contact / ground level
@@ -431,6 +449,27 @@ class Fighter:
                     self.punch(tgt, duration=0.28, damage=12.0),
                     self.punch(tgt, duration=0.28, damage=14.0),
                     self.uppercut(tgt, duration=0.45, damage=25.0),
+                ]
+            elif combo_name == "one_two":
+                # Classic boxing 1-2: lead jab followed by the rear straight.
+                actions = [
+                    self.jab(tgt, duration=0.35, damage=12.0),
+                    self.cross(tgt, duration=0.40, damage=18.0),
+                ]
+            elif combo_name == "dutch_kickboxing":
+                # Dutch-style sequence: punches set up the low kick, knee ends it.
+                actions = [
+                    self.jab(tgt, duration=0.35, damage=12.0),
+                    self.cross(tgt, duration=0.40, damage=18.0),
+                    self.hook(tgt, duration=0.42, damage=24.0),
+                    self.low_kick(tgt, duration=0.42, damage=16.0),
+                ]
+            elif combo_name == "mma_clinch_takedown":
+                # Strike into the clinch, land the knee, then finish the takedown.
+                actions = [
+                    self.cross(tgt, duration=0.40, damage=18.0),
+                    self.clinch_knee(tgt, duration=0.50, damage=25.0),
+                    self.takedown(tgt, duration=0.70, damage=22.0),
                 ]
             else:
                 # Default 1-2 combo
