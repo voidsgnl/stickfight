@@ -582,3 +582,363 @@ class CameraAction(Action):
 
     def on_finish(self, scene: FightScene):
         pass  # Automatic fighter-framing resumes once director_lock elapses.
+
+
+# ============================================================================
+# REALISTIC MARTIAL ARTS ACTIONS (Boxing / Muay Thai / MMA)
+# These mechanics power the "realistic" fight style: snap strikes with proper
+# timing windows, defensive head movement, the low-kick vs shin-check
+# exchange, and the grappling sequence (takedown -> grounded guard ->
+# ground-and-pound).
+# ============================================================================
+
+class JabAction(Action):
+    """Fast lead-hand straight punch. Low damage, quick recovery."""
+    def __init__(self, attacker: Fighter, defender: Optional[Fighter] = None, duration: float = 0.35, damage: float = 12.0):
+        super().__init__(attacker, duration)
+        self.defender = defender
+        self.damage = damage
+        self.hit_registered = False
+
+    def on_start(self, scene: FightScene):
+        super().on_start(scene)
+        if self.defender:
+            self.fighter.face_fighter(self.defender)
+        self.fighter.state = "attacking"
+        self.fighter.set_animation("jab", loop=False)
+        self.hit_registered = False
+        scene.audio.schedule_sound(scene.current_time + 0.08, "whoosh")
+
+    def update(self, scene: FightScene, local_t: float, dt: float):
+        self.fighter.update_animation(dt)
+        if not self.hit_registered and local_t >= 0.12:
+            self.hit_registered = True
+            if self.defender:
+                hitbox = self.fighter.get_hitbox()
+                if hitbox:
+                    hitbox.damage = self.damage
+                    scene.resolve_attack(self.fighter, self.defender, hitbox)
+
+    def on_finish(self, scene: FightScene):
+        self.fighter.state = "idle"
+        self.fighter.set_animation("idle")
+
+
+class CrossAction(Action):
+    """Rear-hand straight power shot thrown off the jab or from stance."""
+    def __init__(self, attacker: Fighter, defender: Optional[Fighter] = None, duration: float = 0.40, damage: float = 18.0):
+        super().__init__(attacker, duration)
+        self.defender = defender
+        self.damage = damage
+        self.hit_registered = False
+
+    def on_start(self, scene: FightScene):
+        super().on_start(scene)
+        if self.defender:
+            self.fighter.face_fighter(self.defender)
+        self.fighter.state = "attacking"
+        self.fighter.set_animation("cross", loop=False)
+        self.hit_registered = False
+        scene.audio.schedule_sound(scene.current_time + 0.12, "whoosh")
+
+    def update(self, scene: FightScene, local_t: float, dt: float):
+        self.fighter.update_animation(dt)
+        if not self.hit_registered and local_t >= 0.17:
+            self.hit_registered = True
+            if self.defender:
+                hitbox = self.fighter.get_hitbox()
+                if hitbox:
+                    hitbox.damage = self.damage
+                    scene.resolve_attack(self.fighter, self.defender, hitbox)
+
+    def on_finish(self, scene: FightScene):
+        self.fighter.state = "idle"
+        self.fighter.set_animation("idle")
+
+
+class HookAction(Action):
+    """Lead hook on a level arc. Heavy damage inside punching range."""
+    def __init__(self, attacker: Fighter, defender: Optional[Fighter] = None, duration: float = 0.42, damage: float = 24.0):
+        super().__init__(attacker, duration)
+        self.defender = defender
+        self.damage = damage
+        self.hit_registered = False
+
+    def on_start(self, scene: FightScene):
+        super().on_start(scene)
+        if self.defender:
+            self.fighter.face_fighter(self.defender)
+        self.fighter.state = "attacking"
+        self.fighter.set_animation("hook", loop=False)
+        self.hit_registered = False
+        scene.audio.schedule_sound(scene.current_time + 0.12, "whoosh")
+
+    def update(self, scene: FightScene, local_t: float, dt: float):
+        self.fighter.update_animation(dt)
+        if not self.hit_registered and local_t >= 0.18:
+            self.hit_registered = True
+            if self.defender:
+                hitbox = self.fighter.get_hitbox()
+                if hitbox:
+                    hitbox.damage = self.damage
+                    scene.resolve_attack(self.fighter, self.defender, hitbox)
+
+    def on_finish(self, scene: FightScene):
+        self.fighter.state = "idle"
+        self.fighter.set_animation("idle")
+
+
+class LowKickAction(Action):
+    """Rear-leg roundhouse to the opponent's lead leg.
+
+    If the defender is checking (state == "checking"), the kick lands on the
+    raised shin instead: the defender takes no damage and the kicker absorbs
+    recoil damage for striking bone.
+    """
+    def __init__(self, attacker: Fighter, defender: Optional[Fighter] = None, duration: float = 0.42, damage: float = 16.0):
+        super().__init__(attacker, duration)
+        self.defender = defender
+        self.damage = damage
+        self.hit_registered = False
+
+    def on_start(self, scene: FightScene):
+        super().on_start(scene)
+        if self.defender:
+            self.fighter.face_fighter(self.defender)
+        self.fighter.state = "attacking"
+        self.fighter.set_animation("low_kick", loop=False)
+        self.hit_registered = False
+        scene.audio.schedule_sound(scene.current_time + 0.14, "whoosh")
+
+    def update(self, scene: FightScene, local_t: float, dt: float):
+        self.fighter.update_animation(dt)
+        if not self.hit_registered and local_t >= 0.20:
+            self.hit_registered = True
+            self._resolve_impact(scene)
+
+    def _resolve_impact(self, scene: FightScene):
+        if not self.defender:
+            return
+        if self.defender.state == "checking":
+            # Shin check! Kicker eats recoil damage, defender is unharmed.
+            recoil = self.damage * 0.4
+            self.fighter.health = max(0.0, self.fighter.health - recoil)
+            impact_x = (self.fighter.x + self.defender.x) / 2.0
+            impact_y = self.defender.y - 90.0
+            scene.effects.trigger_hit_effect(impact_x, impact_y, is_blocked=True)
+            scene.audio.schedule_sound(scene.current_time, "block")
+            scene.camera.shake(intensity=7.0, duration=0.15)
+            return
+        hitbox = self.fighter.get_hitbox()
+        if hitbox:
+            hitbox.damage = self.damage
+            scene.resolve_attack(self.fighter, self.defender, hitbox)
+
+    def on_finish(self, scene: FightScene):
+        self.fighter.state = "idle"
+        self.fighter.set_animation("idle")
+
+
+class CheckKickAction(Action):
+    """Raise the lead shin to bone-on-bone block an incoming low kick."""
+    def __init__(self, fighter: Fighter, duration: float = 0.45):
+        super().__init__(fighter, duration)
+
+    def on_start(self, scene: FightScene):
+        super().on_start(scene)
+        self.fighter.state = "checking"
+        self.fighter.set_animation("check_kick", loop=False)
+
+    def update(self, scene: FightScene, local_t: float, dt: float):
+        self.fighter.update_animation(dt)
+
+    def on_finish(self, scene: FightScene):
+        self.fighter.state = "idle"
+        self.fighter.set_animation("idle")
+
+
+class SlipAction(Action):
+    """Lateral head slip that ducks a punch off the centerline.
+
+    While slipping, straight punches (jab/cross/punch) miss entirely; hooks
+    and heavier arcs can still catch the shoulder.
+    """
+    def __init__(self, fighter: Fighter, duration: float = 0.40):
+        super().__init__(fighter, duration)
+
+    def on_start(self, scene: FightScene):
+        super().on_start(scene)
+        self.fighter.state = "slipping"
+        self.fighter.set_animation("slip", loop=False)
+
+    def update(self, scene: FightScene, local_t: float, dt: float):
+        self.fighter.update_animation(dt)
+
+    def on_finish(self, scene: FightScene):
+        self.fighter.state = "idle"
+        self.fighter.set_animation("idle")
+
+
+class BobWeaveAction(Action):
+    """U-shaped duck under incoming punches; hands stay glued to the temples."""
+    def __init__(self, fighter: Fighter, duration: float = 0.45):
+        super().__init__(fighter, duration)
+
+    def on_start(self, scene: FightScene):
+        super().on_start(scene)
+        self.fighter.state = "weaving"
+        self.fighter.set_animation("bob_weave", loop=False)
+
+    def update(self, scene: FightScene, local_t: float, dt: float):
+        self.fighter.update_animation(dt)
+
+    def on_finish(self, scene: FightScene):
+        self.fighter.state = "idle"
+        self.fighter.set_animation("idle")
+
+
+class ClinchKneeAction(Action):
+    """Thai plum clinch driving the rear knee into the opponent's body."""
+    def __init__(self, attacker: Fighter, defender: Optional[Fighter] = None, duration: float = 0.50, damage: float = 25.0):
+        super().__init__(attacker, duration)
+        self.defender = defender
+        self.damage = damage
+        self.hit_registered = False
+
+    def on_start(self, scene: FightScene):
+        super().on_start(scene)
+        if self.defender:
+            self.fighter.face_fighter(self.defender)
+        self.fighter.state = "attacking"
+        self.fighter.set_animation("clinch_knee", loop=False)
+        self.hit_registered = False
+        scene.audio.schedule_sound(scene.current_time + 0.15, "whoosh")
+
+    def update(self, scene: FightScene, local_t: float, dt: float):
+        self.fighter.update_animation(dt)
+        if not self.hit_registered and local_t >= 0.25:
+            self.hit_registered = True
+            if self.defender:
+                hitbox = self.fighter.get_hitbox()
+                if hitbox:
+                    hitbox.damage = self.damage
+                    scene.resolve_attack(self.fighter, self.defender, hitbox)
+
+    def on_finish(self, scene: FightScene):
+        self.fighter.state = "idle"
+        self.fighter.set_animation("idle")
+
+
+class TakedownAction(Action):
+    """Double-leg wrestling shot: shoot in, drive through, take the rival down.
+
+    On success the defender ends up grounded in the bottom guard position,
+    setting up a ground-and-pound follow-up. A defender who is already
+    fallen cannot be taken down again.
+    """
+    def __init__(self, attacker: Fighter, defender: Optional[Fighter] = None, duration: float = 0.70, damage: float = 22.0):
+        super().__init__(attacker, duration)
+        self.defender = defender
+        self.damage = damage
+        self.hit_registered = False
+
+    def on_start(self, scene: FightScene):
+        super().on_start(scene)
+        if self.defender:
+            self.fighter.face_fighter(self.defender)
+        self.fighter.state = "attacking"
+        self.fighter.set_animation("takedown", loop=False)
+        self.hit_registered = False
+        scene.audio.schedule_sound(scene.current_time + 0.20, "whoosh")
+
+    def update(self, scene: FightScene, local_t: float, dt: float):
+        self.fighter.update_animation(dt)
+        if not self.hit_registered and local_t >= 0.45:
+            self.hit_registered = True
+            self._complete_takedown(scene)
+
+    def _complete_takedown(self, scene: FightScene):
+        d = self.defender
+        if not d or d.state == "fallen":
+            return
+        # Close the distance so the grappling sequence reads physically.
+        gap = (d.x - self.fighter.x) * 0.6
+        self.fighter.x += gap
+        self.fighter.sync_to_physics()
+
+        d.health = max(0.0, d.health - self.damage)
+        d.state = "fallen"
+        d.set_animation("grounded_guard", loop=True)
+        d.physics.vx = 0.0
+        d.physics.vy = 0.0
+        d.physics.is_grounded = True
+
+        impact_x = (self.fighter.x + d.x) / 2.0
+        scene.audio.schedule_sound(scene.current_time, "fall")
+        scene.effects.trigger_dust_puff(d.x, d.y, count=18)
+        scene.camera.shake(intensity=12.0, duration=0.25)
+
+    def on_finish(self, scene: FightScene):
+        self.fighter.state = "idle"
+        self.fighter.set_animation("idle")
+
+
+class GroundPoundAction(Action):
+    """Top-position hammerfists onto a grounded opponent.
+
+    Only effective against a fighter who is already down; standing targets
+    simply avoid it, which keeps the choreography honest (you must take the
+    rival down first).
+    """
+    def __init__(self, attacker: Fighter, defender: Optional[Fighter] = None, duration: float = 0.55, damage: float = 28.0):
+        super().__init__(attacker, duration)
+        self.defender = defender
+        self.damage = damage
+        self.hit_registered = False
+
+    def on_start(self, scene: FightScene):
+        super().on_start(scene)
+        if self.defender:
+            self.fighter.face_fighter(self.defender)
+        self.fighter.state = "attacking"
+        self.fighter.set_animation("ground_pound", loop=False)
+        self.hit_registered = False
+        scene.audio.schedule_sound(scene.current_time + 0.15, "whoosh")
+
+    def update(self, scene: FightScene, local_t: float, dt: float):
+        self.fighter.update_animation(dt)
+        if not self.hit_registered and local_t >= 0.28:
+            self.hit_registered = True
+            d = self.defender
+            if d and d.state == "fallen":
+                d.health = max(0.0, d.health - self.damage)
+                impact_x = (self.fighter.x + d.x) / 2.0
+                impact_y = d.y - 60.0
+                scene.effects.trigger_hit_effect(impact_x, impact_y, is_blocked=False, is_heavy=True)
+                scene.audio.schedule_sound(scene.current_time, "punch")
+                scene.camera.shake(intensity=10.0, duration=0.2)
+
+    def on_finish(self, scene: FightScene):
+        self.fighter.state = "idle"
+        self.fighter.set_animation("idle")
+
+
+class StaggerAction(Action):
+    """Hurt wobble after eating a clean power shot; barely stays upright."""
+    def __init__(self, fighter: Fighter, duration: float = 0.50):
+        super().__init__(fighter, duration)
+
+    def on_start(self, scene: FightScene):
+        super().on_start(scene)
+        self.fighter.state = "staggering"
+        self.fighter.set_animation("stagger", loop=False)
+
+    def update(self, scene: FightScene, local_t: float, dt: float):
+        self.fighter.update_animation(dt)
+        prog = max(0.0, min(1.0, local_t / max(1e-5, self.duration)))
+        # Reel backward while wobbling.
+        self.fighter.x -= self.fighter.facing * 60.0 * dt * (1.0 - prog)
+
+    def on_finish(self, scene: FightScene):
+        self.fighter.state = "idle"
+        self.fighter.set_animation("idle")

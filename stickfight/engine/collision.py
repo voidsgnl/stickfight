@@ -48,6 +48,12 @@ class Hurtbox:
     neck_pos: Tuple[float, float]
     pelvis_pos: Tuple[float, float]
     torso_radius: float
+    # Optional leg capsule (hip -> knee -> foot) so low kicks can connect
+    # with the opponent's lead leg instead of only head/torso.
+    hip_pos: Optional[Tuple[float, float]] = None
+    knee_pos: Optional[Tuple[float, float]] = None
+    foot_pos: Optional[Tuple[float, float]] = None
+    leg_radius: float = 16.0
 
 
 def check_hit(hitbox: Hitbox, hurtbox: Hurtbox) -> bool:
@@ -61,5 +67,14 @@ def check_hit(hitbox: Hitbox, hurtbox: Hurtbox) -> bool:
     d_torso = dist_point_to_segment(hp, hurtbox.neck_pos, hurtbox.pelvis_pos)
     if d_torso <= (hitbox.radius + hurtbox.torso_radius):
         return True
+
+    # Check leg capsule intersection (low kicks targeting the lead leg)
+    if hurtbox.hip_pos is not None and hurtbox.knee_pos is not None and hurtbox.foot_pos is not None:
+        d_leg = min(
+            dist_point_to_segment(hp, hurtbox.hip_pos, hurtbox.knee_pos),
+            dist_point_to_segment(hp, hurtbox.knee_pos, hurtbox.foot_pos),
+        )
+        if d_leg <= (hitbox.radius + hurtbox.leg_radius):
+            return True
 
     return False
