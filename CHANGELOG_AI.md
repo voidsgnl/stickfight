@@ -1,5 +1,36 @@
 # AI Change Log
 
+## 2026-09-29 — Optional Bold Seamless-Line Visual Style
+
+### What I did
+- Added a new fighter render style: `bold`, implemented in `stickfight/engine/bold_style.py`.
+- `renderer.py` only gained an import and a small dispatch (`style == "bold"`), so all existing styles (`segmented`, `silhouette`, `classic`, `tech`, `ink_fight`) are untouched.
+- The body is drawn as **one continuous silhouette**: every outline is drawn first, then every fill in a single colour, so overlapping limbs never draw borders across each other.
+- Limbs, spine, neck and head are smooth curves through the joints (quadratic curves anchored at segment midpoints), so elbows, knees and shoulders bend without visible breaks.
+- Added a soft glow (small silhouette smooth-scaled up), a top-edge highlight so lines read as rounded tubes, and motion smear (ghost frames plus speed lines) for punch/kick/uppercut/slash/sweep clips.
+- Headbands and sword/staff weapons still attach to the existing skeleton joints.
+- Added `tests/test_bold_style.py` (style is configurable, draws without error while animating, and body curve points are body-coloured rather than outline-coloured).
+
+### Important architecture decision
+`bold` is an **option**, not a replacement. Skeleton, animation, physics, collision/hitboxes, choreography, camera, effects and audio are unchanged. Motion-smear history is kept per fighter on the `Renderer` instance and only used by this style.
+
+### Example
+```python
+A = scene.add_fighter("A", x=350, y=1500, color=(232, 68, 58), render_style="bold")
+B = scene.add_fighter("B", x=730, y=1500, color=(61, 139, 255), render_style="bold")
+```
+
+### Validation
+- The drawing module was exercised against a stand-in pygame to check its logic (curve sampling, missing joints, no active clip, ghost history filling over frames).
+- **Real pygame tests and a render preview have NOT been run yet.** Line widths (`BASE_LINE_WIDTH = 16`), highlight strength and glow alpha are tuned from a browser mock-up, not from actual frames.
+
+### Next plan
+1. Run `pytest tests/test_bold_style.py tests/test_fighter.py`.
+2. Render a short preview with `render_style="bold"` and check width, glow and smear against the real camera zoom.
+3. Tune `BASE_LINE_WIDTH`, `OUTLINE_EXTRA`, `TRAIL_GHOSTS` in `bold_style.py` based on real frames.
+4. Decide whether to document the style in `readme.md` and expose it in the GUI style picker.
+
+
 ## 2026-09-28 — Optional Black-Ink Fight Visual Style
 
 ### What I did
