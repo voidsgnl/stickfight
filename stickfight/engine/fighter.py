@@ -12,6 +12,11 @@ from stickfight.engine.skeleton import (
     BodyProportions,
     apply_proportions,
     PROPORTIONS_DEFAULT,
+    PROPORTIONS_NINJA,
+    PROPORTIONS_SAMURAI,
+    PROPORTIONS_BRAWLER,
+    PROPORTIONS_MONK,
+    PROPORTIONS_CYBORG,
 )
 from stickfight.engine.animation import (
     AnimationClip,
