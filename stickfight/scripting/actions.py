@@ -4,7 +4,7 @@ Encapsulates high-level actions (walk, punch, kick, block, dodge, fall, combos).
 """
 
 from __future__ import annotations
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, List, Optional, Union, Tuple
 import math
 
 if TYPE_CHECKING:
@@ -509,3 +509,76 @@ class ComboAction(Action):
         if self.current_idx < len(self.actions):
             self.actions[self.current_idx].on_finish(scene)
         self.fighter.set_animation("idle")
+
+
+class CameraAction(Action):
+    """Director-style camera shot: cut, pan, or zoom to a target, then hold
+    the framing before automatic fighter-tracking resumes.
+
+    The target position can be given explicitly (x/y) or derived from
+    `focus`, which may be a single Fighter (frames roughly on their upper
+    body) or a tuple/list of Fighters (frames their midpoint — handy for a
+    two-shot before cutting to a close-up). Explicit x/y override the
+    focus-derived position on whichever axis is given.
+
+    Has no associated fighter (this is a camera-only beat), so it never
+    blocks a fighter's idle animation on the timeline.
+    """
+    def __init__(
+        self,
+        focus: Optional[Union["Fighter", Tuple["Fighter", ...], List["Fighter"]]] = None,
+        x: Optional[float] = None,
+        y: Optional[float] = None,
+        zoom: Optional[float] = None,
+        cut: bool = False,
+        transition: float = 0.4,
+        hold: float = 0.6,
+    ):
+        self.focus = focus
+        self.x = x
+        self.y = y
+        self.zoom = zoom
+        self.cut = cut
+        self.transition = 0.0 if cut else max(0.0, transition)
+        total_duration = self.transition + max(0.0, hold)
+        super().__init__(None, total_duration)
+
+    def _resolve_target(self, scene: FightScene) -> Tuple[Optional[float], Optional[float]]:
+        if self.focus is not None:
+            fighters = self.focus if isinstance(self.focus, (tuple, list)) else [self.focus]
+            fx = sum(f.x for f in fighters) / len(fighters)
+            fy = sum(f.y - 120.0 for f in fighters) / len(fighters)
+            tx = fx if self.x is None else self.x
+            ty = fy if self.y is None else self.y
+        else:
+            tx = self.x
+            ty = self.y
+        return tx, ty
+
+    def on_start(self, scene: FightScene):
+        super().on_start(scene)
+        cam = scene.camera
+        tx, ty = self._resolve_target(scene)
+        tx = cam.target_x if tx is None else tx
+        ty = cam.target_y if ty is None else ty
+        tz = cam.zoom if self.zoom is None else self.zoom
+
+        # Lock out auto fighter-framing for this shot's full duration; each
+        # update() call below refreshes the lock so it never expires early.
+        cam.director_lock = self.duration + 0.05
+
+        if self.cut:
+            clamped_zoom = max(cam.min_zoom, min(cam.max_zoom, tz))
+            cam.x, cam.y, cam.zoom = tx, ty, clamped_zoom
+            cam.target_x, cam.target_y, cam.target_zoom = tx, ty, clamped_zoom
+        else:
+            cam.set_target(tx, ty, tz)
+
+    def update(self, scene: FightScene, local_t: float, dt: float):
+        # Camera.update() (invoked once per scene tick) already drives the
+        # smooth lerp toward target_x/y/zoom; this just keeps the director
+        # lock alive so auto-framing doesn't reclaim the camera mid-shot.
+        scene.camera.director_lock = max(scene.camera.director_lock, self.duration - local_t + 0.05)
+
+    def on_finish(self, scene: FightScene):
+        pass  # Automatic fighter-framing resumes once director_lock elapses.
