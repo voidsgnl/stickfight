@@ -29,6 +29,18 @@ from stickfight.engine.animation import (
     create_sweep_clip,
     create_slash_clip,
     create_sword_guard_clip,
+    create_jab_clip,
+    create_cross_clip,
+    create_hook_clip,
+    create_low_kick_clip,
+    create_check_kick_clip,
+    create_slip_clip,
+    create_bob_weave_clip,
+    create_clinch_knee_clip,
+    create_takedown_clip,
+    create_ground_pound_clip,
+    create_stagger_clip,
+    create_grounded_guard_clip,
 )
 from stickfight.engine.collision import Hitbox, Hurtbox
 from stickfight.engine.physics import PhysicsBody
@@ -50,6 +62,17 @@ from stickfight.scripting.actions import (
     SlashAction,
     StaffStrikeAction,
     ComboAction,
+    JabAction,
+    CrossAction,
+    HookAction,
+    LowKickAction,
+    CheckKickAction,
+    SlipAction,
+    BobWeaveAction,
+    ClinchKneeAction,
+    TakedownAction,
+    GroundPoundAction,
+    StaggerAction,
 )
 
 
@@ -69,6 +92,7 @@ class Fighter:
         headband_color: Optional[Tuple[int, int, int]] = None,
         render_style: str = "segmented",
         proportions: Optional[BodyProportions] = None,
+        style: str = "arcade",
     ):
         self.name = name
         self.x = float(x)
@@ -83,6 +107,9 @@ class Fighter:
         self.weapon = weapon  # "sword", "staff", None
         self.headband_color = headband_color  # Optional ninja ribbon
         self.render_style = render_style  # segmented, silhouette, classic, tech, ink_fight
+        # Combat choreography style: "arcade" (default weapon/flash fights)
+        # or "realistic" (boxing / Muay Thai / MMA mechanics).
+        self.style = style
         # Per-archetype rig scaling (stance width, limb length, etc.) applied
         # on top of every shared animation clip. Defaults to the canonical
         # proportions used by the original pose library.
@@ -114,6 +141,19 @@ class Fighter:
             "sweep": create_sweep_clip(),
             "slash": create_slash_clip(),
             "sword_guard": create_sword_guard_clip(),
+            # Realistic martial arts library (boxing / Muay Thai / MMA)
+            "jab": create_jab_clip(),
+            "cross": create_cross_clip(),
+            "hook": create_hook_clip(),
+            "low_kick": create_low_kick_clip(),
+            "check_kick": create_check_kick_clip(),
+            "slip": create_slip_clip(),
+            "bob_weave": create_bob_weave_clip(),
+            "clinch_knee": create_clinch_knee_clip(),
+            "takedown": create_takedown_clip(),
+            "ground_pound": create_ground_pound_clip(),
+            "stagger": create_stagger_clip(),
+            "grounded_guard": create_grounded_guard_clip(),
         }
 
         self.active_clip: AnimationClip = self.clips["idle"]
@@ -194,12 +234,19 @@ class Fighter:
         neck_pos = joints.get("neck", (self.x, self.y - 230.0 * self.scale))
         pelvis_pos = joints.get("pelvis", (self.x, self.y - 140.0 * self.scale))
 
+        hip_pos = joints.get("pelvis", pelvis_pos)
+        knee_pos = joints.get("left_knee", (self.x, self.y - 75.0 * self.scale))
+        foot_pos = joints.get("left_foot", (self.x, self.y))
+
         return Hurtbox(
             head_pos=head_pos,
             head_radius=self.head_radius + 4.0,
             neck_pos=neck_pos,
             pelvis_pos=pelvis_pos,
             torso_radius=22.0 * self.scale,
+            hip_pos=hip_pos,
+            knee_pos=knee_pos,
+            foot_pos=foot_pos,
         )
 
     def get_hitbox(self) -> Optional[Hitbox]:
@@ -301,6 +348,41 @@ class Fighter:
 
     def staff_strike(self, target_fighter: Optional[Fighter] = None, duration: float = 0.48, damage: float = 21.0) -> StaffStrikeAction:
         return StaffStrikeAction(self, target_fighter, duration=duration, damage=damage)
+
+    # --- Realistic martial arts builders (Boxing / Muay Thai / MMA) ---
+
+    def jab(self, target_fighter: Optional[Fighter] = None, duration: float = 0.35, damage: float = 12.0) -> JabAction:
+        return JabAction(self, target_fighter, duration=duration, damage=damage)
+
+    def cross(self, target_fighter: Optional[Fighter] = None, duration: float = 0.40, damage: float = 18.0) -> CrossAction:
+        return CrossAction(self, target_fighter, duration=duration, damage=damage)
+
+    def hook(self, target_fighter: Optional[Fighter] = None, duration: float = 0.42, damage: float = 24.0) -> HookAction:
+        return HookAction(self, target_fighter, duration=duration, damage=damage)
+
+    def low_kick(self, target_fighter: Optional[Fighter] = None, duration: float = 0.42, damage: float = 16.0) -> LowKickAction:
+        return LowKickAction(self, target_fighter, duration=duration, damage=damage)
+
+    def check_kick(self, duration: float = 0.45) -> CheckKickAction:
+        return CheckKickAction(self, duration=duration)
+
+    def slip(self, duration: float = 0.40) -> SlipAction:
+        return SlipAction(self, duration=duration)
+
+    def bob_weave(self, duration: float = 0.45) -> BobWeaveAction:
+        return BobWeaveAction(self, duration=duration)
+
+    def clinch_knee(self, target_fighter: Optional[Fighter] = None, duration: float = 0.50, damage: float = 25.0) -> ClinchKneeAction:
+        return ClinchKneeAction(self, target_fighter, duration=duration, damage=damage)
+
+    def takedown(self, target_fighter: Optional[Fighter] = None, duration: float = 0.70, damage: float = 22.0) -> TakedownAction:
+        return TakedownAction(self, target_fighter, duration=duration, damage=damage)
+
+    def ground_pound(self, target_fighter: Optional[Fighter] = None, duration: float = 0.55, damage: float = 28.0) -> GroundPoundAction:
+        return GroundPoundAction(self, target_fighter, duration=duration, damage=damage)
+
+    def stagger(self, duration: float = 0.50) -> StaggerAction:
+        return StaggerAction(self, duration=duration)
 
     def block(self, duration: float = 0.5) -> BlockAction:
         return BlockAction(self, duration=duration)
