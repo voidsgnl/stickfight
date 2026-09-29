@@ -846,7 +846,9 @@
     @media (max-width:1200px){.studio-workspace{grid-template-columns:250px minmax(460px,1fr) 250px}.studio-nav{display:none}.header-actions{min-width:auto}.header-btn:first-child{display:none}}
     @media (max-width:900px){.studio-workspace{height:auto;min-height:0;display:flex;flex-direction:column}.canvas-column{order:1;min-height:820px}.left-sidebar{order:2;border-right:0;border-top:1px solid #20252d}.right-sidebar{order:3;border-left:0;border-top:1px solid #20252d}.studio-header{position:relative}.brand-subtitle{display:none}}
 
-  </style>
+  
+  #studioStage{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:3}#studioStage .studio-char{position:absolute;transform-origin:center bottom;min-width:30px;text-align:center}#studioStage .studio-stick{width:44px;height:92px;margin:auto;position:relative}#studioStage .studio-head{width:20px;height:20px;border:3px solid currentColor;border-radius:50%;margin:0 auto 3px}#studioStage .studio-body{width:4px;height:38px;background:currentColor;margin:auto;border-radius:3px}#studioStage .studio-limb{position:absolute;height:3px;background:currentColor;border-radius:3px;transform-origin:left center}.studio-arm-l{width:24px;left:5px;top:34px;transform:rotate(145deg)}.studio-arm-r{width:24px;right:5px;top:34px;transform-origin:right center;transform:rotate(35deg)}.studio-leg-l{width:30px;left:5px;top:72px;transform:rotate(112deg)}.studio-leg-r{width:30px;right:5px;top:72px;transform-origin:right center;transform:rotate(68deg)}#studioStage .studio-label{font-size:10px;font-weight:800;white-space:nowrap;margin-top:3px;text-shadow:0 1px 3px #000}#studioStage .selected{filter:drop-shadow(0 0 8px rgba(0,229,255,.9))}
+</style>
 </head>
 <body>
   <header class="studio-header">
@@ -964,7 +966,7 @@
       <div class="viewport-shell">
         <div class="viewport-grid"></div>
         <div class="preview-badge live-dot" id="previewBadge">LIVE SNAPSHOT</div>
-        <img id="previewImg" alt="Fight Preview" src="">
+        <img id="previewImg" alt="Fight Preview" src=""><div id="studioStage" aria-label="Studio animation viewport"></div>
         <video id="videoPlayer" controls loop playsinline></video>
       </div>
 
@@ -2129,6 +2131,7 @@
     S.instances[0].name=S.assets[0].name; S.instances[1].name=S.assets[1].name;
     S.tracks = (st.timeline||[]).map((e,i)=>({id:"legacy-"+i,name:(e.actor||"scene")+" · "+(e.action||"event"),kind:"event",start:Math.round((Number(e.time)||0)*S.fps),duration:Math.max(1,Math.round((Number(e.duration)||.5)*S.fps)),event:e}));
   }
+  function renderStudioStage(){const stage=$("studioStage");if(!stage)return;const rect=stage.getBoundingClientRect(),w=rect.width||600,h=rect.height||420;stage.innerHTML=S.instances.filter(i=>i.visible!==false).map((i,idx)=>{const x=Math.max(20,Math.min(w-20,w/2+(Number(i.x)||0))),y=Math.max(100,Math.min(h-20,h-80-(Number(i.y)||0))),rot=Number(i.rotation)||0,scale=Number(i.scale)||1,asset=S.assets.find(a=>a.id===i.asset)||S.assets[idx%S.assets.length]||{};return '<div class="studio-char '+(i.id===S.selected?'selected':'')+'" style="left:'+x+'px;top:'+y+'px;transform:translate(-50%,-100%) rotate('+rot+'deg) scale('+scale+')"><div class="studio-stick"><div class="studio-head"></div><div class="studio-body"></div><span class="studio-limb studio-arm-l"></span><span class="studio-limb studio-arm-r"></span><span class="studio-limb studio-leg-l"></span><span class="studio-limb studio-leg-r"></span></div><div class="studio-label">'+esc(i.name)+' · '+esc(asset.style||'classic')+'</div></div>';}).join('')}
   function render(){
     syncLegacy();
     const scale=Math.max(1,S.frames/180), width=Math.max(600,S.frames*4);
@@ -2141,7 +2144,7 @@
       return '<div class="studio-track"><div class="track-label">'+esc(g.name)+'</div><div class="track-lane" data-track="'+esc(g.id)+'">'+blocks+'<div class="playhead" style="left:'+(S.cursor/S.frames*100)+'%"></div></div></div>';
     }).join("");
     const sel=$("studioSelected"); sel.innerHTML=S.instances.map(i=>"<option value=\""+i.id+"\">"+esc(i.name)+"</option>").join(""); sel.value=S.selected; const si=S.instances.find(i=>i.id===S.selected)||S.instances[0]; if(si){$("studioX").value=si.x||0;$("studioY").value=si.y||0;$("studioRotation").value=si.rotation||0;$("studioScale").value=si.scale||1;} $("studioAssets").innerHTML=S.assets.map(a=>'<div class="asset-row"><span class="asset-dot"></span><div class="asset-meta"><div class="asset-name">'+esc(a.name)+'</div><div class="asset-style">'+esc(a.style)+'</div></div></div>').join("");
-    $("studioTime").textContent=(S.cursor/S.fps).toFixed(2)+"s";
+    $("studioTime").textContent=(S.cursor/S.fps).toFixed(2)+"s";renderStudioStage();
   }
   function addCharacter(){
     const name=($("studioCharName").value||"Character "+(S.instances.length+1)).trim();
