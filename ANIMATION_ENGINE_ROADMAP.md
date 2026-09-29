@@ -106,6 +106,9 @@ Coverage includes:
 - [x] Expose current attack phase and impact marker from Fighter.
 - [x] Gate attack hitboxes to the active/contact window.
 - [x] Add timing and hitbox-window tests.
+- [x] Add a one-shot animation impact event bus.
+- [x] Expose Fighter impact events at the authored impact marker.
+- [x] Route core strike actions through the authored impact marker instead of hard-coded strike timestamps.
 
 ## Phase 2 — Animation State Machine
 
