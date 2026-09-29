@@ -177,6 +177,10 @@ Every attack should expose meaningful timing markers such as:
 
 Those markers will later drive hitboxes, effects, camera shake, and audio.
 
+- [x] Detect authored impact by crossing animation time instead of relying on a tolerance window.
+- [x] Route action impact checks through a one-shot Fighter impact-consumption path.
+- [x] Add regression coverage for large frame steps crossing the impact marker.
+
 ## Phase 4 — Animation / Physics Integration
 
 The animation system must cooperate with physics instead of fighting it.
