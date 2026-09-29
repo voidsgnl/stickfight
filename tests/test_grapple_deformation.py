@@ -131,3 +131,20 @@ def test_ground_control_positions_attacker_over_grounded_defender():
     assert attacker.ik_target is not None
     assert "left_hand" in attacker.weapon_ik_targets
     assert abs(attacker.x - defender.x) < 60.0
+
+
+def test_top_control_blends_in_and_sets_bottom_guard_relationship():
+    attacker = Fighter("A", x=500, y=1500)
+    defender = Fighter("B", x=560, y=1500)
+    defender.enter_grounded_control()
+
+    attacker.enter_ground_control(defender, mode="top")
+    attacker.set_animation("grounded_guard", loop=True)
+    before = attacker.current_pose.get("chest")
+    attacker.update_animation(0.10)
+    after = attacker.current_pose.get("chest")
+
+    assert attacker._ground_control_blend > 0.0
+    assert after != before
+    assert defender._grapple_attacker is attacker
+    assert defender._grapple_mode == "ground_control"
