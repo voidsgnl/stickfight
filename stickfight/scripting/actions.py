@@ -908,6 +908,11 @@ class TakedownAction(Action):
         if not self.hit_registered and self._impact_event(scene):
             self.hit_registered = True
             self._complete_takedown(scene)
+        elif self.hit_registered and self.defender and local_t >= 0.56:
+            # Let the fall animation play briefly, then hand control to the
+            # persistent grounded state so follow-up actions can chain cleanly.
+            if self.defender.state == "fallen":
+                self.defender.enter_grounded_control()
 
     def _complete_takedown(self, scene: FightScene):
         d = self.defender
