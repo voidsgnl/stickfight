@@ -28,3 +28,15 @@ def test_clear_grapple_reaction_stops_procedural_deformation():
 
     assert defender._grapple_attacker is None
     assert defender._grapple_mode is None
+
+
+def test_takedown_reaches_ground_settlement_phase():
+    attacker = Fighter("A", x=700, y=1500)
+    defender = Fighter("B", x=600, y=1500)
+
+    defender.apply_grapple_reaction(attacker, mode="takedown")
+    defender.update_animation(0.80)
+
+    pose = defender.current_pose
+    assert pose.get("pelvis")[1] > 40.0
+    assert pose.get("chest")[1] > -10.0
