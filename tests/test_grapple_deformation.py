@@ -205,3 +205,18 @@ def test_mount_to_guard_transition_moves_both_fighters():
     assert mount_chest != guard_chest
     assert guard_start != guard_chest
     assert defender._grapple_mode == "bottom_mount"
+
+def test_ground_reversal_transfers_shared_control_roles():
+    attacker = Fighter("A", x=500, y=1500)
+    defender = Fighter("B", x=560, y=1500)
+    defender.enter_grounded_control()
+    attacker.enter_ground_control(defender, mode="mount")
+    control = attacker._ground_control
+
+    control.reverse(position="mount")
+
+    assert control.attacker is defender
+    assert control.defender is attacker
+    assert defender._ground_control is control
+    assert attacker._grapple_attacker is defender
+    assert defender._ground_control_mode == "mount"
