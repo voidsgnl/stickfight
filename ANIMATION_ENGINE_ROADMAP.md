@@ -99,8 +99,13 @@ Coverage includes:
 - [x] Add completion detection.
 - [x] Add cross-fade transitions.
 - [x] Add runtime tests.
+- [x] Add combat animation state machine.
+- [x] Define validated state transitions.
+- [x] Integrate state machine with Fighter.
 
 ## Phase 2 — Animation State Machine
+
+Implemented the first state-machine layer. It validates transitions and maps combat states to AnimationPlayer clips. Specialized action clips can continue to be added without changing the runtime architecture.
 
 Next, build a state machine above `AnimationPlayer`.
 
