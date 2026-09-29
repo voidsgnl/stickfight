@@ -415,10 +415,14 @@ class Fighter:
         # Keep the attacker close to the defender while preserving a stable base.
         self.x += max(-2.0, min(2.0, (target.x - self.x) * 0.04))
         self.sync_to_physics()
-        self.current_pose.set("pelvis", (direction * 12.0 * blend, 24.0 * blend))
-        self.current_pose.set("chest", (direction * 22.0 * blend, -20.0 * blend))
+        if self._ground_control_mode == "guard":
+            pelvis_drop, chest_lean, head_drop = 16.0, 14.0, 62.0
+        else:
+            pelvis_drop, chest_lean, head_drop = 24.0, 22.0, 76.0
+        self.current_pose.set("pelvis", (direction * 12.0 * blend, pelvis_drop * blend))
+        self.current_pose.set("chest", (direction * chest_lean * blend, -20.0 * blend))
         self.current_pose.set("neck", (direction * 30.0 * blend, -48.0 * blend))
-        self.current_pose.set("head", (direction * 34.0 * blend, -76.0 * blend))
+        self.current_pose.set("head", (direction * 34.0 * blend, -head_drop * blend))
         for side, offset in (("left", -1.0), ("right", 1.0)):
             hip = self.current_pose.get(side + "_hip")
             knee = self.current_pose.get(side + "_knee")
@@ -439,7 +443,7 @@ class Fighter:
         attacker = self._grapple_attacker
         target = self._grapple_target
         direction = 1.0 if attacker.x >= self.x else -1.0
-        if self._grapple_mode == "ground_control":
+        if self._grapple_mode in {"bottom_guard", "bottom_mount"}:
             self.current_pose.set("pelvis", (0.0, 18.0))
             self.current_pose.set("chest", (direction * 10.0, -32.0))
             self.current_pose.set("neck", (direction * 14.0, -58.0))
@@ -491,15 +495,17 @@ class Fighter:
                     (foot[0] + direction * 14.0 * offset * ground_ease, foot[1]),
                 )
 
-    def enter_ground_control(self, defender: "Fighter", mode: str = "top") -> bool:
+    def enter_ground_control(self, defender: "Fighter", mode: str = "mount") -> bool:
         """Place the attacker into persistent top control over a grounded defender."""
         if defender is None:
             return False
         self._ground_control_target = defender
+        if mode not in {"mount", "guard"}:
+            raise ValueError("ground control mode must be 'mount' or 'guard'")
         self._ground_control_mode = mode
         self._ground_control_blend = 0.0
         defender._grapple_attacker = self
-        defender._grapple_mode = "ground_control"
+        defender._grapple_mode = "bottom_guard" if mode == "mount" else "bottom_mount"
         self.state = "grounded"
         self.physics.vx = 0.0
         self.physics.vy = 0.0
