@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools>=61"]
+requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "stickfight"
-version = "0.2.0"
+version = "0.1.0"
 description = "Code-driven 2D stick figure fight animation and video engine"
 readme = "readme.md"
 requires-python = ">=3.9"
@@ -12,19 +12,6 @@ dependencies = [
     "pygame-ce>=2.5.0",
     "numpy>=1.24.0",
 ]
-
-[project.optional-dependencies]
-dev = ["pytest>=8.0.0"]
-
-[project.scripts]
-stickfight = "stickfight.cli:main"
-stickfight-generate = "stickfight.generate_cli:main"
-
-[tool.setuptools.packages.find]
-include = ["stickfight*"]
-
-[tool.setuptools.package-data]
-"stickfight.gui" = ["static/*"]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]

@@ -12,13 +12,6 @@ from stickfight.engine.skeleton import (
     PROPORTIONS_MONK,
     PROPORTIONS_CYBORG,
 )
-from stickfight.engine.stats import (
-    STATS_NINJA,
-    STATS_SAMURAI,
-    STATS_BRAWLER,
-    STATS_MONK,
-    STATS_CYBORG,
-)
 
 if TYPE_CHECKING:
     from stickfight.engine.scene import FightScene
@@ -46,7 +39,6 @@ def create_ninja(
         scale=1.0,
         render_style="silhouette",
         proportions=PROPORTIONS_NINJA,
-        stats=STATS_NINJA,
     )
     f.headband_color = (235, 45, 45)
     f.equip("sword")
@@ -75,7 +67,6 @@ def create_samurai(
         scale=1.0,
         render_style="segmented",
         proportions=PROPORTIONS_SAMURAI,
-        stats=STATS_SAMURAI,
     )
     f.headband_color = (235, 190, 45)
     f.equip("sword")
@@ -104,7 +95,6 @@ def create_brawler(
         scale=1.1,
         render_style="segmented",
         proportions=PROPORTIONS_BRAWLER,
-        stats=STATS_BRAWLER,
     )
 
 
@@ -130,7 +120,6 @@ def create_monk(
         scale=1.0,
         render_style="segmented",
         proportions=PROPORTIONS_MONK,
-        stats=STATS_MONK,
     )
     f.headband_color = (245, 200, 70)
     f.equip("staff")
@@ -159,5 +148,4 @@ def create_cyborg(
         scale=1.0,
         render_style="tech",
         proportions=PROPORTIONS_CYBORG,
-        stats=STATS_CYBORG,
     )
