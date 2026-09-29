@@ -242,6 +242,7 @@ class Fighter:
         self.root_dy: float = 0.0
         self.combat_events = CombatEventBus()
         self._impact_event_key: Optional[tuple] = None
+        self._impact_consumed_key: Optional[tuple] = None
         self._previous_clip_name: str = self.active_clip.name
         self._previous_clip_time: float = self.clip_time
 
@@ -287,6 +288,7 @@ class Fighter:
             self._previous_clip_name = self.active_clip.name
             self._previous_clip_time = self.clip_time
             self._impact_event_key = None
+            self._impact_consumed_key = None
 
     def set_state(
         self,
@@ -397,9 +399,9 @@ class Fighter:
         if not crossed:
             return False
         key = (self.active_clip.name, timing.impact)
-        if self._impact_event_key == key:
+        if self._impact_consumed_key == key:
             return False
-        self._impact_event_key = key
+        self._impact_consumed_key = key
         return True
 
     def emit_impact(
