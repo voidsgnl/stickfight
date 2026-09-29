@@ -106,3 +106,5 @@
 - Added a shared `GroundControl` relationship object so mount/guard state, transitions, and release are synchronized between both fighters instead of being maintained independently.
 
 - Added coordinated mount-to-guard transitions: both fighters now interpolate their grounded body geometry from shared GroundControl transition progress.
+
+- Added shared ground-control role transfer on reversal: the bottom fighter can become the new dominant fighter while preserving one synchronized relationship.
