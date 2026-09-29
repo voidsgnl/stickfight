@@ -1,6 +1,8 @@
 # GUI Redesign Change Log — 2026-09-29
 
 ## Completed
+- Specialized attack actions now enter the semantic attack state while selecting their authored clip.
+- Added regression coverage for specialized attack clip selection.
 - Wired `CombatImpactEvent` into `FightScene` as the single impact-response path.
 - Centralized hit particles/shockwaves, camera shake, audio, and hit-reaction animation behind the impact event.
 - Added scene-level integration coverage for resolved combat impacts.
