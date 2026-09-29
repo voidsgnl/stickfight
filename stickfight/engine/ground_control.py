@@ -14,6 +14,7 @@ class GroundControl:
     defender: "Fighter"
     position: str = "mount"
     transition: float = 1.0
+    from_position: str | None = None
 
     VALID_POSITIONS = {"mount", "guard"}
 
@@ -29,6 +30,7 @@ class GroundControl:
     def set_position(self, position: str, transition: float = 0.0) -> None:
         if position not in self.VALID_POSITIONS:
             raise ValueError("position must be 'mount' or 'guard'")
+        self.from_position = self.position
         self.position = position
         self.transition = max(0.0, min(1.0, transition))
         self.sync()
