@@ -86,6 +86,9 @@
 - Added a grounded takedown settlement phase: pelvis drops, torso/head settle, and feet spread while ground IK keeps contact with the floor.
 - Added regression coverage for the grounded phase.
 
+- Added attacker follow-through: the attacker lowers their hips, bends the knees, and refreshes both hand contact targets against the defender's live grounded pelvis.
+- Added regression coverage for attacker contact preservation.
+
 ## Next
 - Add richer per-attack effect/audio profiles so each attack type can author its own impact presentation.
 - Add resize handles to timeline blocks for duration editing.
