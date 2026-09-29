@@ -55,5 +55,8 @@ class GroundControl:
         self.sync()
 
     def release(self) -> None:
+        """Release the relationship and return both fighters to independent control."""
+        self.attacker.clear_ground_control()
+        self.defender.clear_grapple_reaction()
         self.attacker.clear_ground_control()
         self.defender.clear_grapple_reaction()
