@@ -115,3 +115,19 @@ def test_ground_reversal_releases_attacker():
     assert defender.state == "idle"
     assert attacker.state == "fallen"
     assert attacker.physics.vx != 0.0
+
+
+def test_ground_control_positions_attacker_over_grounded_defender():
+    attacker = Fighter("A", x=500, y=1500)
+    defender = Fighter("B", x=560, y=1500)
+    defender.enter_grounded_control()
+
+    assert attacker.enter_ground_control(defender)
+    attacker.set_animation("grounded_guard", loop=True)
+    attacker.update_animation(0.10)
+
+    assert attacker._ground_control_target is defender
+    assert attacker._ground_control_mode == "top"
+    assert attacker.ik_target is not None
+    assert "left_hand" in attacker.weapon_ik_targets
+    assert abs(attacker.x - defender.x) < 60.0
