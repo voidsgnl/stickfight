@@ -220,3 +220,31 @@ def test_ground_reversal_transfers_shared_control_roles():
     assert defender._ground_control is control
     assert attacker._grapple_attacker is defender
     assert defender._ground_control_mode == "mount"
+
+def test_ground_escape_transitions_bottom_mount_to_guard():
+    top = Fighter("A", x=500, y=1500)
+    bottom = Fighter("B", x=560, y=1500)
+    bottom.enter_grounded_control()
+    top.enter_ground_control(bottom, mode="mount")
+    control = top._ground_control
+
+    control.set_position("guard", transition=0.0)
+
+    assert control.position == "guard"
+    assert control.attacker is top
+    assert control.defender is bottom
+    assert bottom._grapple_mode == "bottom_mount"
+
+
+def test_ground_escape_can_release_shared_control():
+    top = Fighter("A", x=500, y=1500)
+    bottom = Fighter("B", x=560, y=1500)
+    bottom.enter_grounded_control()
+    top.enter_ground_control(bottom, mode="mount")
+    control = top._ground_control
+
+    control.release()
+
+    assert top._ground_control is None
+    assert bottom._grapple_attacker is None
+    assert bottom._grapple_mode is None
