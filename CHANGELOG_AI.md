@@ -1,3 +1,21 @@
+## 2026-09-30 — Functional Studio Workspaces and Keyframe Timeline Markers
+
+### What I implemented
+- Made the Adobe-style Animation / Fight / Story / Audio workspace tabs functional instead of decorative.
+- Added workspace-specific labels and guidance so the editor communicates what each workspace is for.
+- Fight mode exposes the combat action palette; Animation mode keeps the authoring surface focused on keyframes and transforms; Story and Audio establish dedicated editor contexts without forcing all controls onto one screen.
+- Added actual transform keyframe storage for the selected character at the current playhead frame.
+- Added visible diamond keyframe markers to character timeline tracks.
+- Existing timeline playback, scrubbing, combat events, and production frame rendering remain intact.
+
+### Architecture
+- Workspace switching is a presentation/authoring concern and does not alter the underlying Fighter, skeleton, physics, collision, or combat systems.
+- Keyframes remain in the Studio authoring state and are applied through the existing interpolation path.
+
+### Validation
+- Repository source was updated on `story-animation-studio-foundation`.
+- Local browser interaction was not executed in this change; the next verification should click each workspace tab, add a keyframe, scrub the timeline, and confirm the production frame updates.
+
 ## 2026-09-29 — Tighten Studio Around Real Fight Actions
 
 ### What I implemented
