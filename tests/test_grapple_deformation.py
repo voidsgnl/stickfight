@@ -163,3 +163,21 @@ def test_ground_control_has_distinct_mount_and_guard_modes():
     attacker.enter_ground_control(defender, mode="guard")
     assert attacker._ground_control_mode == "guard"
     assert defender._grapple_mode == "bottom_mount"
+
+def test_ground_control_is_shared_relationship():
+    from stickfight.engine.ground_control import GroundControl
+    attacker = Fighter("A", x=500, y=1500)
+    defender = Fighter("B", x=560, y=1500)
+    defender.enter_grounded_control()
+
+    assert attacker.enter_ground_control(defender, mode="mount")
+    control = attacker._ground_control
+    assert isinstance(control, GroundControl)
+    assert control.attacker is attacker
+    assert control.defender is defender
+    control.set_position("guard", transition=0.5)
+    assert attacker._ground_control_mode == "guard"
+    assert defender._grapple_mode == "bottom_mount"
+    control.release()
+    assert attacker._ground_control is None
+    assert defender._grapple_attacker is None
