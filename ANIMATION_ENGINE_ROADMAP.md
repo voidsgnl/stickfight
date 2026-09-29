@@ -311,3 +311,5 @@ The creator controls the fight; the engine controls the frame-by-frame execution
 - [x] Add dedicated grounded frame, shrimp, sweep, and stand animation clips and connect guard actions to them.
 
 - [x] Add procedural guard contact IK so top hands frame the opponent and bottom legs track the top fighter's hips.
+
+- [x] Make guard sweep physically driven: chamber, bounded physics impulse/velocity drive, then shared-role reversal and settle.
