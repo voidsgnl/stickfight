@@ -251,6 +251,8 @@ class Fighter:
         self._grapple_attacker: Optional["Fighter"] = None
         self._grapple_mode: Optional[str] = None
         self._grapple_target: Optional["Fighter"] = None
+        self._ground_control_target: Optional["Fighter"] = None
+        self._ground_control_mode: Optional[str] = None
 
     def sync_from_physics(self):
         """Copies the simulated world position into the fighter."""
@@ -339,6 +341,7 @@ class Fighter:
         self.root_dx = rdx
         self.root_dy = rdy
         self._apply_grapple_deformation()
+        self._apply_ground_control_deformation()
         self._apply_ground_foot_ik()
         self._apply_ik_target()
         self._apply_weapon_ik()
@@ -399,6 +402,30 @@ class Fighter:
                 self.ik_target = ("right_hand", grip, bend)
                 self.weapon_ik_targets["left_hand"] = ((grip[0], grip[1] + 28.0), bend)
 
+    def _apply_ground_control_deformation(self):
+        """Procedurally maintain top-control positioning over a grounded target."""
+        target = self._ground_control_target
+        if target is None or target.state not in {"grounded", "fallen"}:
+            return
+        pelvis = target.get_hurtbox().pelvis_pos
+        direction = 1.0 if target.x >= self.x else -1.0
+        # Keep the attacker close to the defender while preserving a stable base.
+        self.x += max(-2.0, min(2.0, (target.x - self.x) * 0.04))
+        self.sync_to_physics()
+        self.current_pose.set("pelvis", (direction * 12.0, 24.0))
+        self.current_pose.set("chest", (direction * 22.0, -20.0))
+        self.current_pose.set("neck", (direction * 30.0, -48.0))
+        self.current_pose.set("head", (direction * 34.0, -76.0))
+        for side, offset in (("left", -1.0), ("right", 1.0)):
+            hip = self.current_pose.get(side + "_hip")
+            knee = self.current_pose.get(side + "_knee")
+            self.current_pose.set(side + "_hip", (hip[0] + direction * 10.0 * offset, hip[1] + 18.0))
+            self.current_pose.set(side + "_knee", (knee[0] + direction * 24.0 * offset, knee[1] + 30.0))
+        grip = (pelvis[0] - direction * 8.0, pelvis[1] - 12.0)
+        bend = 1.0 if self.facing >= 0 else -1.0
+        self.ik_target = ("right_hand", grip, bend)
+        self.weapon_ik_targets["left_hand"] = ((pelvis[0] + direction * 14.0, pelvis[1] + 12.0), bend)
+
     def _apply_grapple_deformation(self):
         """Deform the defender around a live grappling interaction."""
         if self._grapple_attacker is None or self._grapple_mode is None:
@@ -454,6 +481,22 @@ class Fighter:
                     f"{side}_foot",
                     (foot[0] + direction * 14.0 * offset * ground_ease, foot[1]),
                 )
+
+    def enter_ground_control(self, defender: "Fighter", mode: str = "top") -> bool:
+        """Place the attacker into persistent top control over a grounded defender."""
+        if defender is None:
+            return False
+        self._ground_control_target = defender
+        self._ground_control_mode = mode
+        self.state = "grounded"
+        self.physics.vx = 0.0
+        self.physics.vy = 0.0
+        self.physics.is_grounded = True
+        return self.set_state("grounded", blend=0.10)
+
+    def clear_ground_control(self) -> None:
+        self._ground_control_target = None
+        self._ground_control_mode = None
 
     def enter_grounded_control(self) -> bool:
         """Enter persistent grounded combat after a takedown settles."""
