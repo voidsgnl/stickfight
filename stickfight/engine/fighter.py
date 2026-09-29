@@ -49,6 +49,10 @@ from stickfight.engine.animation import (
     create_ground_pound_clip,
     create_stagger_clip,
     create_grounded_guard_clip,
+    create_ground_frame_clip,
+    create_ground_shrimp_clip,
+    create_ground_sweep_clip,
+    create_ground_stand_clip,
 )
 from stickfight.engine.collision import Hitbox, Hurtbox
 from stickfight.engine.combat_timing import ATTACK_TIMINGS, AttackTiming
@@ -230,6 +234,10 @@ class Fighter:
             "ground_pound": create_ground_pound_clip(),
             "stagger": create_stagger_clip(),
             "grounded_guard": create_grounded_guard_clip(),
+            "ground_frame": create_ground_frame_clip(),
+            "ground_shrimp": create_ground_shrimp_clip(),
+            "ground_sweep": create_ground_sweep_clip(),
+            "ground_stand": create_ground_stand_clip(),
         }
 
         # Runtime playback is separated from clip definitions so animation
