@@ -22,3 +22,4 @@ __all__ = [
 ]
 
 from stickfight.engine.animation_player import AnimationPlayer
+from stickfight.engine.animation_state import AnimationStateMachine
