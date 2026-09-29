@@ -307,3 +307,5 @@ The creator controls the fight; the engine controls the frame-by-frame execution
 - [x] Implement shared ground escape flow with hip-space creation, mount-to-guard transition, and optional release to stand.
 
 - [x] Add interactive guard actions: frame, shrimp, sweep/reversal, and stand-up release through the shared ground-control relationship.
+
+- [x] Add dedicated grounded frame, shrimp, sweep, and stand animation clips and connect guard actions to them.
