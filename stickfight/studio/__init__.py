@@ -1,0 +1,27 @@
+"""Story Animation Studio authoring layer.
+
+This package owns project/scene/timeline data. It intentionally does not own
+combat physics or rendering so the existing engine remains reusable.
+"""
+
+from .model import (
+    AnimationProject,
+    AnimationScene,
+    CharacterAsset,
+    CharacterInstance,
+    Keyframe,
+    TimelineTrack,
+    TimelineEvent,
+    VisualStyle,
+)
+
+__all__ = [
+    "AnimationProject",
+    "AnimationScene",
+    "CharacterAsset",
+    "CharacterInstance",
+    "Keyframe",
+    "TimelineTrack",
+    "TimelineEvent",
+    "VisualStyle",
+]

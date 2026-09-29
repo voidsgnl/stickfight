@@ -1,3 +1,45 @@
+## 2026-09-29 — Modular Story Animation Studio Foundation
+
+### What I implemented
+- Added a new `stickfight.studio` authoring layer separate from the existing combat/physics engine.
+- Added reusable `CharacterAsset` definitions and lightweight `CharacterInstance` placements, so a project can contain many characters and multiple copies of the same character.
+- Added independent `VisualStyle` identities. Built-in registrations include classic, ink_fight, bold, silhouette, anime, cartoon, and custom.
+- Added scene-level timeline tracks, keyframes, and events as data structures for the future visual editor.
+- Added project validation that detects missing assets, duplicate IDs, and invalid track targets before runtime.
+- Added tests covering multiple characters with different styles and structural validation.
+
+### Architecture rule
+Large changes must be added behind stable boundaries rather than mixed into the existing fighter implementation.
+
+```
+Studio Project / Scenes / Timeline
+          ↓
+Character Assets + Instances
+          ↓
+Animation / Story Orchestration
+          ↓
+Existing Fighter / Skeleton / IK / Physics / Combat
+          ↓
+Renderer / Effects / Audio / Export
+```
+
+The Studio layer must not require a specific drawing style, and visual style must not determine physics or combat behavior.
+
+### Character/style direction
+- A scene is not limited to two fighters.
+- A scene can contain many character instances.
+- Different instances may reference different character assets.
+- Character assets can use different visual families such as anime, cartoon, ink, silhouette, or custom while sharing the same animation/physics foundations where compatible.
+- Future custom renderers should plug into the style registry rather than modify combat logic.
+
+### Stability strategy
+This is intentionally additive. Existing fight scenes, skeletons, physics, collision, choreography, and render styles remain the runtime foundation. Future editor work should consume this model instead of embedding new state directly into the existing HTML/GUI handlers.
+
+### Status
+- Foundation implemented on branch `story-animation-studio-foundation`.
+- Tests added but not executed in this environment.
+- Next step: connect the Studio model to the GUI timeline and create a real multi-character scene authoring workflow.
+
 ## 2026-09-29 — Story-Mode Animation Direction Documented
 
 ### Product direction
