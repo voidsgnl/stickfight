@@ -1951,6 +1951,47 @@
     }, 50);
   });
   // Expose recovery handlers so the final rebinder can keep them authoritative.
+  window.loadPreset = window.loadPreset || async function (presetId) {
+    try {
+      const resp = await fetch("/api/presets");
+      if (!resp.ok) throw new Error("Preset HTTP " + resp.status);
+      const presets = await resp.json();
+      window.__studioPresets = presets;
+      const p = presets.find(item => item.id === presetId);
+      if (!p) return;
+      const apply = (side, data) => {
+        const prefix = side === "a" ? "fa" : "fb";
+        if ($(prefix + "_name")) $(prefix + "_name").value = data.name || "";
+        if ($(prefix + "_color")) $(prefix + "_color").value = data.color || "";
+        if ($(prefix + "_headband") && data.headband_color) $(prefix + "_headband").value = data.headband_color;
+        if ($(prefix + "_scale") && data.scale) $(prefix + "_scale").value = data.scale;
+        window.selectArchetype(side, data.archetype || "ninja");
+        window.selectWeapon(side, data.weapon || "none");
+      };
+      apply("a", p.fighter_a);
+      apply("b", p.fighter_b);
+      window.selectStyle(p.style || "arcade");
+      window.selectVisualStyle(p.visual_style || "ink_fight");
+      window.selectEnv(p.environment || "dojo");
+      window.selectFormat(p.format || "vertical");
+      if ($("duration") && p.duration) $("duration").value = p.duration;
+      if (p.timeline) state.timeline = JSON.parse(JSON.stringify(p.timeline));
+      if (typeof window.renderTimelineTracks === "function") window.renderTimelineTracks();
+      window.schedulePreview();
+    } catch (e) {
+      console.error("[Studio] preset failed:", e);
+      if ($("progressStatus")) $("progressStatus").innerText = "⚠️ " + e.message;
+    }
+  };
+
+  window.loadPresetTimeline = window.loadPresetTimeline || function () {
+    const presets = window.__studioPresets || [];
+    const match = presets.find(p => p.fighter_a?.archetype === state.fighter_a.archetype) || presets[0];
+    if (match?.timeline) state.timeline = JSON.parse(JSON.stringify(match.timeline));
+    if (typeof window.renderTimelineTracks === "function") window.renderTimelineTracks();
+    window.schedulePreview();
+  };
+
   window.__studioRecoveryFns = {
     schedulePreview: window.schedulePreview,
     fetchPreview: window.fetchPreview,
@@ -1970,7 +2011,9 @@
     deleteTimelineEvent: window.deleteTimelineEvent,
     randomizeAll: window.randomizeAll,
     startRender: window.startRender,
-    switchViewMode: window.switchViewMode
+    switchViewMode: window.switchViewMode,
+    loadPreset: window.loadPreset,
+    loadPresetTimeline: window.loadPresetTimeline
   };
 
 })();
