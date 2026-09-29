@@ -1,3 +1,26 @@
+## 2026-09-29 — Fight-Coupled Studio Renderer Integration
+
+### What I implemented
+- Added `/api/studio/frame`, which renders Studio authoring frames through the existing production `Fighter` + `Renderer` pipeline instead of the temporary browser SVG character.
+- Studio viewport frames now use the real fight skeleton, proportions, visual render styles, weapons, and fighter rendering path.
+- The Studio frame endpoint supports an arbitrary list of fighter instances, preserving the multi-character direction while using the same fight renderer underneath.
+- Changed Studio terminology to make the product direction explicit: **Fight Animation Studio**, **Combat Authoring**, **Fighters / Combat Assets**, **Fight Timeline**, **Combat Keyframe**, and **Play Fight**.
+
+### Fight-engine coupling
+- Studio authoring is now explicitly positioned as a fight-animation layer rather than a generic animation editor.
+- Authored transforms feed into real `Fighter` instances before rendering.
+- The existing combat engine remains the source of truth for skeletons, animation clips, IK, physics, collision, weapons, impact behavior, and fight choreography.
+
+### Architecture / safety
+- Existing `/api/preview` and `/api/render` paths remain intact.
+- No replacement of the established combat/physics/render pipeline was made.
+- The Studio layer remains additive and can later add pose/attack keyframes directly against the same fight primitives.
+
+### Status
+- Implemented on `story-animation-studio-foundation`.
+- Browser/runtime verification has not been executed in this change.
+- Next: expose the fight engine's actual pose/action controls in the Studio timeline so keyframes can author punches, kicks, blocks, dodges, grapples, takedowns, ground work, weapon attacks, and other existing combat actions directly.
+
 ## 2026-09-29 — Upgrade Studio Preview Character Renderer
 
 ### What I implemented
