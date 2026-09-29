@@ -83,6 +83,7 @@ class PunchAction(Action):
         super().on_start(scene)
         if self.defender:
             self.fighter.face_fighter(self.defender)
+        self.fighter.aim_attack_at(self.defender)
         self.fighter.set_state("attack", clip_name="punch")
         self.hit_registered = False
         scene.audio.schedule_sound(scene.current_time + 0.12, "whoosh")
@@ -114,6 +115,7 @@ class KickAction(Action):
         super().on_start(scene)
         if self.defender:
             self.fighter.face_fighter(self.defender)
+        self.fighter.aim_attack_at(self.defender)
         self.fighter.set_state("attack", clip_name="kick")
         self.hit_registered = False
         scene.audio.schedule_sound(scene.current_time + 0.18, "whoosh")
@@ -285,6 +287,7 @@ class CounterAction(Action):
     def on_start(self, scene: FightScene):
         super().on_start(scene)
         self.fighter.face_fighter(self.defender)
+        self.fighter.aim_attack_at(self.defender)
         self.fighter.state = "dodging"
         self.fighter.set_animation("dodge", loop=False)
         self.punch_started = False
@@ -341,6 +344,7 @@ class UppercutAction(Action):
         super().on_start(scene)
         if self.defender:
             self.fighter.face_fighter(self.defender)
+        self.fighter.aim_attack_at(self.defender)
         self.fighter.set_state("attack", clip_name="uppercut")
         self.hit_registered = False
         scene.audio.schedule_sound(scene.current_time + 0.15, "whoosh")
@@ -374,6 +378,7 @@ class SweepAction(Action):
         super().on_start(scene)
         if self.defender:
             self.fighter.face_fighter(self.defender)
+        self.fighter.aim_attack_at(self.defender)
         self.fighter.set_state("attack", clip_name="sweep")
         self.hit_registered = False
         scene.audio.schedule_sound(scene.current_time + 0.12, "whoosh")
@@ -408,6 +413,7 @@ class SlashAction(Action):
         super().on_start(scene)
         if self.defender:
             self.fighter.face_fighter(self.defender)
+        self.fighter.aim_attack_at(self.defender)
         self.fighter.set_state("attack", clip_name="slash")
         self.hit_registered = False
         scene.audio.schedule_sound(scene.current_time + 0.14, "blade_slice")
@@ -461,6 +467,7 @@ class StaffStrikeAction(Action):
         super().on_start(scene)
         if self.defender:
             self.fighter.face_fighter(self.defender)
+        self.fighter.aim_attack_at(self.defender)
         self.fighter.set_animation("slash", loop=False)
         self.hit_registered = False
         scene.audio.schedule_sound(scene.current_time + 0.12, "whoosh")
@@ -616,6 +623,7 @@ class JabAction(Action):
         super().on_start(scene)
         if self.defender:
             self.fighter.face_fighter(self.defender)
+        self.fighter.aim_attack_at(self.defender)
         self.fighter.state = "attacking"
         self.fighter.set_state("attack", clip_name="jab")
         self.hit_registered = False
@@ -648,6 +656,7 @@ class CrossAction(Action):
         super().on_start(scene)
         if self.defender:
             self.fighter.face_fighter(self.defender)
+        self.fighter.aim_attack_at(self.defender)
         self.fighter.state = "attacking"
         self.fighter.set_state("attack", clip_name="cross")
         self.hit_registered = False
@@ -680,6 +689,7 @@ class HookAction(Action):
         super().on_start(scene)
         if self.defender:
             self.fighter.face_fighter(self.defender)
+        self.fighter.aim_attack_at(self.defender)
         self.fighter.state = "attacking"
         self.fighter.set_state("attack", clip_name="hook")
         self.hit_registered = False
@@ -717,6 +727,7 @@ class LowKickAction(Action):
         super().on_start(scene)
         if self.defender:
             self.fighter.face_fighter(self.defender)
+        self.fighter.aim_attack_at(self.defender)
         self.fighter.state = "attacking"
         self.fighter.set_animation("low_kick", loop=False)
         self.hit_registered = False
@@ -821,6 +832,7 @@ class ClinchKneeAction(Action):
         super().on_start(scene)
         if self.defender:
             self.fighter.face_fighter(self.defender)
+        self.fighter.aim_attack_at(self.defender)
         self.fighter.state = "attacking"
         self.fighter.set_animation("clinch_knee", loop=False)
         self.hit_registered = False
@@ -858,6 +870,7 @@ class TakedownAction(Action):
         super().on_start(scene)
         if self.defender:
             self.fighter.face_fighter(self.defender)
+        self.fighter.aim_attack_at(self.defender)
         self.fighter.state = "attacking"
         self.fighter.set_state("attack", clip_name="takedown")
         self.hit_registered = False
@@ -912,6 +925,7 @@ class GroundPoundAction(Action):
         super().on_start(scene)
         if self.defender:
             self.fighter.face_fighter(self.defender)
+        self.fighter.aim_attack_at(self.defender)
         self.fighter.state = "attacking"
         self.fighter.set_animation("ground_pound", loop=False)
         self.hit_registered = False
