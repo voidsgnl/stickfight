@@ -823,7 +823,7 @@ class StudioRequestHandler(SimpleHTTPRequestHandler):
         except Exception:
             payload = {}
 
-        elif url_path == "/api/studio/frame":
+        if url_path == "/api/studio/frame":
             try:
                 surface = create_studio_frame_surface(payload)
                 buf = io.BytesIO()
