@@ -108,3 +108,5 @@
 - Added coordinated mount-to-guard transitions: both fighters now interpolate their grounded body geometry from shared GroundControl transition progress.
 
 - Added shared ground-control role transfer on reversal: the bottom fighter can become the new dominant fighter while preserving one synchronized relationship.
+
+- Ground escape now uses the shared ground-control relationship, creating space and transitioning mount pressure toward guard before optional release.
