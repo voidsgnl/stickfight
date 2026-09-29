@@ -2065,6 +2065,12 @@
   #storyStudio .key { position:absolute; top:13px; width:10px;height:10px; transform:rotate(45deg); background:#ffb700; border-radius:2px; cursor:pointer; }
   #storyStudio .playhead { position:absolute; top:0; bottom:0; width:2px; background:#ff3366; pointer-events:none; z-index:4; }
   #storyStudio .studio-foot { padding:9px 14px; color:#8b949e; font-size:10px; border-top:1px solid rgba(255,255,255,.07); }
+  #storyStudio .fight-action-panel { margin-top:12px; padding-top:10px; border-top:1px solid rgba(255,255,255,.07); }
+  #storyStudio .fight-action-title { font-size:10px; font-weight:900; letter-spacing:.8px; color:#00d2ff; margin-bottom:7px; text-transform:uppercase; }
+  #storyStudio .fight-action-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:5px; max-height:230px; overflow:auto; padding-right:2px; }
+  #storyStudio .fight-action-btn { border:1px solid #27303a; background:#11161c; color:#c7d0da; border-radius:5px; padding:6px 7px; font-size:9px; font-weight:800; cursor:pointer; text-align:left; }
+  #storyStudio .fight-action-btn:hover { border-color:#00d2ff; color:#fff; background:rgba(0,210,255,.08); }
+  #storyStudio .combat-event { background:linear-gradient(90deg,#ff3366,#ffb700); color:#fff; }
   @media (max-width:850px){ #storyStudio .studio-body{grid-template-columns:1fr}.asset-pane{border-right:0!important;border-bottom:1px solid rgba(255,255,255,.07)} }
 </style>
 
@@ -2084,6 +2090,10 @@
       <div id="studioAssets" class="asset-list"></div>
       <div style="display:grid;gap:7px;margin-top:10px">
         <input id="studioCharName" placeholder="Fighter name">
+      <div class="fight-action-panel">
+        <div class="fight-action-title">Combat Action Palette</div>
+        <div class="fight-action-grid" id="studioFightActions"></div>
+      </div>
         <select id="studioCharStyle">
           <option value="classic">Classic</option><option value="ink_fight">Ink Fight</option>
           <option value="bold">Bold</option><option value="silhouette">Silhouette</option>
@@ -2111,14 +2121,14 @@
   const S = window.__storyStudio = {
     fps:30, frames:180, cursor:0, playing:false, timer:null,
     assets: [
-      {id:"asset-a",name:"Fighter A",style:"classic",archetype:"ninja",color:"#2d3038",weapon:"none",archetype:"classic",color:"#e63946",weapon:"none"},
+      {id:"asset-a",name:"Fighter A",style:"classic",archetype:"ninja",color:"#e63946",weapon:"none"},
       {id:"asset-b",name:"Fighter B",style:"classic",archetype:"warrior",color:"#e6ebf5",weapon:"none"}
     ],
     instances: [
       {id:"char-a",asset:"asset-a",name:"Fighter A",track:true},
       {id:"char-b",asset:"asset-b",name:"Fighter B",track:true}
     ],
-    tracks: [], selected:"char-a", keyframes:{},
+    tracks: [], selected:"char-a", keyframes:{}, combatEvents:[],
   };
   const $ = id => document.getElementById(id);
   const esc = v => String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -2133,21 +2143,46 @@
   }
   let studioFrameRequest=0;
   async function renderStudioStage(){
-    const stage=$("studioStage");if(!stage)return;
-    const request=++studioFrameRequest;
+    const stage=$("studioStage"); if(!stage)return;
+    const request=++studioFrameRequest, frame=Math.round(S.cursor);
     const chars=S.instances.filter(i=>i.visible!==false).map((i,idx)=>{
       const a=S.assets.find(x=>x.id===i.asset)||{};
+      const active=S.combatEvents.filter(e=>e.target_id===i.id&&frame>=e.start_frame&&frame<=e.end_frame)
+        .sort((x,y)=>y.start_frame-x.start_frame);
       return {id:i.id,name:i.name,x:Number(i.x)||0,y:Number(i.y)||0,rotation:Number(i.rotation)||0,scale:Number(i.scale)||1,
-        facing:idx%2===0?1:-1,archetype:a.archetype||"classic",style:a.style||"classic",color:a.color||"#2d3038",headband_color:a.headband_color||null,weapon:a.weapon||"none"};
+        facing:idx%2===0?1:-1,archetype:a.archetype||"classic",style:a.style||"classic",color:a.color||"#2d3038",
+        headband_color:a.headband_color||null,weapon:a.weapon||"none",action:active.length?active[0].action:"idle"};
     });
     try{
-      const res=await fetch("/api/studio/frame",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({characters:chars,environment:"dojo"})});
+      const res=await fetch("/api/studio/frame",{method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({characters:chars,environment:"dojo",frame})});
       if(!res.ok)return;
       const blob=await res.blob(); if(request!==studioFrameRequest)return;
-      const url=URL.createObjectURL(blob);
-      stage.innerHTML='<img class="studio-real-frame" alt="Fight animation frame">';
-      const img=stage.querySelector("img"); img.src=url; setTimeout(()=>URL.revokeObjectURL(url),1500);
+      const url=URL.createObjectURL(blob); stage.innerHTML='<img class="studio-real-frame" alt="Fight animation frame">';
+      stage.querySelector("img").src=url; setTimeout(()=>URL.revokeObjectURL(url),1500);
     }catch(e){console.warn("Studio fight frame preview unavailable",e);}
+  }
+
+  const STUDIO_FIGHT_ACTIONS=[
+    ["idle","Idle / Guard"],["walk","Walk"],["jab","Jab"],["cross","Cross"],["hook","Hook"],["punch","Punch"],["kick","Kick"],
+    ["low_kick","Low Kick"],["check_kick","Check Kick"],["uppercut","Uppercut"],["sweep","Sweep"],["block","Block"],
+    ["dodge","Dodge"],["slip","Slip"],["bob_weave","Bob & Weave"],["hit","Hit Reaction"],["knockback","Knockback"],
+    ["stagger","Stagger"],["jump","Jump"],["fall","Fall"],["clinch_knee","Clinch Knee"],["takedown","Takedown"],
+    ["ground_pound","Ground Pound"],["grounded_guard","Ground Guard"],["ground_frame","Ground Frame"],
+    ["ground_shrimp","Ground Shrimp"],["ground_sweep","Ground Sweep"],["ground_stand","Ground Stand"],
+    ["slash","Sword Slash"],["sword_guard","Sword Guard"]
+  ];
+  function renderFightActionPalette(){
+    const box=$("studioFightActions");if(!box)return;
+    box.innerHTML=STUDIO_FIGHT_ACTIONS.map(x=>'<button type="button" class="fight-action-btn" data-action="'+x[0]+'">'+esc(x[1])+'</button>').join("");
+  }
+  function addCombatAction(action){
+    const target=S.selected||"char-a",start=Math.round(S.cursor);
+    const seconds=action==="fall"?1.2:action==="takedown"?.7:.45;
+    const duration=Math.max(1,Math.round(S.fps*seconds));
+    S.combatEvents=S.combatEvents.filter(e=>!(e.target_id===target&&e.start_frame===start));
+    S.combatEvents.push({id:"combat-"+Date.now(),target_id:target,action,start_frame:start,end_frame:Math.min(S.frames,start+duration)});
+    render();
   }
 
   function render(){
@@ -2198,6 +2233,7 @@
     si.x=a.x+(b.x-a.x)*t; si.y=a.y+(b.y-a.y)*t; si.rotation=a.rotation+(b.rotation-a.rotation)*t; si.scale=a.scale+(b.scale-a.scale)*t;
   }
   function applyFrame(){ S.instances.forEach(i=>interpolateCharacter(i.id,S.cursor)); }
+  $("studioFightActions").addEventListener("click",e=>{const btn=e.target.closest("[data-action]");if(btn)addCombatAction(btn.dataset.action);});
   $("studioAddCharacter").addEventListener("click",addCharacter);
   $("studioSelected").addEventListener("change",e=>{S.selected=e.target.value;render()});
   ["studioX","studioY","studioRotation","studioScale"].forEach(id=>$(id).addEventListener("change",e=>{const si=S.instances.find(i=>i.id===S.selected);if(!si)return;si[id==="studioX"?"x":id==="studioY"?"y":id==="studioRotation"?"rotation":"scale"]=Number(e.target.value)||0;render()}));
@@ -2207,7 +2243,7 @@
   $("studioFps").addEventListener("change",e=>{S.fps=Math.max(1,Number(e.target.value)||30);render()});
   $("studioFrames").addEventListener("change",e=>{S.frames=Math.max(1,Number(e.target.value)||180);render()});
   document.addEventListener("click",e=>{const lane=e.target.closest("#studioRuler,.studio-track .track-lane");if(!lane)return;const rect=lane.getBoundingClientRect(),x=Math.max(0,Math.min(rect.width,e.clientX-rect.left));S.cursor=Math.round(x/rect.width*S.frames);applyFrame();render()});
-  document.addEventListener("DOMContentLoaded",()=>setTimeout(render,80));
+  document.addEventListener("DOMContentLoaded",()=>setTimeout(()=>{renderFightActionPalette();render();},80));
 })();
 </script>
 </body>
