@@ -38,6 +38,9 @@ class Action:
         self._impact_fired = True
         return True
 
+
+
+class WalkToAction(Action):
     def __init__(self, fighter: Fighter, target_x: float, speed: float = 240.0, duration: Optional[float] = None):
         self.target_x = float(target_x)
         self.speed = float(speed)
