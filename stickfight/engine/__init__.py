@@ -20,3 +20,5 @@ __all__ = [
     "AudioManager",
     "Timeline",
 ]
+
+from stickfight.engine.animation_player import AnimationPlayer
