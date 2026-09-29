@@ -1,3 +1,112 @@
+## 2026-09-29 — Tighten Studio Around Real Fight Actions
+
+### What I implemented
+- Added a dedicated `stickfight.studio.combat` registry for fight actions exposed by the Studio authoring layer.
+- Exposed real Fighter animation clips including jabs, crosses, hooks, punches, kicks, low kicks, check kicks, uppercuts, sweeps, blocks, dodges, slips, hit reactions, knockback, takedowns, ground work, and weapon attacks.
+- Added a Studio Combat Action Palette so the author can place a fight action at the current playhead on the selected fighter.
+- Studio preview requests now send the active authored combat action to `/api/studio/frame`.
+- The production Studio renderer resolves that action through the existing `Fighter.set_animation()` / animation library rather than drawing a separate browser-only pose.
+- Unknown action names safely resolve to `idle`, keeping the Studio boundary defensive.
+- Added tests for the fight-action registry and normalization.
+
+### Architecture
+The Studio remains an authoring layer. It does not duplicate combat physics, hitboxes, collision, impact timing, IK, or weapon mechanics.
+
+```
+Studio Combat Keyframe
+        ↓
+fight action registry
+        ↓
+existing Fighter animation clips
+        ↓
+existing skeleton / IK / physics / combat systems
+        ↓
+production Renderer
+```
+
+This keeps the editor tightly coupled to fight concepts while preserving the existing fight engine as the source of truth.
+
+### Status
+- Implemented on `story-animation-studio-foundation`.
+- Automated tests were added but have not been executed in this session.
+- Browser/runtime verification has not been executed in this session.
+- Next: connect authored combat events to real target relationships and combat timing/impact phases, then expose procedural combat actions alongside manual combat keyframes.
+
+## 2026-09-29 — Fight-Coupled Studio Renderer Integration
+
+### What I implemented
+- Added `/api/studio/frame`, which renders Studio authoring frames through the existing production `Fighter` + `Renderer` pipeline instead of the temporary browser SVG character.
+- Studio viewport frames now use the real fight skeleton, proportions, visual render styles, weapons, and fighter rendering path.
+- The Studio frame endpoint supports an arbitrary list of fighter instances, preserving the multi-character direction while using the same fight renderer underneath.
+- Changed Studio terminology to make the product direction explicit: **Fight Animation Studio**, **Combat Authoring**, **Fighters / Combat Assets**, **Fight Timeline**, **Combat Keyframe**, and **Play Fight**.
+
+### Fight-engine coupling
+- Studio authoring is now explicitly positioned as a fight-animation layer rather than a generic animation editor.
+- Authored transforms feed into real `Fighter` instances before rendering.
+- The existing combat engine remains the source of truth for skeletons, animation clips, IK, physics, collision, weapons, impact behavior, and fight choreography.
+
+### Architecture / safety
+- Existing `/api/preview` and `/api/render` paths remain intact.
+- No replacement of the established combat/physics/render pipeline was made.
+- The Studio layer remains additive and can later add pose/attack keyframes directly against the same fight primitives.
+
+### Status
+- Implemented on `story-animation-studio-foundation`.
+- Browser/runtime verification has not been executed in this change.
+- Next: expose the fight engine's actual pose/action controls in the Studio timeline so keyframes can author punches, kicks, blocks, dodges, grapples, takedowns, ground work, weapon attacks, and other existing combat actions directly.
+
+## 2026-09-29 — Upgrade Studio Preview Character Renderer
+
+### What I implemented
+- Replaced the temporary line-only placeholder figure with a richer SVG character renderer in the Studio viewport.
+- Added distinct visual treatment for Anime, Cartoon, Ink Fight, Bold, Silhouette, Classic, and Custom style families.
+- Characters now have a head design, torso silhouette, connected limbs, hands/feet, facial details where appropriate, and style-specific graphic treatment.
+- Existing Studio transforms (position, rotation, scale), selection, keyframes, interpolation, and playback continue to drive the rendered character.
+
+### Architecture / safety
+- The renderer remains presentation-only inside the Studio preview; existing production `Renderer`, skeleton, animation clips, IK, physics, collision, weapons, and combat behavior are unchanged.
+- This provides a real visual authoring target while the next integration phase connects the Studio model to the production skeleton/renderer for render/export parity.
+
+### Status
+- Implemented on `story-animation-studio-foundation`.
+- Browser/runtime verification has not been executed in this change.
+
+## 2026-09-29 — Connect Studio Timeline to Viewport
+
+### What I implemented
+- Added a dedicated Studio viewport overlay to the existing preview area.
+- Studio character instances now render as selectable procedural stick figures in the viewport.
+- X/Y position, rotation, and scale from the Studio inspector are reflected visually.
+- Timeline scrubbing and playback now interpolate keyed transforms and update the viewport.
+- The selected character receives a visual selection glow; character names and style families are shown in the viewport.
+
+### Architecture / safety
+- This is an additive Studio authoring layer; the existing fight renderer, physics, collision, combat choreography, and legacy preview path remain intact.
+- The viewport overlay is intentionally a Studio preview representation and does not replace the production fighter renderer yet.
+
+### Status
+- Implemented on `story-animation-studio-foundation`.
+- Browser/runtime verification has not been executed in this change.
+- Next step: replace the placeholder Studio figure with the actual character renderer/skeleton so authored transforms and poses drive production-quality visuals.
+
+## 2026-09-29 — Initial Story Animation Timeline Workspace
+
+### What I implemented
+- Added a dedicated Story Animation Studio workspace below the existing editor instead of replacing the legacy fight controls.
+- Added a reusable character/asset panel with support for adding additional character instances and selecting visual families including anime and cartoon.
+- Added a frame-based timeline ruler with playhead, character tracks, camera/events tracks, event blocks, FPS and duration controls.
+- Added timeline scrubbing, basic playback, reset, and keyframe insertion.
+- The workspace mirrors the existing legacy timeline state for compatibility, so current fight presets and rendering continue to work while the new editor is developed.
+- Kept the Studio state isolated in `window.__storyStudio`; it does not rewrite the existing Fighter, physics, collision, or combat code.
+
+### Stability rule
+The new timeline is an additive migration layer. Future editor features should move functionality from the legacy controls into the Studio model incrementally, with the old path retained until the replacement has equivalent behavior and validation.
+
+### Status
+- Implemented on `story-animation-studio-foundation`.
+- Browser interaction/render verification has not yet been executed here.
+- Next step: connect timeline selection/keyframes to actual character transforms and scene playback, then add asset editing and multi-character preview.
+
 ## 2026-09-29 — Modular Story Animation Studio Foundation
 
 ### What I implemented

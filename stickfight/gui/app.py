@@ -21,6 +21,7 @@ from stickfight import FightScene, Fighter
 from stickfight.scripting.generator import generate_fight
 from stickfight.engine.camera import Camera
 from stickfight.engine.renderer import Renderer
+from stickfight.studio.combat import normalize_action
 
 
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
@@ -572,6 +573,67 @@ def create_preview_surface(config: Dict[str, Any]) -> pygame.Surface:
     return surface
 
 
+def create_studio_frame_surface(config: Dict[str, Any]) -> pygame.Surface:
+    """Render a Studio frame through the production Fight renderer.
+
+    Studio only supplies authored intent (transforms + active fight action).
+    Skeletons, clips, IK, physics, weapons, hitboxes and rendering remain owned
+    by the existing fight engine.
+    """
+    w, h = 540, 960
+    gy = 750.0
+    pygame.init()
+    surface = pygame.Surface((w, h))
+    camera = Camera(viewport_width=w, viewport_height=h)
+    camera.x = w / 2.0
+    camera.y = gy - 120.0
+    camera.target_x = camera.x
+    camera.target_y = camera.y
+    camera.zoom = 0.95
+    env = config.get("environment", "dojo")
+    renderer = Renderer(width=w, height=h)
+    renderer.draw_background(surface, env, camera, ground_y=gy)
+
+    chars = config.get("characters", [])
+    if not chars:
+        chars = [
+            {"id": "char-a", "name": "Fighter A", "x": w * 0.35, "y": gy,
+             "facing": 1, "archetype": "ninja", "color": "#2d3038",
+             "style": "ink_fight", "action": "idle"},
+            {"id": "char-b", "name": "Fighter B", "x": w * 0.65, "y": gy,
+             "facing": -1, "archetype": "warrior", "color": "#e6ebf5",
+             "style": "ink_fight", "action": "idle"},
+        ]
+
+    fighters = []
+    for idx, char in enumerate(chars):
+        fighter = Fighter(
+            name=char.get("name", f"Fighter {idx + 1}"),
+            x=float(char.get("x", w * (0.3 + 0.4 * (idx % 2)))),
+            y=float(char.get("y", gy)),
+            facing=int(char.get("facing", 1 if idx % 2 == 0 else -1)),
+            color=hex_to_rgb(char.get("color", "#2d3038")),
+            headband_color=hex_to_rgb(char.get("headband_color")) if char.get("headband_color") else None,
+            line_width=int(char.get("line_width", 10)),
+            scale=float(char.get("scale", 1.0)),
+            design=char.get("archetype", "ninja"),
+            weapon=char.get("weapon") if char.get("weapon") not in (None, "", "none") else None,
+        )
+        fighter.render_style = char.get("style", "ink_fight")
+        fighter.facing = 1 if int(char.get("facing", fighter.facing)) >= 0 else -1
+
+        # Fight action is authored by Studio, but executed by the real Fighter
+        # animation library. Unknown actions safely resolve to idle.
+        action = normalize_action(char.get("action", "idle"))
+        fighter.set_animation(action, loop=False if action != "idle" else True)
+        fighter.update_animation(0.0)
+        fighters.append(fighter)
+
+    for fighter in fighters:
+        renderer.draw_fighter(surface, fighter, camera)
+    return surface
+
+
 def execute_render_job(job_id: str, config: Dict[str, Any]):
     """Background worker that synthesizes and renders the complete stick fight video."""
     global active_job
@@ -760,6 +822,25 @@ class StudioRequestHandler(SimpleHTTPRequestHandler):
             payload = json.loads(body)
         except Exception:
             payload = {}
+
+        elif url_path == "/api/studio/frame":
+            try:
+                surface = create_studio_frame_surface(payload)
+                buf = io.BytesIO()
+                pygame.image.save(surface, buf, "PNG")
+                png_bytes = buf.getvalue()
+                self.send_response(200)
+                self.send_header("Content-Type", "image/png")
+                self.send_header("Content-Length", str(len(png_bytes)))
+                self.send_header("Cache-Control", "no-cache, no-store")
+                self.end_headers()
+                self.wfile.write(png_bytes)
+            except Exception as e:
+                self.send_response(500)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode("utf-8"))
+            return
 
         if url_path == "/api/preview":
             try:

@@ -427,7 +427,7 @@
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     }
 
-    /* Visual Timeline Sequencer Section */
+    /* Visual Fight Timeline Sequencer Section */
     .timeline-container {
       display: none;
       flex-direction: column;
@@ -846,7 +846,9 @@
     @media (max-width:1200px){.studio-workspace{grid-template-columns:250px minmax(460px,1fr) 250px}.studio-nav{display:none}.header-actions{min-width:auto}.header-btn:first-child{display:none}}
     @media (max-width:900px){.studio-workspace{height:auto;min-height:0;display:flex;flex-direction:column}.canvas-column{order:1;min-height:820px}.left-sidebar{order:2;border-right:0;border-top:1px solid #20252d}.right-sidebar{order:3;border-left:0;border-top:1px solid #20252d}.studio-header{position:relative}.brand-subtitle{display:none}}
 
-  </style>
+  
+  #studioStage{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:3}#studioStage .studio-real-frame{width:100%;height:100%;object-fit:contain;display:block}#studioStage .studio-char{position:absolute;transform-origin:center bottom;min-width:30px;text-align:center}#studioStage .studio-stick{width:44px;height:92px;margin:auto;position:relative}#studioStage .studio-head{width:20px;height:20px;border:3px solid currentColor;border-radius:50%;margin:0 auto 3px}#studioStage .studio-body{width:4px;height:38px;background:currentColor;margin:auto;border-radius:3px}#studioStage .studio-limb{position:absolute;height:3px;background:currentColor;border-radius:3px;transform-origin:left center}.studio-arm-l{width:24px;left:5px;top:34px;transform:rotate(145deg)}.studio-arm-r{width:24px;right:5px;top:34px;transform-origin:right center;transform:rotate(35deg)}.studio-leg-l{width:30px;left:5px;top:72px;transform:rotate(112deg)}.studio-leg-r{width:30px;right:5px;top:72px;transform-origin:right center;transform:rotate(68deg)}#studioStage .studio-label{font-size:10px;font-weight:800;white-space:nowrap;margin-top:3px;text-shadow:0 1px 3px #000}#studioStage .selected{filter:drop-shadow(0 0 8px rgba(0,229,255,.9))}
+</style>
 </head>
 <body>
   <header class="studio-header">
@@ -964,7 +966,7 @@
       <div class="viewport-shell">
         <div class="viewport-grid"></div>
         <div class="preview-badge live-dot" id="previewBadge">LIVE SNAPSHOT</div>
-        <img id="previewImg" alt="Fight Preview" src="">
+        <img id="previewImg" alt="Fight Preview" src=""><div id="studioStage" aria-label="Fight animation viewport"></div>
         <video id="videoPlayer" controls loop playsinline></video>
       </div>
 
@@ -2030,6 +2032,218 @@
     }
     if (typeof window.fetchPreview === "function") window.fetchPreview();
   });
+})();
+</script>
+
+<style id="story-studio-layer">
+  #storyStudio { margin: 18px 24px 28px; border:1px solid rgba(0,229,255,.16); border-radius:18px; background:rgba(9,12,18,.94); overflow:hidden; }
+  #storyStudio .studio-head { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 18px; border-bottom:1px solid rgba(255,255,255,.07); }
+  #storyStudio .studio-head h2 { font-size:15px; letter-spacing:.08em; text-transform:uppercase; }
+  #storyStudio .studio-actions { display:flex; gap:8px; flex-wrap:wrap; }
+  #storyStudio button,#storyStudio select,#storyStudio input { background:#111722; color:#eef3f8; border:1px solid rgba(255,255,255,.1); border-radius:7px; padding:7px 9px; }
+  #storyStudio button { cursor:pointer; }
+  #storyStudio button:hover { border-color:#00d2ff; }
+  #storyStudio .studio-body { display:grid; grid-template-columns:220px minmax(0,1fr); min-height:290px; }
+  #storyStudio .asset-pane { padding:14px; border-right:1px solid rgba(255,255,255,.07); }
+  #storyStudio .asset-pane h3 { font-size:11px; color:#8b949e; text-transform:uppercase; letter-spacing:.12em; margin:0 0 10px; }
+  #storyStudio .asset-list { display:grid; gap:7px; }
+  #storyStudio .asset-row { display:flex; align-items:center; gap:7px; padding:8px; border-radius:8px; background:rgba(255,255,255,.035); }
+  #storyStudio .asset-dot { width:10px;height:10px;border-radius:50%;background:#00d2ff;flex:none; }
+  #storyStudio .asset-meta { min-width:0; flex:1; }
+  #storyStudio .asset-name { font-size:12px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  #storyStudio .asset-style { font-size:10px;color:#8b949e; }
+  #storyStudio .timeline-pane { min-width:0; overflow:auto; }
+  #storyStudio .timeline-toolbar { display:flex; gap:8px; align-items:center; padding:10px 12px; border-bottom:1px solid rgba(255,255,255,.07); }
+  #storyStudio .timeline-scroll { overflow:auto; }
+  #storyStudio .ruler,#storyStudio .studio-track { display:grid; grid-template-columns:150px 1fr; min-width:760px; }
+  #storyStudio .ruler-label { padding:7px 10px; color:#8b949e; font-size:10px; }
+  #storyStudio .ruler-grid { position:relative; height:28px; background:repeating-linear-gradient(90deg,rgba(255,255,255,.06) 0,rgba(255,255,255,.06) 1px,transparent 1px,transparent 30px); }
+  #storyStudio .tick { position:absolute; top:0; height:100%; border-left:1px solid rgba(255,255,255,.12); color:#68717d; font-size:9px; padding:3px 0 0 3px; }
+  #storyStudio .track-label { padding:9px 10px; font-size:11px; color:#cbd5df; border-top:1px solid rgba(255,255,255,.05); }
+  #storyStudio .track-lane { position:relative; height:38px; border-top:1px solid rgba(255,255,255,.05); background:repeating-linear-gradient(90deg,rgba(255,255,255,.025) 0,rgba(255,255,255,.025) 1px,transparent 1px,transparent 30px); }
+  #storyStudio .event { position:absolute; top:7px; height:24px; min-width:8px; border-radius:5px; background:linear-gradient(90deg,#b388ff,#00d2ff); color:#071017; font-size:9px; font-weight:800; padding:5px 7px; overflow:hidden; white-space:nowrap; cursor:pointer; }
+  #storyStudio .key { position:absolute; top:13px; width:10px;height:10px; transform:rotate(45deg); background:#ffb700; border-radius:2px; cursor:pointer; }
+  #storyStudio .playhead { position:absolute; top:0; bottom:0; width:2px; background:#ff3366; pointer-events:none; z-index:4; }
+  #storyStudio .studio-foot { padding:9px 14px; color:#8b949e; font-size:10px; border-top:1px solid rgba(255,255,255,.07); }
+  #storyStudio .fight-action-panel { margin-top:12px; padding-top:10px; border-top:1px solid rgba(255,255,255,.07); }
+  #storyStudio .fight-action-title { font-size:10px; font-weight:900; letter-spacing:.8px; color:#00d2ff; margin-bottom:7px; text-transform:uppercase; }
+  #storyStudio .fight-action-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:5px; max-height:230px; overflow:auto; padding-right:2px; }
+  #storyStudio .fight-action-btn { border:1px solid #27303a; background:#11161c; color:#c7d0da; border-radius:5px; padding:6px 7px; font-size:9px; font-weight:800; cursor:pointer; text-align:left; }
+  #storyStudio .fight-action-btn:hover { border-color:#00d2ff; color:#fff; background:rgba(0,210,255,.08); }
+  #storyStudio .combat-event { background:linear-gradient(90deg,#ff3366,#ffb700); color:#fff; }
+  @media (max-width:850px){ #storyStudio .studio-body{grid-template-columns:1fr}.asset-pane{border-right:0!important;border-bottom:1px solid rgba(255,255,255,.07)} }
+</style>
+
+<section id="storyStudio" aria-label="Story Animation Studio">
+  <div class="studio-head">
+    <h2>Fight Animation Studio — Combat Authoring</h2>
+    <div class="studio-actions">
+      <button type="button" id="studioAddCharacter">＋ Fighter</button>
+      <button type="button" id="studioAddKey">◆ Combat Keyframe</button>
+      <button type="button" id="studioPlay">▶ Play Fight</button>
+      <button type="button" id="studioReset">↺ Reset</button>
+    </div>
+  </div>
+  <div class="studio-body">
+    <aside class="asset-pane"><h3>Selected Fighter</h3><div id="studioInspector" style="display:grid;gap:7px;margin-bottom:14px"><select id="studioSelected"></select><label>X <input id="studioX" type="number" step="1"></label><label>Y <input id="studioY" type="number" step="1"></label><label>Rotation <input id="studioRotation" type="number" step="1"></label><label>Scale <input id="studioScale" type="number" step=".05" min=".05"></label></div>
+      <h3>Fighters / Combat Assets</h3>
+      <div id="studioAssets" class="asset-list"></div>
+      <div style="display:grid;gap:7px;margin-top:10px">
+        <input id="studioCharName" placeholder="Fighter name">
+      <div class="fight-action-panel">
+        <div class="fight-action-title">Combat Action Palette</div>
+        <div class="fight-action-grid" id="studioFightActions"></div>
+      </div>
+        <select id="studioCharStyle">
+          <option value="classic">Classic</option><option value="ink_fight">Ink Fight</option>
+          <option value="bold">Bold</option><option value="silhouette">Silhouette</option>
+          <option value="anime">Anime</option><option value="cartoon">Cartoon</option><option value="custom">Custom</option>
+        </select>
+      </div>
+    </aside>
+    <section class="timeline-pane">
+      <div class="timeline-toolbar">
+        <label>FPS <input id="studioFps" type="number" min="1" max="120" value="30" style="width:58px"></label>
+        <label>Frames <input id="studioFrames" type="number" min="1" max="100000" value="180" style="width:75px"></label>
+        <span id="studioTime" style="margin-left:auto;color:#8b949e">0.00s</span>
+      </div>
+      <div class="timeline-scroll">
+        <div class="ruler"><div class="ruler-label">TIMELINE</div><div id="studioRuler" class="ruler-grid"></div></div>
+        <div id="studioTracks"></div>
+      </div>
+    </section>
+  </div>
+  <div class="studio-foot">Studio state is separate from the legacy two-fighter controls. Characters are reusable assets; instances can use different visual styles without changing physics or combat.</div>
+</section>
+
+<script>
+(function(){
+  const S = window.__storyStudio = {
+    fps:30, frames:180, cursor:0, playing:false, timer:null,
+    assets: [
+      {id:"asset-a",name:"Fighter A",style:"classic",archetype:"ninja",color:"#e63946",weapon:"none"},
+      {id:"asset-b",name:"Fighter B",style:"classic",archetype:"warrior",color:"#e6ebf5",weapon:"none"}
+    ],
+    instances: [
+      {id:"char-a",asset:"asset-a",name:"Fighter A",track:true},
+      {id:"char-b",asset:"asset-b",name:"Fighter B",track:true}
+    ],
+    tracks: [], selected:"char-a", keyframes:{}, combatEvents:[],
+  };
+  const $ = id => document.getElementById(id);
+  const esc = v => String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  function syncLegacy(){
+    const st = window.state;
+    if(!st) return;
+    const a=st.fighter_a||{}, b=st.fighter_b||{};
+    S.assets[0].name=a.name||"Fighter A"; S.assets[0].style=st.visual_style||"classic";
+    S.assets[1].name=b.name||"Fighter B"; S.assets[1].style=st.visual_style||"classic";
+    S.instances[0].name=S.assets[0].name; S.instances[1].name=S.assets[1].name;
+    S.tracks = (st.timeline||[]).map((e,i)=>({id:"legacy-"+i,name:(e.actor||"scene")+" · "+(e.action||"event"),kind:"event",start:Math.round((Number(e.time)||0)*S.fps),duration:Math.max(1,Math.round((Number(e.duration)||.5)*S.fps)),event:e}));
+  }
+  let studioFrameRequest=0;
+  async function renderStudioStage(){
+    const stage=$("studioStage"); if(!stage)return;
+    const request=++studioFrameRequest, frame=Math.round(S.cursor);
+    const chars=S.instances.filter(i=>i.visible!==false).map((i,idx)=>{
+      const a=S.assets.find(x=>x.id===i.asset)||{};
+      const active=S.combatEvents.filter(e=>e.target_id===i.id&&frame>=e.start_frame&&frame<=e.end_frame)
+        .sort((x,y)=>y.start_frame-x.start_frame);
+      return {id:i.id,name:i.name,x:Number(i.x)||0,y:Number(i.y)||0,rotation:Number(i.rotation)||0,scale:Number(i.scale)||1,
+        facing:idx%2===0?1:-1,archetype:a.archetype||"classic",style:a.style||"classic",color:a.color||"#2d3038",
+        headband_color:a.headband_color||null,weapon:a.weapon||"none",action:active.length?active[0].action:"idle"};
+    });
+    try{
+      const res=await fetch("/api/studio/frame",{method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({characters:chars,environment:"dojo",frame})});
+      if(!res.ok)return;
+      const blob=await res.blob(); if(request!==studioFrameRequest)return;
+      const url=URL.createObjectURL(blob); stage.innerHTML='<img class="studio-real-frame" alt="Fight animation frame">';
+      stage.querySelector("img").src=url; setTimeout(()=>URL.revokeObjectURL(url),1500);
+    }catch(e){console.warn("Studio fight frame preview unavailable",e);}
+  }
+
+  const STUDIO_FIGHT_ACTIONS=[
+    ["idle","Idle / Guard"],["walk","Walk"],["jab","Jab"],["cross","Cross"],["hook","Hook"],["punch","Punch"],["kick","Kick"],
+    ["low_kick","Low Kick"],["check_kick","Check Kick"],["uppercut","Uppercut"],["sweep","Sweep"],["block","Block"],
+    ["dodge","Dodge"],["slip","Slip"],["bob_weave","Bob & Weave"],["hit","Hit Reaction"],["knockback","Knockback"],
+    ["stagger","Stagger"],["jump","Jump"],["fall","Fall"],["clinch_knee","Clinch Knee"],["takedown","Takedown"],
+    ["ground_pound","Ground Pound"],["grounded_guard","Ground Guard"],["ground_frame","Ground Frame"],
+    ["ground_shrimp","Ground Shrimp"],["ground_sweep","Ground Sweep"],["ground_stand","Ground Stand"],
+    ["slash","Sword Slash"],["sword_guard","Sword Guard"]
+  ];
+  function renderFightActionPalette(){
+    const box=$("studioFightActions");if(!box)return;
+    box.innerHTML=STUDIO_FIGHT_ACTIONS.map(x=>'<button type="button" class="fight-action-btn" data-action="'+x[0]+'">'+esc(x[1])+'</button>').join("");
+  }
+  function addCombatAction(action){
+    const target=S.selected||"char-a",start=Math.round(S.cursor);
+    const seconds=action==="fall"?1.2:action==="takedown"?.7:.45;
+    const duration=Math.max(1,Math.round(S.fps*seconds));
+    S.combatEvents=S.combatEvents.filter(e=>!(e.target_id===target&&e.start_frame===start));
+    S.combatEvents.push({id:"combat-"+Date.now(),target_id:target,action,start_frame:start,end_frame:Math.min(S.frames,start+duration)});
+    render();
+  }
+
+  function render(){
+    syncLegacy();
+    const scale=Math.max(1,S.frames/180), width=Math.max(600,S.frames*4);
+    $("studioRuler").style.width=width+"px";
+    $("studioRuler").innerHTML=Array.from({length:Math.ceil(S.frames/30)+1},(_,i)=>'<span class="tick" style="left:'+(i*30/S.frames*100)+'%">'+(i*30)+'</span>').join("");
+    const groups=[...S.instances.map(x=>({id:x.id,name:x.name,kind:"character"})),{id:"camera",name:"Camera",kind:"camera"},{id:"events",name:"Events",kind:"event"}];
+    $("studioTracks").innerHTML=groups.map(g=>{
+      const events=g.kind==="event"?S.tracks.filter(t=>t.event.actor==="scene"):S.tracks.filter(t=>t.event.actor===(g.id==="char-a"?"A":"B"));
+      const blocks=events.map(t=>{const left=t.start/S.frames*100, w=Math.max(.8,t.duration/S.frames*100); return '<div class="event" title="frame '+t.start+'" style="left:'+left+'%;width:'+w+'%">'+esc(t.name)+'</div>';}).join("");
+      return '<div class="studio-track"><div class="track-label">'+esc(g.name)+'</div><div class="track-lane" data-track="'+esc(g.id)+'">'+blocks+'<div class="playhead" style="left:'+(S.cursor/S.frames*100)+'%"></div></div></div>';
+    }).join("");
+    const sel=$("studioSelected"); sel.innerHTML=S.instances.map(i=>"<option value=\""+i.id+"\">"+esc(i.name)+"</option>").join(""); sel.value=S.selected; const si=S.instances.find(i=>i.id===S.selected)||S.instances[0]; if(si){$("studioX").value=si.x||0;$("studioY").value=si.y||0;$("studioRotation").value=si.rotation||0;$("studioScale").value=si.scale||1;} $("studioAssets").innerHTML=S.assets.map(a=>'<div class="asset-row"><span class="asset-dot"></span><div class="asset-meta"><div class="asset-name">'+esc(a.name)+'</div><div class="asset-style">'+esc(a.style)+'</div></div></div>').join("");
+    $("studioTime").textContent=(S.cursor/S.fps).toFixed(2)+"s";renderStudioStage();
+  }
+  function addCharacter(){
+    const name=($("studioCharName").value||"Character "+(S.instances.length+1)).trim();
+    const style=$("studioCharStyle").value;
+    const n=S.instances.length+1,id="char-"+Date.now(),aid="asset-"+Date.now();
+    S.assets.push({id:aid,name,style});
+    S.instances.push({id,asset:aid,name,track:true});
+    $("studioCharName").value="";
+    render();
+  }
+  function addKey(){
+    const frame=S.cursor;
+    const st=window.state;
+    if(st){
+      st.timeline=st.timeline||[];
+      st.timeline.push({time:frame/S.fps,actor:"scene",action:"keyframe",duration:1,frame});
+      if(typeof window.renderTimelineTracks==="function") window.renderTimelineTracks();
+    }
+    render();
+  }
+  function play(){
+    S.playing=!S.playing;
+    $("studioPlay").textContent=S.playing?"⏸ Pause":"▶ Play";
+    if(S.playing){
+      const start=performance.now()-S.cursor/S.fps*1000;
+      const tick=now=>{if(!S.playing)return;S.cursor=Math.min(S.frames,Math.floor((now-start)/1000*S.fps));applyFrame();render();if(S.cursor<S.frames)S.timer=requestAnimationFrame(tick);else{S.playing=false;$("studioPlay").textContent="▶ Play"}};S.timer=requestAnimationFrame(tick);
+    }else cancelAnimationFrame(S.timer);
+  }
+  function interpolateCharacter(id,frame){
+    const ks=(S.keyframes[id]||[]).slice().sort((a,b)=>a.frame-b.frame); if(!ks.length)return;
+    let a=ks[0],b=ks[ks.length-1]; for(let i=0;i<ks.length-1;i++){if(frame>=ks[i].frame&&frame<=ks[i+1].frame){a=ks[i];b=ks[i+1];break;}}
+    const t=a.frame===b.frame?0:Math.max(0,Math.min(1,(frame-a.frame)/(b.frame-a.frame))); const si=S.instances.find(i=>i.id===id); if(!si)return;
+    si.x=a.x+(b.x-a.x)*t; si.y=a.y+(b.y-a.y)*t; si.rotation=a.rotation+(b.rotation-a.rotation)*t; si.scale=a.scale+(b.scale-a.scale)*t;
+  }
+  function applyFrame(){ S.instances.forEach(i=>interpolateCharacter(i.id,S.cursor)); }
+  $("studioFightActions").addEventListener("click",e=>{const btn=e.target.closest("[data-action]");if(btn)addCombatAction(btn.dataset.action);});
+  $("studioAddCharacter").addEventListener("click",addCharacter);
+  $("studioSelected").addEventListener("change",e=>{S.selected=e.target.value;render()});
+  ["studioX","studioY","studioRotation","studioScale"].forEach(id=>$(id).addEventListener("change",e=>{const si=S.instances.find(i=>i.id===S.selected);if(!si)return;si[id==="studioX"?"x":id==="studioY"?"y":id==="studioRotation"?"rotation":"scale"]=Number(e.target.value)||0;render()}));
+  $("studioAddKey").addEventListener("click",addKey);
+  $("studioPlay").addEventListener("click",play);
+  $("studioReset").addEventListener("click",()=>{S.cursor=0;S.playing=false;$("studioPlay").textContent="▶ Play";render()});
+  $("studioFps").addEventListener("change",e=>{S.fps=Math.max(1,Number(e.target.value)||30);render()});
+  $("studioFrames").addEventListener("change",e=>{S.frames=Math.max(1,Number(e.target.value)||180);render()});
+  document.addEventListener("click",e=>{const lane=e.target.closest("#studioRuler,.studio-track .track-lane");if(!lane)return;const rect=lane.getBoundingClientRect(),x=Math.max(0,Math.min(rect.width,e.clientX-rect.left));S.cursor=Math.round(x/rect.width*S.frames);applyFrame();render()});
+  document.addEventListener("DOMContentLoaded",()=>setTimeout(()=>{renderFightActionPalette();render();},80));
 })();
 </script>
 </body>
