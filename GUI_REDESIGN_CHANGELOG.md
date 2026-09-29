@@ -1,6 +1,9 @@
 # GUI Redesign Change Log — 2026-09-29
 
 ## Completed
+- Wired `CombatImpactEvent` into `FightScene` as the single impact-response path.
+- Centralized hit particles/shockwaves, camera shake, audio, and hit-reaction animation behind the impact event.
+- Added scene-level integration coverage for resolved combat impacts.
 - Added a one-shot `CombatEventBus` and `CombatImpactEvent` so the authored animation impact can drive downstream combat/effects/audio/camera systems.
 - Routed core strike actions through the animation impact marker instead of relying solely on hard-coded strike timestamps.
 - Added impact-event tests and documented the new event-driven combat path.
@@ -28,6 +31,9 @@
 - Added this changelog so the design work is recorded as requested.
 
 ## Next
+- Route specialized action clips through the animation state machine instead of direct clip selection.
+- Add timing-marker visualization to the Studio timeline.
+- Add richer per-attack effect/audio profiles so each attack type can author its own impact presentation.
 - Subscribe effects, camera shake, audio, and hit reactions to the combat impact event bus.
 - Route specialized action clips through the animation state machine instead of direct clip selection.
 - Add timing-marker visualization to the Studio timeline.
