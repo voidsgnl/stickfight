@@ -453,10 +453,25 @@ class Fighter:
         target = self._grapple_target
         direction = 1.0 if attacker.x >= self.x else -1.0
         if self._grapple_mode in {"bottom_guard", "bottom_mount"}:
-            self.current_pose.set("pelvis", (0.0, 18.0))
-            self.current_pose.set("chest", (direction * 10.0, -32.0))
+            control = getattr(attacker, "_ground_control", None)
+            t = max(0.0, min(1.0, control.transition)) if control is not None else 1.0
+            # Bottom guard is more open; bottom mount is tighter and flatter.
+            open_pelvis, open_chest, open_head = 18.0, -32.0, -82.0
+            tight_pelvis, tight_chest, tight_head = 10.0, -40.0, -88.0
+            if control is not None and control.from_position is not None:
+                if control.from_position == "mount":
+                    t = 1.0 - t
+                pelvis_y = tight_pelvis + (open_pelvis - tight_pelvis) * t
+                chest_y = tight_chest + (open_chest - tight_chest) * t
+                head_y = tight_head + (open_head - tight_head) * t
+            elif self._grapple_mode == "bottom_guard":
+                pelvis_y, chest_y, head_y = open_pelvis, open_chest, open_head
+            else:
+                pelvis_y, chest_y, head_y = tight_pelvis, tight_chest, tight_head
+            self.current_pose.set("pelvis", (0.0, pelvis_y))
+            self.current_pose.set("chest", (direction * 10.0, chest_y))
             self.current_pose.set("neck", (direction * 14.0, -58.0))
-            self.current_pose.set("head", (direction * 18.0, -82.0))
+            self.current_pose.set("head", (direction * 18.0, head_y))
             return
         if target is not None and self._grapple_mode == "takedown":
             target_pelvis = target.get_hurtbox().pelvis_pos
