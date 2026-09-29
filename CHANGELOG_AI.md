@@ -437,3 +437,19 @@ B = scene.add_fighter("B", x=730, y=1500, render_style="ink_fight")
 - Fixed an invalid `elif` in `StudioRequestHandler.do_POST()` that caused `python3 gui.py` to fail during import with a SyntaxError.
 - The `/api/studio/frame` handler is now the first POST route check and returns normally before the existing preview/render routes.
 - This was introduced by the Studio UI integration pass; no combat/render logic was changed.
+
+
+## 2026-09-30 — Studio Pose Authoring and Pose Keyframes
+- Added a first real posing layer to the Studio Animation workspace.
+- Added joint selection for the canonical fighter rig: head, torso, shoulders, elbows, hands, hips, knees, and feet.
+- Added per-joint DX/DY pose offsets in the Properties panel, with a reset control.
+- Pose edits are stored on the selected character and sent to `POST /api/studio/frame`.
+- Added pose data to transform keyframes and interpolate joint offsets between keyed frames.
+- The backend now applies validated/clamped pose offsets on top of the existing production animation/IK result, preserving the existing fight animation library and renderer.
+- Added a dedicated Pose Key button while keeping the existing transform keyframe workflow.
+- This is an additive posing layer; it does not replace the existing combat clips, physics, IK, or renderer.
+
+### Validation
+- Source-level integration was completed on `story-animation-studio-foundation`.
+- The next local verification should edit a joint, create pose keys at two frames, scrub between them, and confirm the production-rendered character interpolates the pose.
+- Automated tests and browser verification were not run as part of this implementation.
