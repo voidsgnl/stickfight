@@ -1046,6 +1046,78 @@ class GroundEscapeAction(Action):
         self.fighter.set_state("idle")
 
 
+class GroundGuardAction(Action):
+    """Interact with a shared guard relationship: frame, shrimp, sweep, or stand."""
+
+    VALID_MODES = {"frame", "shrimp", "sweep", "stand"}
+
+    def __init__(self, fighter: Fighter, mode: str = "frame", duration: float = 0.60, distance: float = 70.0):
+        if mode not in self.VALID_MODES:
+            raise ValueError(f"unsupported ground guard mode: {mode}")
+        super().__init__(fighter, duration)
+        self.mode = mode
+        self.distance = distance
+        self.control = None
+        self.opponent = None
+        self.start_x = 0.0
+        self.completed = False
+
+    def on_start(self, scene: FightScene):
+        super().on_start(scene)
+        attacker = getattr(self.fighter, "_grapple_attacker", None)
+        control = getattr(attacker, "_ground_control", None) if attacker else None
+        if control is not None and control.defender is self.fighter and control.position == "guard":
+            self.control = control
+            self.opponent = control.attacker
+        self.start_x = self.fighter.x
+        self.fighter.state = "grounded"
+        self.fighter.physics.vx = 0.0
+        self.fighter.physics.vy = 0.0
+        self.fighter.physics.is_grounded = True
+        self.fighter.set_state("grounded", blend=0.08)
+
+    def update(self, scene: FightScene, local_t: float, dt: float):
+        self.fighter.update_animation(dt)
+        if self.control is None:
+            return
+        progress = max(0.0, min(1.0, local_t / max(self.duration, 1e-5)))
+
+        if self.mode == "frame":
+            # Maintain guard while subtly creating a defensive frame.
+            self.control.transition = min(1.0, 0.35 + progress * 0.65)
+            self.control.sync()
+
+        elif self.mode == "shrimp":
+            retreat = self.distance * min(1.0, progress)
+            self.fighter.x = self.start_x - self.fighter.facing * retreat
+            self.fighter.sync_to_physics()
+            self.control.transition = min(1.0, progress)
+            self.control.sync()
+
+        elif self.mode == "sweep" and not self.completed and progress >= 0.55:
+            self.completed = True
+            self.control.reverse(position="mount")
+            self.fighter.facing = -self.fighter.facing
+            self.fighter.state = "grounded"
+            self.opponent.state = "grounded"
+            self.fighter.physics.vx = self.opponent.physics.vx = 0.0
+            self.fighter.physics.vy = self.opponent.physics.vy = 0.0
+            self.fighter.set_state("grounded", blend=0.12)
+            self.opponent.set_state("grounded", blend=0.12)
+
+        elif self.mode == "stand" and progress >= 0.60:
+            self.completed = True
+            self.control.release()
+            self.fighter.state = "grounded"
+            self.fighter.set_state("grounded", blend=0.12)
+
+    def on_finish(self, scene: FightScene):
+        if self.mode == "stand" and self.control is not None and not self.completed:
+            self.control.release()
+        self.fighter.clear_ik_target()
+        self.fighter.set_state("idle")
+
+
 class GroundReversalAction(Action):
     """Reverse a grounded attacker and recover to standing control."""
     def __init__(self, fighter: Fighter, attacker: Optional[Fighter] = None, duration: float = 0.75):
