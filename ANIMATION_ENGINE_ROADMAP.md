@@ -109,6 +109,9 @@ Coverage includes:
 - [x] Add a one-shot animation impact event bus.
 - [x] Expose Fighter impact events at the authored impact marker.
 - [x] Route core strike actions through the authored impact marker instead of hard-coded strike timestamps.
+- [x] Centralize impact response through the scene event bus.
+- [x] Drive hit effects, camera shake, audio, and hit reactions from `CombatImpactEvent`.
+- [x] Add scene-level impact integration tests.
 
 ## Phase 2 — Animation State Machine
 
