@@ -50,6 +50,7 @@ from stickfight.engine.animation import (
     create_grounded_guard_clip,
 )
 from stickfight.engine.collision import Hitbox, Hurtbox
+from stickfight.engine.combat_timing import ATTACK_TIMINGS, AttackTiming
 from stickfight.engine.physics import PhysicsBody
 from stickfight.scripting.actions import (
     Action,
@@ -344,8 +345,35 @@ class Fighter:
             foot_pos=foot_pos,
         )
 
+    @property
+    def attack_timing(self) -> Optional[AttackTiming]:
+        """Timing metadata for the currently playing attack clip."""
+        return ATTACK_TIMINGS.get(self.active_clip.name)
+
+    @property
+    def attack_phase(self) -> Optional[str]:
+        """Current combat phase: anticipation/action/contact/follow_through/recovery."""
+        timing = self.attack_timing
+        if timing is None:
+            return None
+        return timing.phase(self.clip_time, self.active_clip.duration)
+
+    def is_attack_active(self) -> bool:
+        """Whether the current animation is inside its damaging contact window."""
+        timing = self.attack_timing
+        return timing is not None and timing.is_active(self.clip_time, self.active_clip.duration)
+
+    def is_attack_impact(self, tolerance: float = 0.03) -> bool:
+        """Whether playback is at the authored impact marker."""
+        timing = self.attack_timing
+        return timing is not None and timing.is_impact_frame(self.clip_time, self.active_clip.duration, tolerance=tolerance)
+
     def get_hitbox(self) -> Optional[Hitbox]:
-        """Calculates the active strike hitbox based on current attack animation."""
+        """Calculates a strike hitbox only during the active contact window."""
+        timing = self.attack_timing
+        if timing is None or not timing.is_active(self.clip_time, self.active_clip.duration):
+            return None
+
         joints = self.get_world_joints()
         clip_name = self.active_clip.name
 
@@ -413,6 +441,43 @@ class Fighter:
                     knockback_x=120.0 * self.facing,
                     attacker_name=self.name,
                     attack_type="sweep",
+                )
+        elif clip_name in ("jab", "cross", "hook"):
+            fist_pos = joints.get("right_hand")
+            if fist_pos:
+                damage = {"jab": 12.0, "cross": 18.0, "hook": 24.0}[clip_name]
+                return Hitbox(
+                    x=fist_pos[0],
+                    y=fist_pos[1],
+                    radius=27.0 * self.scale,
+                    damage=damage,
+                    knockback_x=(105.0 if clip_name == "jab" else 145.0) * self.facing,
+                    attacker_name=self.name,
+                    attack_type=clip_name,
+                )
+        elif clip_name == "low_kick":
+            foot_pos = joints.get("right_foot")
+            if foot_pos:
+                return Hitbox(
+                    x=foot_pos[0],
+                    y=foot_pos[1],
+                    radius=30.0 * self.scale,
+                    damage=16.0,
+                    knockback_x=135.0 * self.facing,
+                    attacker_name=self.name,
+                    attack_type="low_kick",
+                )
+        elif clip_name == "clinch_knee":
+            knee_pos = joints.get("right_knee")
+            if knee_pos:
+                return Hitbox(
+                    x=knee_pos[0],
+                    y=knee_pos[1],
+                    radius=30.0 * self.scale,
+                    damage=25.0,
+                    knockback_x=90.0 * self.facing,
+                    attacker_name=self.name,
+                    attack_type="clinch_knee",
                 )
         return None
 
