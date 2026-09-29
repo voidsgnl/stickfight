@@ -403,15 +403,32 @@ class Fighter:
         if self._grapple_mode == "takedown":
             lean = 24.0 * blend * direction
             drop = 24.0 * blend
-            self.current_pose.set("pelvis", (lean * 0.35, drop))
-            self.current_pose.set("chest", (lean, -50.0 + drop * 0.55))
-            self.current_pose.set("neck", (lean * 1.25, -84.0 + drop * 0.65))
-            self.current_pose.set("head", (lean * 1.55, -112.0 + drop * 0.75))
+            ground_phase = max(0.0, min(1.0, (progress - 0.58) / 0.42))
+            ground_ease = ground_phase * ground_phase * (3.0 - 2.0 * ground_phase)
+            settle = 68.0 * ground_ease
+
+            self.current_pose.set("pelvis", (lean * 0.35, drop + settle))
+            self.current_pose.set("chest", (lean + direction * 12.0 * ground_ease, -50.0 + drop * 0.55 + settle * 0.70))
+            self.current_pose.set("neck", (lean * 1.25 + direction * 16.0 * ground_ease, -84.0 + drop * 0.65 + settle * 0.78))
+            self.current_pose.set("head", (lean * 1.55 + direction * 22.0 * ground_ease, -112.0 + drop * 0.75 + settle * 0.82))
+
             for side, offset in (("left", -1.0), ("right", 1.0)):
                 hip = self.current_pose.get(f"{side}_hip")
                 knee = self.current_pose.get(f"{side}_knee")
-                self.current_pose.set(f"{side}_hip", (hip[0] + lean * 0.35, hip[1] + drop))
-                self.current_pose.set(f"{side}_knee", (knee[0] + lean * 0.65 + direction * 8.0 * offset * blend, knee[1] + drop * 0.35))
+                foot = self.current_pose.get(f"{side}_foot")
+                self.current_pose.set(
+                    f"{side}_hip",
+                    (hip[0] + lean * 0.35, hip[1] + drop + settle * 0.85),
+                )
+                self.current_pose.set(
+                    f"{side}_knee",
+                    (knee[0] + lean * 0.65 + direction * 8.0 * offset * blend,
+                     knee[1] + drop * 0.35 + settle * 0.35),
+                )
+                self.current_pose.set(
+                    f"{side}_foot",
+                    (foot[0] + direction * 14.0 * offset * ground_ease, foot[1]),
+                )
 
     def apply_grapple_reaction(self, attacker: "Fighter", mode: str = "takedown"):
         """Orient and pose a defender in response to a close-range grapple."""
