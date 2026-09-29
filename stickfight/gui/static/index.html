@@ -1127,265 +1127,6 @@
   </main>
 
 <script>
-/*
- * Studio UI recovery layer.
- * This intentionally lives in a separate script block so a failure in the
- * large editor script cannot leave the entire interface dead.
- */
-(function () {
-  const $ = (id) => document.getElementById(id);
-  const state = window.__studioState || {
-    mode: "procedural",
-    visual_style: "ink_fight",
-    style: "arcade",
-    environment: "dojo",
-    format: "vertical",
-    duration: 6.5,
-    show_ui: true,
-    fighter_a: {name:"Fighter A", archetype:"ninja", weapon:"none", color:"#2d3038", headband_color:"#eb2d2d", scale:1.0, line_width:10, health:100},
-    fighter_b: {name:"Fighter B", archetype:"warrior", weapon:"sword", color:"#e6ebf5", headband_color:"#ebbe2d", scale:1.0, line_width:10, health:100},
-    timeline: []
-  };
-  window.__studioState = state;
-
-  function setActive(selector, value) {
-    document.querySelectorAll(selector).forEach(el => {
-      el.classList.toggle("active", el.getAttribute("data-val") === value || el.getAttribute("data-type") === value);
-    });
-  }
-
-  function syncInputs() {
-    const fa = state.fighter_a, fb = state.fighter_b;
-    if ($("fa_name")) fa.name = $("fa_name").value;
-    if ($("fa_color")) fa.color = $("fa_color").value;
-    if ($("fa_headband")) fa.headband_color = $("fa_headband").value;
-    if ($("fa_scale")) fa.scale = parseFloat($("fa_scale").value) || 1;
-    if ($("fb_name")) fb.name = $("fb_name").value;
-    if ($("fb_color")) fb.color = $("fb_color").value;
-    if ($("fb_headband")) fb.headband_color = $("fb_headband").value;
-    if ($("fb_scale")) fb.scale = parseFloat($("fb_scale").value) || 1;
-    if ($("duration")) state.duration = parseFloat($("duration").value) || 6.5;
-    if ($("show_ui")) state.show_ui = $("show_ui").checked;
-  }
-
-  function fallbackSvg() {
-    const esc = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");
-    const a = state.fighter_a, b = state.fighter_b;
-    const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="540" height="960" viewBox="0 0 540 960">' +
-      '<rect width="540" height="960" fill="#101318"/>' +
-      '<line x1="35" y1="820" x2="505" y2="820" stroke="#313844" stroke-width="5"/>' +
-      '<g stroke="' + esc(a.color) + '" stroke-width="14" stroke-linecap="round" fill="none">' +
-      '<circle cx="185" cy="365" r="45"/><line x1="185" y1="410" x2="185" y2="570"/><line x1="185" y1="450" x2="115" y2="525"/><line x1="185" y1="450" x2="255" y2="525"/><line x1="185" y1="570" x2="125" y2="720"/><line x1="185" y1="570" x2="245" y2="720"/></g>' +
-      '<g stroke="' + esc(b.color) + '" stroke-width="14" stroke-linecap="round" fill="none">' +
-      '<circle cx="355" cy="365" r="45"/><line x1="355" y1="410" x2="355" y2="570"/><line x1="355" y1="450" x2="285" y2="525"/><line x1="355" y1="450" x2="425" y2="525"/><line x1="355" y1="570" x2="295" y2="720"/><line x1="355" y1="570" x2="415" y2="720"/></g>' +
-      '<text x="270" y="875" text-anchor="middle" fill="#d9e0ea" font-family="sans-serif" font-size="22">FIGHT PREVIEW</text>' +
-      '<text x="185" y="775" text-anchor="middle" fill="#9aa5b3" font-family="sans-serif" font-size="14">' + esc(a.name) + '</text>' +
-      '<text x="355" y="775" text-anchor="middle" fill="#9aa5b3" font-family="sans-serif" font-size="14">' + esc(b.name) + '</text></svg>';
-    return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
-  }
-
-  async function fetchPreview() {
-    syncInputs();
-    const img = $("previewImg");
-    if (img) img.src = fallbackSvg();
-    try {
-      const resp = await fetch("/api/preview", {
-        method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(state)
-      });
-      if (!resp.ok) throw new Error("Preview HTTP " + resp.status);
-      const blob = await resp.blob();
-      if (img) {
-        if (img.dataset.objectUrl) URL.revokeObjectURL(img.dataset.objectUrl);
-        const url = URL.createObjectURL(blob);
-        img.dataset.objectUrl = url;
-        img.src = url;
-      }
-      if (typeof window.switchViewMode === "function") window.switchViewMode("preview");
-    } catch (e) {
-      console.error("[Studio] preview failed:", e);
-      const status = $("progressStatus");
-      if (status) status.innerText = "Preview fallback active — backend preview unavailable";
-    }
-  }
-
-  window.schedulePreview = function () {
-    syncInputs();
-    clearTimeout(window.__previewTimer);
-    window.__previewTimer = setTimeout(fetchPreview, 100);
-  };
-  window.fetchPreview = fetchPreview;
-
-  window.selectArchetype = function(side, type) {
-    state["fighter_" + side].archetype = type;
-    setActive("#f" + side + "_archetypes .archetype-card", type);
-    window.schedulePreview();
-  };
-  window.selectWeapon = function(side, weapon) {
-    state["fighter_" + side].weapon = weapon;
-    setActive("#f" + side + "_weapon .pill-btn", weapon);
-    window.schedulePreview();
-  };
-  window.setFighterColor = function(side, hex) {
-    state["fighter_" + side].color = hex;
-    if ($("f" + side + "_color")) $("f" + side + "_color").value = hex;
-    window.schedulePreview();
-  };
-  window.setHeadbandColor = function(side, hex) {
-    state["fighter_" + side].headband_color = hex;
-    if ($("f" + side + "_headband")) $("f" + side + "_headband").value = hex;
-    window.schedulePreview();
-  };
-  window.selectVisualStyle = function(style) {
-    state.visual_style = style;
-    setActive("#visual_style_selector .style-card", style);
-    window.schedulePreview();
-  };
-  window.selectStyle = function(style) {
-    state.style = style;
-    setActive("#style_selector .pill-btn", style);
-  };
-  window.selectEnv = function(env) {
-    state.environment = env;
-    setActive("#env_selector .pill-btn", env);
-    window.schedulePreview();
-  };
-  window.selectFormat = function(fmt) {
-    state.format = fmt;
-    setActive("#format_selector .pill-btn", fmt);
-    window.schedulePreview();
-  };
-  window.updateLabel = function(inputId, labelId, suffix) {
-    const input = $(inputId), label = $(labelId);
-    if (input && label) label.innerText = input.value + suffix;
-    syncInputs();
-    window.schedulePreview();
-  };
-  window.switchChoreographyMode = function(mode) {
-    state.mode = mode;
-    const t = $("timelineContainer"), d = $("durationGroup");
-    if (t) t.style.display = mode === "timeline" ? "flex" : "none";
-    if (d) d.style.opacity = mode === "timeline" ? "0.5" : "1";
-    if ($("tabProcedural")) $("tabProcedural").classList.toggle("active", mode === "procedural");
-    if ($("tabTimeline")) $("tabTimeline").classList.toggle("active", mode === "timeline");
-    window.schedulePreview();
-  };
-  window.clearTimeline = function() {
-    state.timeline = [];
-    if (typeof window.renderTimelineTracks === "function") window.renderTimelineTracks();
-    window.schedulePreview();
-  };
-  window.quickAddAction = function(actor, action) {
-    const last = state.timeline.length ? Math.max(...state.timeline.map(e => parseFloat(e.time) || 0)) : 0;
-    const ev = {time:parseFloat((last + 0.6).toFixed(2)), actor, action, duration:action==="fall"?1.3:0.45};
-    if (action === "caption") ev.text = prompt("Enter screen caption text:", "FIGHT!") || "FIGHT!";
-    state.timeline.push(ev);
-    if (typeof window.renderTimelineTracks === "function") window.renderTimelineTracks();
-    window.schedulePreview();
-  };
-  window.addCustomAction = function() {
-    const ev = {
-      time:parseFloat($("add_time")?.value || 0),
-      actor:$("add_actor")?.value || "A",
-      action:$("add_action")?.value || "punch",
-      duration:parseFloat($("add_dur")?.value || 0.5)
-    };
-    state.timeline.push(ev);
-    if (typeof window.renderTimelineTracks === "function") window.renderTimelineTracks();
-    window.schedulePreview();
-  };
-  window.deleteTimelineEvent = function(i) {
-    state.timeline.splice(i,1);
-    if (typeof window.renderTimelineTracks === "function") window.renderTimelineTracks();
-    window.schedulePreview();
-  };
-  window.randomizeAll = function() {
-    const arch = ["ninja","warrior","monk","cyber","brawler","classic"];
-    const weapons = ["none","sword","staff"];
-    window.selectArchetype("a", arch[Math.floor(Math.random()*arch.length)]);
-    window.selectArchetype("b", arch[Math.floor(Math.random()*arch.length)]);
-    window.selectWeapon("a", weapons[Math.floor(Math.random()*weapons.length)]);
-    window.selectWeapon("b", weapons[Math.floor(Math.random()*weapons.length)]);
-    window.schedulePreview();
-  };
-
-  window.startRender = async function() {
-    syncInputs();
-    const btn = $("btnRender"), box = $("progressBox");
-    if (btn) { btn.disabled = true; btn.innerText = "⏳ RENDERING IN PROGRESS..."; }
-    if (box) box.style.display = "flex";
-    try {
-      const resp = await fetch("/api/render", {
-        method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(state)
-      });
-      if (!resp.ok) {
-        const data = await resp.json().catch(()=>({}));
-        throw new Error(data.error || "Render HTTP " + resp.status);
-      }
-      pollProgress();
-    } catch (e) {
-      console.error("[Studio] render failed:", e);
-      if ($("progressStatus")) $("progressStatus").innerText = "❌ " + e.message;
-      if (btn) { btn.disabled = false; btn.innerText = "⚔️ GENERATE FIGHT VIDEO"; }
-    }
-  };
-
-  async function pollProgress() {
-    try {
-      const resp = await fetch("/api/status");
-      const data = await resp.json();
-      if (data.status === "rendering") {
-        if ($("progressBarFill")) $("progressBarFill").style.width = Math.round(data.progress*100) + "%";
-        if ($("progressPct")) $("progressPct").innerText = Math.round(data.progress*100) + "%";
-        if ($("progressFrames")) $("progressFrames").innerText = "Frame " + data.frame + " / " + data.total_frames;
-        if ($("progressFps")) $("progressFps").innerText = (data.fps || 0).toFixed(1) + " FPS";
-        if ($("progressStatus")) $("progressStatus").innerText = "Rendering video frames & audio...";
-        setTimeout(pollProgress, 250);
-      } else if (data.status === "done") {
-        const vid = $("videoPlayer");
-        if (vid) { vid.src = data.video_url + "?t=" + Date.now(); vid.style.display="block"; vid.play().catch(()=>{}); }
-        if ($("previewImg")) $("previewImg").style.display="none";
-        if ($("btnDownload")) { $("btnDownload").href=data.video_url; $("btnDownload").style.display="flex"; }
-        if ($("progressStatus")) $("progressStatus").innerText = "✅ Video Render Complete!";
-        if ($("btnRender")) { $("btnRender").disabled=false; $("btnRender").innerText="⚔️ GENERATE FIGHT VIDEO"; }
-      } else if (data.status === "error") {
-        throw new Error(data.error || "Render failed");
-      } else {
-        setTimeout(pollProgress, 500);
-      }
-    } catch(e) {
-      console.error("[Studio] status failed:", e);
-      if ($("progressStatus")) $("progressStatus").innerText = "❌ " + e.message;
-      if ($("btnRender")) { $("btnRender").disabled=false; $("btnRender").innerText="⚔️ GENERATE FIGHT VIDEO"; }
-    }
-  }
-
-  window.switchViewMode = window.switchViewMode || function(mode) {
-    const img=$("previewImg"), vid=$("videoPlayer");
-    if (img) img.style.display=mode==="preview" ? "block" : "none";
-    if (vid) vid.style.display=mode==="video" ? "block" : "none";
-  };
-
-  window.addEventListener("error", function(e) {
-    console.error("[Studio] browser error:", e.error || e.message);
-    const s=$("progressStatus");
-    if (s) s.innerText="⚠️ UI error: " + (e.message || "unknown browser error");
-  });
-
-  window.addEventListener("unhandledrejection", function(e) {
-    console.error("[Studio] unhandled promise:", e.reason);
-  });
-
-  document.addEventListener("DOMContentLoaded", function() {
-    setTimeout(function() {
-      syncInputs();
-      fetchPreview();
-    }, 50);
-  });
-})();
-</script>
-
-</body>
-<script>
     let state = {
       mode: "procedural", // "procedural" | "timeline"
       style: "arcade",    // "arcade" | "realistic"
@@ -1954,5 +1695,299 @@
       schedulePreview();
     });
   </script>
+<script>
+/*
+ * Studio UI recovery layer.
+ * This intentionally lives in a separate script block so a failure in the
+ * large editor script cannot leave the entire interface dead.
+ */
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const state = window.__studioState || {
+    mode: "procedural",
+    visual_style: "ink_fight",
+    style: "arcade",
+    environment: "dojo",
+    format: "vertical",
+    duration: 6.5,
+    show_ui: true,
+    fighter_a: {name:"Fighter A", archetype:"ninja", weapon:"none", color:"#2d3038", headband_color:"#eb2d2d", scale:1.0, line_width:10, health:100},
+    fighter_b: {name:"Fighter B", archetype:"warrior", weapon:"sword", color:"#e6ebf5", headband_color:"#ebbe2d", scale:1.0, line_width:10, health:100},
+    timeline: []
+  };
+  window.__studioState = state;
+
+  function setActive(selector, value) {
+    document.querySelectorAll(selector).forEach(el => {
+      el.classList.toggle("active", el.getAttribute("data-val") === value || el.getAttribute("data-type") === value);
+    });
+  }
+
+  function syncInputs() {
+    const fa = state.fighter_a, fb = state.fighter_b;
+    if ($("fa_name")) fa.name = $("fa_name").value;
+    if ($("fa_color")) fa.color = $("fa_color").value;
+    if ($("fa_headband")) fa.headband_color = $("fa_headband").value;
+    if ($("fa_scale")) fa.scale = parseFloat($("fa_scale").value) || 1;
+    if ($("fb_name")) fb.name = $("fb_name").value;
+    if ($("fb_color")) fb.color = $("fb_color").value;
+    if ($("fb_headband")) fb.headband_color = $("fb_headband").value;
+    if ($("fb_scale")) fb.scale = parseFloat($("fb_scale").value) || 1;
+    if ($("duration")) state.duration = parseFloat($("duration").value) || 6.5;
+    if ($("show_ui")) state.show_ui = $("show_ui").checked;
+  }
+
+  function fallbackSvg() {
+    const esc = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");
+    const a = state.fighter_a, b = state.fighter_b;
+    const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="540" height="960" viewBox="0 0 540 960">' +
+      '<rect width="540" height="960" fill="#101318"/>' +
+      '<line x1="35" y1="820" x2="505" y2="820" stroke="#313844" stroke-width="5"/>' +
+      '<g stroke="' + esc(a.color) + '" stroke-width="14" stroke-linecap="round" fill="none">' +
+      '<circle cx="185" cy="365" r="45"/><line x1="185" y1="410" x2="185" y2="570"/><line x1="185" y1="450" x2="115" y2="525"/><line x1="185" y1="450" x2="255" y2="525"/><line x1="185" y1="570" x2="125" y2="720"/><line x1="185" y1="570" x2="245" y2="720"/></g>' +
+      '<g stroke="' + esc(b.color) + '" stroke-width="14" stroke-linecap="round" fill="none">' +
+      '<circle cx="355" cy="365" r="45"/><line x1="355" y1="410" x2="355" y2="570"/><line x1="355" y1="450" x2="285" y2="525"/><line x1="355" y1="450" x2="425" y2="525"/><line x1="355" y1="570" x2="295" y2="720"/><line x1="355" y1="570" x2="415" y2="720"/></g>' +
+      '<text x="270" y="875" text-anchor="middle" fill="#d9e0ea" font-family="sans-serif" font-size="22">FIGHT PREVIEW</text>' +
+      '<text x="185" y="775" text-anchor="middle" fill="#9aa5b3" font-family="sans-serif" font-size="14">' + esc(a.name) + '</text>' +
+      '<text x="355" y="775" text-anchor="middle" fill="#9aa5b3" font-family="sans-serif" font-size="14">' + esc(b.name) + '</text></svg>';
+    return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+  }
+
+  async function fetchPreview() {
+    syncInputs();
+    const img = $("previewImg");
+    if (img) img.src = fallbackSvg();
+    try {
+      const resp = await fetch("/api/preview", {
+        method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(state)
+      });
+      if (!resp.ok) throw new Error("Preview HTTP " + resp.status);
+      const blob = await resp.blob();
+      if (img) {
+        if (img.dataset.objectUrl) URL.revokeObjectURL(img.dataset.objectUrl);
+        const url = URL.createObjectURL(blob);
+        img.dataset.objectUrl = url;
+        img.src = url;
+      }
+      if (typeof window.switchViewMode === "function") window.switchViewMode("preview");
+    } catch (e) {
+      console.error("[Studio] preview failed:", e);
+      const status = $("progressStatus");
+      if (status) status.innerText = "Preview fallback active — backend preview unavailable";
+    }
+  }
+
+  window.schedulePreview = function () {
+    syncInputs();
+    clearTimeout(window.__previewTimer);
+    window.__previewTimer = setTimeout(fetchPreview, 100);
+  };
+  window.fetchPreview = fetchPreview;
+
+  window.selectArchetype = function(side, type) {
+    state["fighter_" + side].archetype = type;
+    setActive("#f" + side + "_archetypes .archetype-card", type);
+    window.schedulePreview();
+  };
+  window.selectWeapon = function(side, weapon) {
+    state["fighter_" + side].weapon = weapon;
+    setActive("#f" + side + "_weapon .pill-btn", weapon);
+    window.schedulePreview();
+  };
+  window.setFighterColor = function(side, hex) {
+    state["fighter_" + side].color = hex;
+    if ($("f" + side + "_color")) $("f" + side + "_color").value = hex;
+    window.schedulePreview();
+  };
+  window.setHeadbandColor = function(side, hex) {
+    state["fighter_" + side].headband_color = hex;
+    if ($("f" + side + "_headband")) $("f" + side + "_headband").value = hex;
+    window.schedulePreview();
+  };
+  window.selectVisualStyle = function(style) {
+    state.visual_style = style;
+    setActive("#visual_style_selector .style-card", style);
+    window.schedulePreview();
+  };
+  window.selectStyle = function(style) {
+    state.style = style;
+    setActive("#style_selector .pill-btn", style);
+  };
+  window.selectEnv = function(env) {
+    state.environment = env;
+    setActive("#env_selector .pill-btn", env);
+    window.schedulePreview();
+  };
+  window.selectFormat = function(fmt) {
+    state.format = fmt;
+    setActive("#format_selector .pill-btn", fmt);
+    window.schedulePreview();
+  };
+  window.updateLabel = function(inputId, labelId, suffix) {
+    const input = $(inputId), label = $(labelId);
+    if (input && label) label.innerText = input.value + suffix;
+    syncInputs();
+    window.schedulePreview();
+  };
+  window.switchChoreographyMode = function(mode) {
+    state.mode = mode;
+    const t = $("timelineContainer"), d = $("durationGroup");
+    if (t) t.style.display = mode === "timeline" ? "flex" : "none";
+    if (d) d.style.opacity = mode === "timeline" ? "0.5" : "1";
+    if ($("tabProcedural")) $("tabProcedural").classList.toggle("active", mode === "procedural");
+    if ($("tabTimeline")) $("tabTimeline").classList.toggle("active", mode === "timeline");
+    window.schedulePreview();
+  };
+  window.clearTimeline = function() {
+    state.timeline = [];
+    if (typeof window.renderTimelineTracks === "function") window.renderTimelineTracks();
+    window.schedulePreview();
+  };
+  window.quickAddAction = function(actor, action) {
+    const last = state.timeline.length ? Math.max(...state.timeline.map(e => parseFloat(e.time) || 0)) : 0;
+    const ev = {time:parseFloat((last + 0.6).toFixed(2)), actor, action, duration:action==="fall"?1.3:0.45};
+    if (action === "caption") ev.text = prompt("Enter screen caption text:", "FIGHT!") || "FIGHT!";
+    state.timeline.push(ev);
+    if (typeof window.renderTimelineTracks === "function") window.renderTimelineTracks();
+    window.schedulePreview();
+  };
+  window.addCustomAction = function() {
+    const ev = {
+      time:parseFloat($("add_time")?.value || 0),
+      actor:$("add_actor")?.value || "A",
+      action:$("add_action")?.value || "punch",
+      duration:parseFloat($("add_dur")?.value || 0.5)
+    };
+    state.timeline.push(ev);
+    if (typeof window.renderTimelineTracks === "function") window.renderTimelineTracks();
+    window.schedulePreview();
+  };
+  window.deleteTimelineEvent = function(i) {
+    state.timeline.splice(i,1);
+    if (typeof window.renderTimelineTracks === "function") window.renderTimelineTracks();
+    window.schedulePreview();
+  };
+  window.randomizeAll = function() {
+    const arch = ["ninja","warrior","monk","cyber","brawler","classic"];
+    const weapons = ["none","sword","staff"];
+    window.selectArchetype("a", arch[Math.floor(Math.random()*arch.length)]);
+    window.selectArchetype("b", arch[Math.floor(Math.random()*arch.length)]);
+    window.selectWeapon("a", weapons[Math.floor(Math.random()*weapons.length)]);
+    window.selectWeapon("b", weapons[Math.floor(Math.random()*weapons.length)]);
+    window.schedulePreview();
+  };
+
+  window.startRender = async function() {
+    syncInputs();
+    const btn = $("btnRender"), box = $("progressBox");
+    if (btn) { btn.disabled = true; btn.innerText = "⏳ RENDERING IN PROGRESS..."; }
+    if (box) box.style.display = "flex";
+    try {
+      const resp = await fetch("/api/render", {
+        method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(state)
+      });
+      if (!resp.ok) {
+        const data = await resp.json().catch(()=>({}));
+        throw new Error(data.error || "Render HTTP " + resp.status);
+      }
+      pollProgress();
+    } catch (e) {
+      console.error("[Studio] render failed:", e);
+      if ($("progressStatus")) $("progressStatus").innerText = "❌ " + e.message;
+      if (btn) { btn.disabled = false; btn.innerText = "⚔️ GENERATE FIGHT VIDEO"; }
+    }
+  };
+
+  async function pollProgress() {
+    try {
+      const resp = await fetch("/api/status");
+      const data = await resp.json();
+      if (data.status === "rendering") {
+        if ($("progressBarFill")) $("progressBarFill").style.width = Math.round(data.progress*100) + "%";
+        if ($("progressPct")) $("progressPct").innerText = Math.round(data.progress*100) + "%";
+        if ($("progressFrames")) $("progressFrames").innerText = "Frame " + data.frame + " / " + data.total_frames;
+        if ($("progressFps")) $("progressFps").innerText = (data.fps || 0).toFixed(1) + " FPS";
+        if ($("progressStatus")) $("progressStatus").innerText = "Rendering video frames & audio...";
+        setTimeout(pollProgress, 250);
+      } else if (data.status === "done") {
+        const vid = $("videoPlayer");
+        if (vid) { vid.src = data.video_url + "?t=" + Date.now(); vid.style.display="block"; vid.play().catch(()=>{}); }
+        if ($("previewImg")) $("previewImg").style.display="none";
+        if ($("btnDownload")) { $("btnDownload").href=data.video_url; $("btnDownload").style.display="flex"; }
+        if ($("progressStatus")) $("progressStatus").innerText = "✅ Video Render Complete!";
+        if ($("btnRender")) { $("btnRender").disabled=false; $("btnRender").innerText="⚔️ GENERATE FIGHT VIDEO"; }
+      } else if (data.status === "error") {
+        throw new Error(data.error || "Render failed");
+      } else {
+        setTimeout(pollProgress, 500);
+      }
+    } catch(e) {
+      console.error("[Studio] status failed:", e);
+      if ($("progressStatus")) $("progressStatus").innerText = "❌ " + e.message;
+      if ($("btnRender")) { $("btnRender").disabled=false; $("btnRender").innerText="⚔️ GENERATE FIGHT VIDEO"; }
+    }
+  }
+
+  window.switchViewMode = window.switchViewMode || function(mode) {
+    const img=$("previewImg"), vid=$("videoPlayer");
+    if (img) img.style.display=mode==="preview" ? "block" : "none";
+    if (vid) vid.style.display=mode==="video" ? "block" : "none";
+  };
+
+  window.addEventListener("error", function(e) {
+    console.error("[Studio] browser error:", e.error || e.message);
+    const s=$("progressStatus");
+    if (s) s.innerText="⚠️ UI error: " + (e.message || "unknown browser error");
+  });
+
+  window.addEventListener("unhandledrejection", function(e) {
+    console.error("[Studio] unhandled promise:", e.reason);
+  });
+
+  document.addEventListener("DOMContentLoaded", function() {
+    setTimeout(function() {
+      syncInputs();
+      fetchPreview();
+    }, 50);
+  });
+  // Expose recovery handlers so the final rebinder can keep them authoritative.
+  window.__studioRecoveryFns = {
+    schedulePreview: window.schedulePreview,
+    fetchPreview: window.fetchPreview,
+    selectArchetype: window.selectArchetype,
+    selectWeapon: window.selectWeapon,
+    setFighterColor: window.setFighterColor,
+    setHeadbandColor: window.setHeadbandColor,
+    selectVisualStyle: window.selectVisualStyle,
+    selectStyle: window.selectStyle,
+    selectEnv: window.selectEnv,
+    selectFormat: window.selectFormat,
+    updateLabel: window.updateLabel,
+    switchChoreographyMode: window.switchChoreographyMode,
+    clearTimeline: window.clearTimeline,
+    quickAddAction: window.quickAddAction,
+    addCustomAction: window.addCustomAction,
+    deleteTimelineEvent: window.deleteTimelineEvent,
+    randomizeAll: window.randomizeAll,
+    startRender: window.startRender,
+    switchViewMode: window.switchViewMode
+  };
+
+})();
+</script>
+
+
+<script>
+(function () {
+  const names = ["schedulePreview","fetchPreview","selectArchetype","selectWeapon","setFighterColor","setHeadbandColor","selectVisualStyle","selectStyle","selectEnv","selectFormat","updateLabel","switchChoreographyMode","clearTimeline","quickAddAction","addCustomAction","deleteTimelineEvent","randomizeAll","startRender","switchViewMode","loadPreset","loadPresetTimeline"];
+  document.addEventListener("DOMContentLoaded", function () {
+    const recoveryFns = window.__studioRecoveryFns || {};
+    for (const name of names) {
+      if (typeof recoveryFns[name] === "function") window[name] = recoveryFns[name];
+    }
+    if (typeof window.fetchPreview === "function") window.fetchPreview();
+  });
+})();
+</script>
 </body>
 </html>
