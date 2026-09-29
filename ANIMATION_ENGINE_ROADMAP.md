@@ -225,6 +225,7 @@ Target capabilities:
 - preview transitions
 - show action markers
 - show impact/contact markers
+- [x] Visualize anticipation, active, impact, and follow-through markers in the Studio timeline
 - eventually expose keyframes
 
 ## Phase 7 — Camera, Effects and Audio Hooks
