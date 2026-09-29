@@ -158,3 +158,9 @@ B = scene.add_fighter("B", x=730, y=1500, render_style="ink_fight")
 - Validation: source structure was inspected; live browser clicking was not available in this session.
 
 - Added recovery-safe implementations for OPEN PRESET and LOAD PRESET, so those controls also work if the editor script fails before defining its original versions.
+
+
+## 2026-09-29 — Render crash fix: grapple cleanup
+- Fixed `Fighter.clear_grapple_reaction()` where an accidentally duplicated fragment referenced undefined `attacker` and `mode` variables.
+- The cleanup method now only clears the active grapple reaction state, matching its purpose and preventing render-time `NameError` failures when an IK/timeline action finishes.
+- Validation: source-level fix applied from the traceback; full render/test execution has not yet been run in this session.
