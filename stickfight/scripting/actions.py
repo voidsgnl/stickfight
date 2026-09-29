@@ -30,16 +30,14 @@ class Action:
         pass
 
     def _impact_event(self, scene: FightScene) -> bool:
-        """Fire this action's authored impact exactly once."""
+        """Fire this action when playback crosses its authored impact marker.""
         if getattr(self, "_impact_fired", False):
             return False
-        if not self.fighter or not self.fighter.is_attack_impact():
+        if not self.fighter or not self.fighter.consume_attack_impact():
             return False
         self._impact_fired = True
         return True
 
-
-class WalkToAction(Action):
     def __init__(self, fighter: Fighter, target_x: float, speed: float = 240.0, duration: Optional[float] = None):
         self.target_x = float(target_x)
         self.speed = float(speed)
