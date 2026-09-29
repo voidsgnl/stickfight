@@ -2032,5 +2032,153 @@
   });
 })();
 </script>
+
+<style id="story-studio-layer">
+  #storyStudio { margin: 18px 24px 28px; border:1px solid rgba(0,229,255,.16); border-radius:18px; background:rgba(9,12,18,.94); overflow:hidden; }
+  #storyStudio .studio-head { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 18px; border-bottom:1px solid rgba(255,255,255,.07); }
+  #storyStudio .studio-head h2 { font-size:15px; letter-spacing:.08em; text-transform:uppercase; }
+  #storyStudio .studio-actions { display:flex; gap:8px; flex-wrap:wrap; }
+  #storyStudio button,#storyStudio select,#storyStudio input { background:#111722; color:#eef3f8; border:1px solid rgba(255,255,255,.1); border-radius:7px; padding:7px 9px; }
+  #storyStudio button { cursor:pointer; }
+  #storyStudio button:hover { border-color:#00d2ff; }
+  #storyStudio .studio-body { display:grid; grid-template-columns:220px minmax(0,1fr); min-height:290px; }
+  #storyStudio .asset-pane { padding:14px; border-right:1px solid rgba(255,255,255,.07); }
+  #storyStudio .asset-pane h3 { font-size:11px; color:#8b949e; text-transform:uppercase; letter-spacing:.12em; margin:0 0 10px; }
+  #storyStudio .asset-list { display:grid; gap:7px; }
+  #storyStudio .asset-row { display:flex; align-items:center; gap:7px; padding:8px; border-radius:8px; background:rgba(255,255,255,.035); }
+  #storyStudio .asset-dot { width:10px;height:10px;border-radius:50%;background:#00d2ff;flex:none; }
+  #storyStudio .asset-meta { min-width:0; flex:1; }
+  #storyStudio .asset-name { font-size:12px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  #storyStudio .asset-style { font-size:10px;color:#8b949e; }
+  #storyStudio .timeline-pane { min-width:0; overflow:auto; }
+  #storyStudio .timeline-toolbar { display:flex; gap:8px; align-items:center; padding:10px 12px; border-bottom:1px solid rgba(255,255,255,.07); }
+  #storyStudio .timeline-scroll { overflow:auto; }
+  #storyStudio .ruler,#storyStudio .studio-track { display:grid; grid-template-columns:150px 1fr; min-width:760px; }
+  #storyStudio .ruler-label { padding:7px 10px; color:#8b949e; font-size:10px; }
+  #storyStudio .ruler-grid { position:relative; height:28px; background:repeating-linear-gradient(90deg,rgba(255,255,255,.06) 0,rgba(255,255,255,.06) 1px,transparent 1px,transparent 30px); }
+  #storyStudio .tick { position:absolute; top:0; height:100%; border-left:1px solid rgba(255,255,255,.12); color:#68717d; font-size:9px; padding:3px 0 0 3px; }
+  #storyStudio .track-label { padding:9px 10px; font-size:11px; color:#cbd5df; border-top:1px solid rgba(255,255,255,.05); }
+  #storyStudio .track-lane { position:relative; height:38px; border-top:1px solid rgba(255,255,255,.05); background:repeating-linear-gradient(90deg,rgba(255,255,255,.025) 0,rgba(255,255,255,.025) 1px,transparent 1px,transparent 30px); }
+  #storyStudio .event { position:absolute; top:7px; height:24px; min-width:8px; border-radius:5px; background:linear-gradient(90deg,#b388ff,#00d2ff); color:#071017; font-size:9px; font-weight:800; padding:5px 7px; overflow:hidden; white-space:nowrap; cursor:pointer; }
+  #storyStudio .key { position:absolute; top:13px; width:10px;height:10px; transform:rotate(45deg); background:#ffb700; border-radius:2px; cursor:pointer; }
+  #storyStudio .playhead { position:absolute; top:0; bottom:0; width:2px; background:#ff3366; pointer-events:none; z-index:4; }
+  #storyStudio .studio-foot { padding:9px 14px; color:#8b949e; font-size:10px; border-top:1px solid rgba(255,255,255,.07); }
+  @media (max-width:850px){ #storyStudio .studio-body{grid-template-columns:1fr}.asset-pane{border-right:0!important;border-bottom:1px solid rgba(255,255,255,.07)} }
+</style>
+
+<section id="storyStudio" aria-label="Story Animation Studio">
+  <div class="studio-head">
+    <h2>Story Animation Studio — Authoring Layer</h2>
+    <div class="studio-actions">
+      <button type="button" id="studioAddCharacter">＋ Character</button>
+      <button type="button" id="studioAddKey">◆ Keyframe</button>
+      <button type="button" id="studioPlay">▶ Play</button>
+      <button type="button" id="studioReset">↺ Reset</button>
+    </div>
+  </div>
+  <div class="studio-body">
+    <aside class="asset-pane">
+      <h3>Characters / Assets</h3>
+      <div id="studioAssets" class="asset-list"></div>
+      <div style="display:grid;gap:7px;margin-top:10px">
+        <input id="studioCharName" placeholder="Character name">
+        <select id="studioCharStyle">
+          <option value="classic">Classic</option><option value="ink_fight">Ink Fight</option>
+          <option value="bold">Bold</option><option value="silhouette">Silhouette</option>
+          <option value="anime">Anime</option><option value="cartoon">Cartoon</option><option value="custom">Custom</option>
+        </select>
+      </div>
+    </aside>
+    <section class="timeline-pane">
+      <div class="timeline-toolbar">
+        <label>FPS <input id="studioFps" type="number" min="1" max="120" value="30" style="width:58px"></label>
+        <label>Frames <input id="studioFrames" type="number" min="1" max="100000" value="180" style="width:75px"></label>
+        <span id="studioTime" style="margin-left:auto;color:#8b949e">0.00s</span>
+      </div>
+      <div class="timeline-scroll">
+        <div class="ruler"><div class="ruler-label">TIMELINE</div><div id="studioRuler" class="ruler-grid"></div></div>
+        <div id="studioTracks"></div>
+      </div>
+    </section>
+  </div>
+  <div class="studio-foot">Studio state is separate from the legacy two-fighter controls. Characters are reusable assets; instances can use different visual styles without changing physics or combat.</div>
+</section>
+
+<script>
+(function(){
+  const S = window.__storyStudio = {
+    fps:30, frames:180, cursor:0, playing:false, timer:null,
+    assets: [
+      {id:"asset-a",name:"Fighter A",style:"classic"},
+      {id:"asset-b",name:"Fighter B",style:"classic"}
+    ],
+    instances: [
+      {id:"char-a",asset:"asset-a",name:"Fighter A",track:true},
+      {id:"char-b",asset:"asset-b",name:"Fighter B",track:true}
+    ],
+    tracks: [],
+  };
+  const $ = id => document.getElementById(id);
+  const esc = v => String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  function syncLegacy(){
+    const st = window.state;
+    if(!st) return;
+    const a=st.fighter_a||{}, b=st.fighter_b||{};
+    S.assets[0].name=a.name||"Fighter A"; S.assets[0].style=st.visual_style||"classic";
+    S.assets[1].name=b.name||"Fighter B"; S.assets[1].style=st.visual_style||"classic";
+    S.instances[0].name=S.assets[0].name; S.instances[1].name=S.assets[1].name;
+    S.tracks = (st.timeline||[]).map((e,i)=>({id:"legacy-"+i,name:(e.actor||"scene")+" · "+(e.action||"event"),kind:"event",start:Math.round((Number(e.time)||0)*S.fps),duration:Math.max(1,Math.round((Number(e.duration)||.5)*S.fps)),event:e}));
+  }
+  function render(){
+    syncLegacy();
+    const scale=Math.max(1,S.frames/180), width=Math.max(600,S.frames*4);
+    $("studioRuler").style.width=width+"px";
+    $("studioRuler").innerHTML=Array.from({length:Math.ceil(S.frames/30)+1},(_,i)=>'<span class="tick" style="left:'+(i*30/S.frames*100)+'%">'+(i*30)+'</span>').join("");
+    const groups=[...S.instances.map(x=>({id:x.id,name:x.name,kind:"character"})),{id:"camera",name:"Camera",kind:"camera"},{id:"events",name:"Events",kind:"event"}];
+    $("studioTracks").innerHTML=groups.map(g=>{
+      const events=g.kind==="event"?S.tracks.filter(t=>t.event.actor==="scene"):S.tracks.filter(t=>t.event.actor===(g.id==="char-a"?"A":"B"));
+      const blocks=events.map(t=>{const left=t.start/S.frames*100, w=Math.max(.8,t.duration/S.frames*100); return '<div class="event" title="frame '+t.start+'" style="left:'+left+'%;width:'+w+'%">'+esc(t.name)+'</div>';}).join("");
+      return '<div class="studio-track"><div class="track-label">'+esc(g.name)+'</div><div class="track-lane" data-track="'+esc(g.id)+'">'+blocks+'<div class="playhead" style="left:'+(S.cursor/S.frames*100)+'%"></div></div></div>';
+    }).join("");
+    $("studioAssets").innerHTML=S.assets.map(a=>'<div class="asset-row"><span class="asset-dot"></span><div class="asset-meta"><div class="asset-name">'+esc(a.name)+'</div><div class="asset-style">'+esc(a.style)+'</div></div></div>').join("");
+    $("studioTime").textContent=(S.cursor/S.fps).toFixed(2)+"s";
+  }
+  function addCharacter(){
+    const name=($("studioCharName").value||"Character "+(S.instances.length+1)).trim();
+    const style=$("studioCharStyle").value;
+    const n=S.instances.length+1,id="char-"+Date.now(),aid="asset-"+Date.now();
+    S.assets.push({id:aid,name,style});
+    S.instances.push({id,asset:aid,name,track:true});
+    $("studioCharName").value="";
+    render();
+  }
+  function addKey(){
+    const frame=S.cursor;
+    const st=window.state;
+    if(st){
+      st.timeline=st.timeline||[];
+      st.timeline.push({time:frame/S.fps,actor:"scene",action:"keyframe",duration:1,frame});
+      if(typeof window.renderTimelineTracks==="function") window.renderTimelineTracks();
+    }
+    render();
+  }
+  function play(){
+    S.playing=!S.playing;
+    $("studioPlay").textContent=S.playing?"⏸ Pause":"▶ Play";
+    if(S.playing){
+      const start=performance.now()-S.cursor/S.fps*1000;
+      const tick=now=>{if(!S.playing)return;S.cursor=Math.min(S.frames,Math.floor((now-start)/1000*S.fps));render();if(S.cursor<S.frames)S.timer=requestAnimationFrame(tick);else{S.playing=false;$("studioPlay").textContent="▶ Play"}};S.timer=requestAnimationFrame(tick);
+    }else cancelAnimationFrame(S.timer);
+  }
+  $("studioAddCharacter").addEventListener("click",addCharacter);
+  $("studioAddKey").addEventListener("click",addKey);
+  $("studioPlay").addEventListener("click",play);
+  $("studioReset").addEventListener("click",()=>{S.cursor=0;S.playing=false;$("studioPlay").textContent="▶ Play";render()});
+  $("studioFps").addEventListener("change",e=>{S.fps=Math.max(1,Number(e.target.value)||30);render()});
+  $("studioFrames").addEventListener("change",e=>{S.frames=Math.max(1,Number(e.target.value)||180);render()});
+  document.addEventListener("click",e=>{const lane=e.target.closest("#studioRuler,.studio-track .track-lane");if(!lane)return;const rect=lane.getBoundingClientRect(),x=Math.max(0,Math.min(rect.width,e.clientX-rect.left));S.cursor=Math.round(x/rect.width*S.frames);render()});
+  document.addEventListener("DOMContentLoaded",()=>setTimeout(render,80));
+})();
+</script>
 </body>
 </html>
