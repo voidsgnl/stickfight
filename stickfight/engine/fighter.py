@@ -575,11 +575,6 @@ class Fighter:
         self._grapple_mode = None
         self._grapple_target = None
 
-        """Orient and pose a defender in response to a close-range grapple."""
-        dx = attacker.x - self.x
-        self.facing = 1 if dx >= 0 else -1
-        self.set_animation("fall" if mode == "takedown" else "hit", loop=False)
-
     def aim_attack_at(self, other: "Fighter"):
         """Aim the active striking hand at the opponent's head using IK."""
         hurtbox = other.get_hurtbox()
