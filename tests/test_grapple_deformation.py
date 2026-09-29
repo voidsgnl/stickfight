@@ -148,3 +148,18 @@ def test_top_control_blends_in_and_sets_bottom_guard_relationship():
     assert after != before
     assert defender._grapple_attacker is attacker
     assert defender._grapple_mode == "ground_control"
+
+def test_ground_control_has_distinct_mount_and_guard_modes():
+    attacker = Fighter("A", x=500, y=1500)
+    defender = Fighter("B", x=560, y=1500)
+    defender.enter_grounded_control()
+
+    attacker.enter_ground_control(defender, mode="mount")
+    assert attacker._ground_control_mode == "mount"
+    assert defender._grapple_mode == "bottom_guard"
+
+    attacker.clear_ground_control()
+    defender.clear_grapple_reaction()
+    attacker.enter_ground_control(defender, mode="guard")
+    assert attacker._ground_control_mode == "guard"
+    assert defender._grapple_mode == "bottom_mount"
