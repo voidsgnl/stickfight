@@ -216,7 +216,7 @@ class FightScene:
         if hitbox is None:
             return
 
-        if is_heavy:
+        if profile.heavy:
             defender.state = "knockback"
             defender.set_animation("knockback", loop=False)
             defender.apply_impulse(
@@ -276,8 +276,7 @@ class FightScene:
         # Advance existing physical motion first. Scripted actions may then
         # reposition fighters horizontally and the body is synchronized below.
         for f in self.fighters:
-            f.physics.update(dt)
-            f.sync_from_physics()
+            f.update_physics(dt)
 
         self.timeline.update(self.current_time, dt, self)
 
