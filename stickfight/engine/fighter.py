@@ -450,13 +450,21 @@ class Fighter:
                     (foot[0] + direction * 14.0 * offset * ground_ease, foot[1]),
                 )
 
+    def enter_grounded_control(self) -> bool:
+        """Enter persistent grounded combat after a takedown settles."""
+        self.state = "grounded"
+        self.physics.vx = 0.0
+        self.physics.vy = 0.0
+        self.physics.is_grounded = True
+        return self.set_state("grounded", blend=0.10)
+
     def apply_grapple_reaction(self, attacker: "Fighter", mode: str = "takedown"):
         """Orient and pose a defender in response to a close-range grapple."""
         dx = attacker.x - self.x
         self.facing = 1 if dx >= 0 else -1
         self._grapple_attacker = attacker
         self._grapple_mode = mode
-        self.set_animation("fall" if mode == "takedown" else "hit", loop=False)
+        self.set_state("fallen" if mode == "takedown" else "hit")
 
     def clear_grapple_reaction(self):
         """Stop procedural grappling deformation."""
