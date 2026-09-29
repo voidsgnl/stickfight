@@ -427,7 +427,7 @@
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     }
 
-    /* Visual Timeline Sequencer Section */
+    /* Visual Fight Timeline Sequencer Section */
     .timeline-container {
       display: none;
       flex-direction: column;
@@ -966,7 +966,7 @@
       <div class="viewport-shell">
         <div class="viewport-grid"></div>
         <div class="preview-badge live-dot" id="previewBadge">LIVE SNAPSHOT</div>
-        <img id="previewImg" alt="Fight Preview" src=""><div id="studioStage" aria-label="Studio animation viewport"></div>
+        <img id="previewImg" alt="Fight Preview" src=""><div id="studioStage" aria-label="Fight animation viewport"></div>
         <video id="videoPlayer" controls loop playsinline></video>
       </div>
 
@@ -2070,20 +2070,20 @@
 
 <section id="storyStudio" aria-label="Story Animation Studio">
   <div class="studio-head">
-    <h2>Story Animation Studio — Authoring Layer</h2>
+    <h2>Fight Animation Studio — Combat Authoring</h2>
     <div class="studio-actions">
-      <button type="button" id="studioAddCharacter">＋ Character</button>
-      <button type="button" id="studioAddKey">◆ Keyframe</button>
-      <button type="button" id="studioPlay">▶ Play</button>
+      <button type="button" id="studioAddCharacter">＋ Fighter</button>
+      <button type="button" id="studioAddKey">◆ Combat Keyframe</button>
+      <button type="button" id="studioPlay">▶ Play Fight</button>
       <button type="button" id="studioReset">↺ Reset</button>
     </div>
   </div>
   <div class="studio-body">
-    <aside class="asset-pane"><h3>Selected Character</h3><div id="studioInspector" style="display:grid;gap:7px;margin-bottom:14px"><select id="studioSelected"></select><label>X <input id="studioX" type="number" step="1"></label><label>Y <input id="studioY" type="number" step="1"></label><label>Rotation <input id="studioRotation" type="number" step="1"></label><label>Scale <input id="studioScale" type="number" step=".05" min=".05"></label></div>
-      <h3>Characters / Assets</h3>
+    <aside class="asset-pane"><h3>Selected Fighter</h3><div id="studioInspector" style="display:grid;gap:7px;margin-bottom:14px"><select id="studioSelected"></select><label>X <input id="studioX" type="number" step="1"></label><label>Y <input id="studioY" type="number" step="1"></label><label>Rotation <input id="studioRotation" type="number" step="1"></label><label>Scale <input id="studioScale" type="number" step=".05" min=".05"></label></div>
+      <h3>Fighters / Combat Assets</h3>
       <div id="studioAssets" class="asset-list"></div>
       <div style="display:grid;gap:7px;margin-top:10px">
-        <input id="studioCharName" placeholder="Character name">
+        <input id="studioCharName" placeholder="Fighter name">
         <select id="studioCharStyle">
           <option value="classic">Classic</option><option value="ink_fight">Ink Fight</option>
           <option value="bold">Bold</option><option value="silhouette">Silhouette</option>
