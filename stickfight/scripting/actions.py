@@ -945,6 +945,77 @@ class TakedownAction(Action):
         self.fighter.set_state("idle")
 
 
+class GroundEscapeAction(Action):
+    """Escape from grounded guard by creating space and returning to stance."""
+    def __init__(self, fighter: Fighter, duration: float = 0.65, distance: float = 90.0):
+        super().__init__(fighter, duration)
+        self.distance = distance
+        self.start_x = 0.0
+
+    def on_start(self, scene: FightScene):
+        super().on_start(scene)
+        self.start_x = self.fighter.x
+        self.fighter.clear_ik_target()
+        self.fighter.state = "grounded"
+        self.fighter.physics.vx = 0.0
+        self.fighter.physics.vy = 0.0
+        self.fighter.physics.is_grounded = True
+        self.fighter.set_state("grounded")
+
+    def update(self, scene: FightScene, local_t: float, dt: float):
+        self.fighter.update_animation(dt)
+        progress = max(0.0, min(1.0, local_t / max(1e-5, self.duration)))
+        # Scoot away first, then rise into a normal stance.
+        if progress < 0.62:
+            retreat = self.distance * (progress / 0.62)
+            self.fighter.x = self.start_x - self.fighter.facing * retreat
+            self.fighter.sync_to_physics()
+        elif self.fighter.animation_state.current == "grounded":
+            self.fighter.set_state("idle")
+
+    def on_finish(self, scene: FightScene):
+        self.fighter.state = "idle"
+        self.fighter.clear_ik_target()
+        self.fighter.set_state("idle")
+
+
+class GroundReversalAction(Action):
+    """Reverse a grounded attacker and recover to standing control."""
+    def __init__(self, fighter: Fighter, attacker: Optional[Fighter] = None, duration: float = 0.75):
+        super().__init__(fighter, duration)
+        self.attacker = attacker
+        self.reversed = False
+
+    def on_start(self, scene: FightScene):
+        super().on_start(scene)
+        if self.attacker:
+            self.fighter.face_fighter(self.attacker)
+        self.fighter.clear_ik_target()
+        self.fighter.state = "grounded"
+        self.fighter.physics.vx = 0.0
+        self.fighter.physics.vy = 0.0
+        self.fighter.physics.is_grounded = True
+        self.fighter.set_state("grounded")
+
+    def update(self, scene: FightScene, local_t: float, dt: float):
+        self.fighter.update_animation(dt)
+        progress = max(0.0, min(1.0, local_t / max(1e-5, self.duration)))
+        if not self.reversed and progress >= 0.48:
+            self.reversed = True
+            if self.attacker:
+                # Create separation and rotate control without teleporting.
+                self.attacker.facing = -self.fighter.facing
+                self.attacker.physics.vx = 70.0 * self.fighter.facing
+                self.attacker.state = "fallen"
+                self.attacker.set_animation("fall", loop=False)
+            self.fighter.set_state("idle")
+
+    def on_finish(self, scene: FightScene):
+        self.fighter.state = "idle"
+        self.fighter.clear_ik_target()
+        self.fighter.set_state("idle")
+
+
 class GroundPoundAction(Action):
     """Top-position hammerfists onto a grounded opponent.
 
