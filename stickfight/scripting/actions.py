@@ -29,6 +29,15 @@ class Action:
     def on_finish(self, scene: FightScene):
         pass
 
+    def _impact_event(self, scene: FightScene) -> bool:
+        """Fire this action's authored impact exactly once."""
+        if getattr(self, "_impact_fired", False):
+            return False
+        if not self.fighter or not self.fighter.is_attack_impact():
+            return False
+        self._impact_fired = True
+        return True
+
 
 class WalkToAction(Action):
     def __init__(self, fighter: Fighter, target_x: float, speed: float = 240.0, duration: Optional[float] = None):
@@ -83,7 +92,7 @@ class PunchAction(Action):
     def update(self, scene: FightScene, local_t: float, dt: float):
         self.fighter.update_animation(dt)
         strike_time = 0.18
-        if not self.hit_registered and local_t >= strike_time:
+        if not self.hit_registered and self._impact_event(scene):
             self.hit_registered = True
             # Check attack collision against defender
             if self.defender:
@@ -114,7 +123,7 @@ class KickAction(Action):
     def update(self, scene: FightScene, local_t: float, dt: float):
         self.fighter.update_animation(dt)
         strike_time = 0.25
-        if not self.hit_registered and local_t >= strike_time:
+        if not self.hit_registered and self._impact_event(scene):
             self.hit_registered = True
             if self.defender:
                 hitbox = self.fighter.get_hitbox()
@@ -335,7 +344,7 @@ class UppercutAction(Action):
 
     def update(self, scene: FightScene, local_t: float, dt: float):
         self.fighter.update_animation(dt)
-        if not self.hit_registered and local_t >= 0.22 and self.defender:
+        if not self.hit_registered and self._impact_event(scene) and self.defender:
             self.hit_registered = True
             hitbox = self.fighter.get_hitbox()
             if hitbox:
@@ -611,7 +620,7 @@ class JabAction(Action):
 
     def update(self, scene: FightScene, local_t: float, dt: float):
         self.fighter.update_animation(dt)
-        if not self.hit_registered and local_t >= 0.12:
+        if not self.hit_registered and self._impact_event(scene):
             self.hit_registered = True
             if self.defender:
                 hitbox = self.fighter.get_hitbox()
@@ -643,7 +652,7 @@ class CrossAction(Action):
 
     def update(self, scene: FightScene, local_t: float, dt: float):
         self.fighter.update_animation(dt)
-        if not self.hit_registered and local_t >= 0.17:
+        if not self.hit_registered and self._impact_event(scene):
             self.hit_registered = True
             if self.defender:
                 hitbox = self.fighter.get_hitbox()
@@ -675,7 +684,7 @@ class HookAction(Action):
 
     def update(self, scene: FightScene, local_t: float, dt: float):
         self.fighter.update_animation(dt)
-        if not self.hit_registered and local_t >= 0.18:
+        if not self.hit_registered and self._impact_event(scene):
             self.hit_registered = True
             if self.defender:
                 hitbox = self.fighter.get_hitbox()
@@ -712,7 +721,7 @@ class LowKickAction(Action):
 
     def update(self, scene: FightScene, local_t: float, dt: float):
         self.fighter.update_animation(dt)
-        if not self.hit_registered and local_t >= 0.20:
+        if not self.hit_registered and self._impact_event(scene):
             self.hit_registered = True
             self._resolve_impact(scene)
 
@@ -816,7 +825,7 @@ class ClinchKneeAction(Action):
 
     def update(self, scene: FightScene, local_t: float, dt: float):
         self.fighter.update_animation(dt)
-        if not self.hit_registered and local_t >= 0.25:
+        if not self.hit_registered and self._impact_event(scene):
             self.hit_registered = True
             if self.defender:
                 hitbox = self.fighter.get_hitbox()
@@ -853,7 +862,7 @@ class TakedownAction(Action):
 
     def update(self, scene: FightScene, local_t: float, dt: float):
         self.fighter.update_animation(dt)
-        if not self.hit_registered and local_t >= 0.45:
+        if not self.hit_registered and self._impact_event(scene):
             self.hit_registered = True
             self._complete_takedown(scene)
 
@@ -907,7 +916,7 @@ class GroundPoundAction(Action):
 
     def update(self, scene: FightScene, local_t: float, dt: float):
         self.fighter.update_animation(dt)
-        if not self.hit_registered and local_t >= 0.28:
+        if not self.hit_registered and self._impact_event(scene):
             self.hit_registered = True
             d = self.defender
             if d and d.state == "fallen":
