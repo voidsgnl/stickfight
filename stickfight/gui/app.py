@@ -11,12 +11,11 @@ import time
 import uuid
 import random
 import threading
-from http.server import HTTPServer, SimpleHTTPRequestHandler
+from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 from typing import Dict, Any, Optional, Tuple
+# Headless rendering for Pygame must be configured before importing pygame.
+os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 import pygame
-
-# Headless rendering for Pygame
-os.environ["SDL_VIDEODRIVER"] = "dummy"
 
 from stickfight import FightScene, Fighter
 from stickfight.scripting.generator import generate_fight
@@ -664,7 +663,9 @@ def execute_render_job(job_id: str, config: Dict[str, Any]):
                 active_job["progress"] = pct
                 active_job["fps"] = frame / elapsed
 
+        print(f"[GUI] render job {job_id} started: {duration:.2f}s -> {output_file}", flush=True)
         scene.render(output_path=output_file, duration=duration, progress_callback=on_progress)
+        print(f"[GUI] render job {job_id} completed", flush=True)
 
         with job_lock:
             active_job["status"] = "done"
@@ -675,6 +676,7 @@ def execute_render_job(job_id: str, config: Dict[str, Any]):
     except Exception as e:
         import traceback
         traceback.print_exc()
+        print(f"[GUI] render job {job_id} failed: {e}", flush=True)
         with job_lock:
             active_job["status"] = "error"
             active_job["error"] = str(e)
@@ -751,6 +753,7 @@ class StudioRequestHandler(SimpleHTTPRequestHandler):
 
     def do_POST(self):
         url_path = self.path.split("?")[0]
+        print(f"[GUI] POST {url_path}", flush=True)
         content_len = int(self.headers.get("Content-Length", 0))
         body = self.rfile.read(content_len).decode("utf-8") if content_len > 0 else "{}"
         try:
@@ -813,7 +816,8 @@ class StudioRequestHandler(SimpleHTTPRequestHandler):
 
 
 def run_server(host: str = "127.0.0.1", port: int = 5000):
-    server = HTTPServer((host, port), StudioRequestHandler)
+    # Keep preview, render, and status requests independent.
+    server = ThreadingHTTPServer((host, port), StudioRequestHandler)
     print(f"🎬 Stick Fight Studio GUI listening at http://{host}:{port}")
     try:
         server.serve_forever()
