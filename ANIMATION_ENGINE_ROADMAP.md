@@ -185,6 +185,11 @@ Those markers will later drive hitboxes, effects, camera shake, and audio.
 - [x] Cover hand strikes, kicks, takedowns, ground pounds, and blade impacts with authored profiles.
 
 ## Phase 4 — Animation / Physics Integration
+- [x] Route scene simulation through Fighter physics synchronization.
+- [x] Expose grounded/airborne state from the physical body.
+- [x] Convert scripted knockback displacement to physics velocity.
+- [x] Add regression coverage for physics/animation synchronization.
+
 
 The animation system must cooperate with physics instead of fighting it.
 
