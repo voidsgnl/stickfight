@@ -104,3 +104,5 @@
 - Added explicit ground-control modes: `mount` and `guard`, with distinct attacker deformation and linked bottom positions; added `GroundControlAction` for choreography chaining.
 
 - Added a shared `GroundControl` relationship object so mount/guard state, transitions, and release are synchronized between both fighters instead of being maintained independently.
+
+- Added coordinated mount-to-guard transitions: both fighters now interpolate their grounded body geometry from shared GroundControl transition progress.
