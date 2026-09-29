@@ -283,17 +283,21 @@ class Fighter:
             self.active_clip = self.animation_player.active_clip
             self.clip_time = self.animation_player.clip_time
 
-    def set_state(self, state_name: str, blend: Optional[float] = None) -> bool:
-        """Enter a validated combat animation state."""
+    def set_state(
+        self,
+        state_name: str,
+        blend: Optional[float] = None,
+        clip_name: Optional[str] = None,
+    ) -> bool:
+        """Enter a validated animation state, optionally selecting its clip."""
         if not self.animation_state.transition_to(state_name):
             return False
         state = self.animation_state.states[state_name]
+        clip = clip_name or state.clip
         transition_blend = state.blend if blend is None else blend
-        if state.clip not in self.clips:
-            # Keep the state machine useful even while specialized clips are
-            # added incrementally.
+        if clip not in self.clips:
             return False
-        self.set_animation(state.clip, loop=state.loop, blend=transition_blend)
+        self.set_animation(clip, loop=state.loop, blend=transition_blend)
         return True
 
     def update_animation(self, dt: float):
