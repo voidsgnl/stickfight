@@ -30,7 +30,7 @@ class Action:
         pass
 
     def _impact_event(self, scene: FightScene) -> bool:
-        """Fire this action when playback crosses its authored impact marker.""
+        """Fire this action when playback crosses its authored impact marker."""
         if getattr(self, "_impact_fired", False):
             return False
         if not self.fighter or not self.fighter.consume_attack_impact():
