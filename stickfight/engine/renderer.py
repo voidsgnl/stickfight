@@ -10,6 +10,8 @@ import subprocess
 from typing import Dict, Tuple, List, Optional, TYPE_CHECKING
 import pygame
 
+from stickfight.engine.bold_style import draw_bold_fighter
+
 if TYPE_CHECKING:
     from stickfight.engine.fighter import Fighter
     from stickfight.engine.camera import Camera
@@ -341,6 +343,12 @@ class Renderer:
         # skeleton joints, animation clips, physics, hitboxes and weapons remain underneath.
         if style == "ink_fight":
             self._draw_ink_fight(surface, fighter, screen_joints, camera)
+            return
+
+        # Optional bold seamless-line style: one continuous silhouette with smooth
+        # joints, glow, highlight and motion smear. Presentation-only as well.
+        if style == "bold":
+            draw_bold_fighter(self, surface, fighter, joints, screen_joints, camera)
             return
 
         def shade(color: Tuple[int, int, int], factor: float) -> Tuple[int, int, int]:
