@@ -1,6 +1,7 @@
 """Integration tests for scene-level combat impact responses."""
 
 from stickfight.engine.scene import FightScene
+from stickfight.engine.fighter import Fighter
 from stickfight.engine.collision import Hitbox
 from stickfight.scripting.actions import KnockbackAction
 
