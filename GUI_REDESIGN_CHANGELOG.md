@@ -83,6 +83,9 @@
 - Defender torso, head, hips, and knees now react through the takedown instead of only switching to a canned fall pose.
 - Added explicit grappling-state cleanup and regression tests.
 
+- Added a grounded takedown settlement phase: pelvis drops, torso/head settle, and feet spread while ground IK keeps contact with the floor.
+- Added regression coverage for the grounded phase.
+
 ## Next
 - Add richer per-attack effect/audio profiles so each attack type can author its own impact presentation.
 - Add resize handles to timeline blocks for duration editing.
