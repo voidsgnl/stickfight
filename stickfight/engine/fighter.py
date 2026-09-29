@@ -253,6 +253,7 @@ class Fighter:
         self._grapple_target: Optional["Fighter"] = None
         self._ground_control_target: Optional["Fighter"] = None
         self._ground_control_mode: Optional[str] = None
+        self._ground_control = None
         self._ground_control_blend: float = 0.0
 
     def sync_from_physics(self):
@@ -513,6 +514,7 @@ class Fighter:
         return self.set_state("grounded", blend=0.10)
 
     def clear_ground_control(self) -> None:
+        self._ground_control = None
         self._ground_control_target = None
         self._ground_control_mode = None
         self._ground_control_blend = 0.0
