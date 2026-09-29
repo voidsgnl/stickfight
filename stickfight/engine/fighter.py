@@ -34,20 +34,15 @@ from stickfight.engine.animation import (
     create_sweep_clip,
     create_slash_clip,
     create_sword_guard_clip,
-    create_jab_clip,
-    create_cross_clip,
-    create_hook_clip,
-    create_low_kick_clip,
-    create_check_kick_clip,
-    create_slip_clip,
-    create_bob_weave_clip,
-    create_clinch_knee_clip,
-    create_takedown_clip,
-    create_ground_pound_clip,
-    create_stagger_clip,
-    create_grounded_guard_clip,
 )
-from stickfight.engine.collision import Hitbox, Hurtbox
+from stickfight.engine.collision import (
+    Hitbox,
+    Hurtbox,
+    HurtRegion,
+    ARM_MULTIPLIER,
+    LEG_MULTIPLIER,
+)
+from stickfight.engine.stats import FighterStats, STATS_DEFAULT, stats_for_design
 from stickfight.engine.physics import PhysicsBody
 from stickfight.scripting.actions import (
     Action,
@@ -67,65 +62,17 @@ from stickfight.scripting.actions import (
     SlashAction,
     StaffStrikeAction,
     ComboAction,
-    JabAction,
-    CrossAction,
-    HookAction,
-    LowKickAction,
-    CheckKickAction,
-    SlipAction,
-    BobWeaveAction,
-    ClinchKneeAction,
-    TakedownAction,
-    GroundPoundAction,
-    StaggerAction,
+    ApproachAction,
 )
 
-
-DESIGN_PRESETS = {
-    "classic": {
-        "color": (240, 240, 240),
-        "line_width": 10,
-        "scale": 1.0,
-        "render_style": "segmented",
-    },
-    "ninja": {
-        "color": (45, 48, 56),
-        "line_width": 10,
-        "scale": 1.0,
-        "render_style": "silhouette",
-        "headband_color": (235, 45, 45),
-        "proportions": PROPORTIONS_NINJA,
-    },
-    "samurai": {
-        "color": (230, 235, 245),
-        "line_width": 10,
-        "scale": 1.0,
-        "render_style": "segmented",
-        "headband_color": (235, 190, 45),
-        "proportions": PROPORTIONS_SAMURAI,
-    },
-    "brawler": {
-        "color": (235, 60, 60),
-        "line_width": 12,
-        "scale": 1.1,
-        "render_style": "segmented",
-        "proportions": PROPORTIONS_BRAWLER,
-    },
-    "monk": {
-        "color": (245, 140, 35),
-        "line_width": 10,
-        "scale": 1.0,
-        "render_style": "segmented",
-        "headband_color": (245, 200, 70),
-        "proportions": PROPORTIONS_MONK,
-    },
-    "cyborg": {
-        "color": (50, 220, 255),
-        "line_width": 10,
-        "scale": 1.0,
-        "render_style": "tech",
-        "proportions": PROPORTIONS_CYBORG,
-    },
+PROPORTIONS_BY_DESIGN = {
+    "ninja": PROPORTIONS_NINJA,
+    "samurai": PROPORTIONS_SAMURAI,
+    "warrior": PROPORTIONS_SAMURAI,
+    "brawler": PROPORTIONS_BRAWLER,
+    "monk": PROPORTIONS_MONK,
+    "cyborg": PROPORTIONS_CYBORG,
+    "cyber": PROPORTIONS_CYBORG,
 }
 
 
@@ -140,47 +87,39 @@ class Fighter:
         head_radius: float = 26.0,
         line_width: int = 10,
         scale: float = 1.0,
-        health: float = 100.0,
+        health: Optional[float] = None,
         weapon: Optional[str] = None,
         headband_color: Optional[Tuple[int, int, int]] = None,
         render_style: str = "segmented",
         proportions: Optional[BodyProportions] = None,
-        style: str = "arcade",
         design: Optional[str] = None,
+        stats: Optional[FighterStats] = None,
     ):
-        # Character design preset ("classic", "ninja", "samurai"/"warrior",
-        # "brawler", "monk", "cyber"/"cyborg"). Applied first so any explicit
-        # keyword arguments below override the preset's look.
-        self.design = (design or "classic").lower()
-        if self.design in ("cyber", "cyborg"):
-            self.design = "cyborg"
-        elif self.design == "warrior":
-            self.design = "samurai"
-        preset = DESIGN_PRESETS.get(self.design)
-        if preset is not None:
-            color = preset.get("color", color)
-            line_width = preset.get("line_width", line_width)
-            scale = preset.get("scale", scale)
-            render_style = preset.get("render_style", render_style)
-            headband_color = preset.get("headband_color", headband_color)
-            if proportions is None and "proportions" in preset:
-                proportions = preset["proportions"]
         self.name = name
         self.x = float(x)
         self.y = float(y)  # Base contact / ground level
         self.facing = 1 if facing >= 0 else -1
+        self.spawn = (self.x, self.y, self.facing)  # where reset() puts the fighter back
         self.color = color
         self.head_radius = head_radius * scale
         self.line_width = line_width
         self.scale = scale
-        self.health = health
-        self.max_health = health
+        # `design` is an archetype name ("ninja", "brawler", ...). It picks
+        # default proportions and stats unless given explicitly.
+        self.design = design
+        self.stats = stats or stats_for_design(design)
+        if proportions is None and design:
+            proportions = PROPORTIONS_BY_DESIGN.get(design.lower())
+        start_health = health if health is not None else self.stats.health
+        self.health = start_health
+        self.max_health = start_health
+        self.min_health = 0.0  # non-lethal floor (the generator keeps fights alive until the finisher)
+        self.ko = False
+        self.block_started_at = float("-inf")
+        self.dodge_started_at = float("-inf")
         self.weapon = weapon  # "sword", "staff", None
         self.headband_color = headband_color  # Optional ninja ribbon
         self.render_style = render_style  # segmented, silhouette, classic, tech, ink_fight
-        # Combat choreography style: "arcade" (default weapon/flash fights)
-        # or "realistic" (boxing / Muay Thai / MMA mechanics).
-        self.style = style
         # Per-archetype rig scaling (stance width, limb length, etc.) applied
         # on top of every shared animation clip. Defaults to the canonical
         # proportions used by the original pose library.
@@ -212,19 +151,6 @@ class Fighter:
             "sweep": create_sweep_clip(),
             "slash": create_slash_clip(),
             "sword_guard": create_sword_guard_clip(),
-            # Realistic martial arts library (boxing / Muay Thai / MMA)
-            "jab": create_jab_clip(),
-            "cross": create_cross_clip(),
-            "hook": create_hook_clip(),
-            "low_kick": create_low_kick_clip(),
-            "check_kick": create_check_kick_clip(),
-            "slip": create_slip_clip(),
-            "bob_weave": create_bob_weave_clip(),
-            "clinch_knee": create_clinch_knee_clip(),
-            "takedown": create_takedown_clip(),
-            "ground_pound": create_ground_pound_clip(),
-            "stagger": create_stagger_clip(),
-            "grounded_guard": create_grounded_guard_clip(),
         }
 
         self.active_clip: AnimationClip = self.clips["idle"]
@@ -232,6 +158,11 @@ class Fighter:
         self.current_pose: Pose = apply_proportions(make_idle_pose(), self.proportions)
         self.root_dx: float = 0.0
         self.root_dy: float = 0.0
+
+    @property
+    def body_x(self) -> float:
+        """Where the body is actually drawn (x plus the animation's root offset)."""
+        return self.x + self.root_dx * self.facing
 
     def sync_from_physics(self):
         """Copies the simulated world position into the fighter."""
@@ -258,6 +189,25 @@ class Fighter:
         self.physics.ay = 0.0
         self.physics.is_grounded = True
 
+    def reset(self):
+        """Restores position, health, state, timers, animation and physics to spawn values."""
+        self.x, self.y, self.facing = self.spawn
+        self.health = self.max_health
+        self.ko = False
+        self.state = "idle"
+        self.block_started_at = float("-inf")
+        self.dodge_started_at = float("-inf")
+        self.set_animation("idle")
+        self.reset_physics()
+
+    def take_damage(self, amount: float, lethal: bool = False) -> float:
+        """Applies damage respecting min_health (unless lethal). Returns damage dealt."""
+        floor = 0.0 if lethal else self.min_health
+        new_health = max(floor, self.health - amount)
+        dealt = self.health - new_health
+        self.health = new_health
+        return max(0.0, dealt)
+
     def equip(self, weapon_name: Optional[str]):
         """Equips weapon on fighter ('sword', 'staff', None)."""
         self.weapon = weapon_name
@@ -272,7 +222,19 @@ class Fighter:
 
     def update_animation(self, dt: float):
         """Advances active animation clip by dt seconds."""
-        self.clip_time += dt
+        self.clip_time += dt * self.stats.speed
+        clip = self.active_clip
+        if clip.name == "knockback" and not clip.loop and self.clip_time >= clip.duration:
+            # The skid ends here: fold the clip's root offset into the real
+            # position (otherwise the body renders ~120px from where the
+            # fighter "is") and recover to idle.
+            _, rdx, _ = clip.evaluate(clip.duration)
+            self.x += rdx * self.facing
+            self.sync_to_physics()
+            if self.state == "knockback":
+                self.state = "idle"
+            self.set_animation("idle")
+            self.clip_time = 0.0
         pose, rdx, rdy = self.active_clip.evaluate(self.clip_time)
         # Apply this fighter's archetype rig scaling on top of the shared
         # canonical pose so every clip renders on the correct body type.
@@ -299,15 +261,24 @@ class Fighter:
         return self.current_pose.to_world(pelvis_world_x, pelvis_world_y, facing=self.facing, scale=self.scale)
 
     def get_hurtbox(self) -> Hurtbox:
-        """Returns head circle and torso line segment hurtbox."""
+        """Returns head circle, torso segment and limb capsules."""
         joints = self.get_world_joints()
         head_pos = joints.get("head", (self.x, self.y - 260.0 * self.scale))
         neck_pos = joints.get("neck", (self.x, self.y - 230.0 * self.scale))
         pelvis_pos = joints.get("pelvis", (self.x, self.y - 140.0 * self.scale))
 
-        hip_pos = joints.get("pelvis", pelvis_pos)
-        knee_pos = joints.get("left_knee", (self.x, self.y - 75.0 * self.scale))
-        foot_pos = joints.get("left_foot", (self.x, self.y))
+        limbs: List[HurtRegion] = []
+        for side in ("left", "right"):
+            tag = side[0]
+            for name, chain, radius, mult in (
+                ("arm", ("shoulder", "elbow", "hand"), 9.0, ARM_MULTIPLIER),
+                ("leg", ("hip", "knee", "foot"), 11.0, LEG_MULTIPLIER),
+            ):
+                pts = [joints.get(f"{side}_{j}") for j in chain]
+                if any(p is None for p in pts):
+                    continue
+                for a, b in zip(pts, pts[1:]):
+                    limbs.append(HurtRegion(f"{name}_{tag}", a, b, radius * self.scale, mult))
 
         return Hurtbox(
             head_pos=head_pos,
@@ -315,145 +286,104 @@ class Fighter:
             neck_pos=neck_pos,
             pelvis_pos=pelvis_pos,
             torso_radius=22.0 * self.scale,
-            hip_pos=hip_pos,
-            knee_pos=knee_pos,
-            foot_pos=foot_pos,
+            limbs=limbs,
         )
 
     def get_hitbox(self) -> Optional[Hitbox]:
         """Calculates the active strike hitbox based on current attack animation."""
-        joints = self.get_world_joints()
-        clip_name = self.active_clip.name
+        return self._hitbox_from_joints(self.get_world_joints(), self.active_clip.name)
+
+    def hitbox_at(self, clip_time: float) -> Optional[Hitbox]:
+        """Hitbox the active attack clip would have at `clip_time`, assuming
+        the fighter stays where it is. Lets attacks be sampled *between*
+        frames so fast strikes cannot skip past a target."""
+        pose, rdx, rdy = self.active_clip.evaluate(clip_time)
+        pose = apply_proportions(pose, self.proportions)
+        joints = pose.to_world(
+            self.x + rdx * self.facing,
+            (self.y - 140.0 * self.scale) + rdy,
+            facing=self.facing,
+            scale=self.scale,
+        )
+        return self._hitbox_from_joints(joints, self.active_clip.name)
+
+    def _hitbox_from_joints(self, joints, clip_name: str) -> Optional[Hitbox]:
+        reach = self.stats.reach
+        hb: Optional[Hitbox] = None
 
         if clip_name == "punch":
-            # Right hand (leading strike limb)
             fist_pos = joints.get("right_hand")
             if fist_pos:
-                return Hitbox(
-                    x=fist_pos[0],
-                    y=fist_pos[1],
-                    radius=28.0 * self.scale,
-                    damage=15.0,
-                    knockback_x=120.0 * self.facing,
-                    attacker_name=self.name,
-                    attack_type="punch",
-                )
+                hb = Hitbox(x=fist_pos[0], y=fist_pos[1], radius=28.0 * self.scale, damage=15.0,
+                            knockback_x=120.0 * self.facing, attacker_name=self.name, attack_type="punch")
         elif clip_name == "kick":
-            # Right foot (leading strike limb)
             foot_pos = joints.get("right_foot")
             if foot_pos:
-                return Hitbox(
-                    x=foot_pos[0],
-                    y=foot_pos[1],
-                    radius=32.0 * self.scale,
-                    damage=22.0,
-                    knockback_x=180.0 * self.facing,
-                    attacker_name=self.name,
-                    attack_type="kick",
-                )
+                hb = Hitbox(x=foot_pos[0], y=foot_pos[1], radius=32.0 * self.scale, damage=22.0,
+                            knockback_x=180.0 * self.facing, attacker_name=self.name, attack_type="kick")
         elif clip_name == "uppercut":
             fist_pos = joints.get("right_hand")
             if fist_pos:
-                return Hitbox(
-                    x=fist_pos[0],
-                    y=fist_pos[1],
-                    radius=32.0 * self.scale,
-                    damage=26.0,
-                    knockback_x=90.0 * self.facing,
-                    knockback_y=-350.0,
-                    attacker_name=self.name,
-                    attack_type="uppercut",
-                )
+                hb = Hitbox(x=fist_pos[0], y=fist_pos[1], radius=32.0 * self.scale, damage=26.0,
+                            knockback_x=90.0 * self.facing, knockback_y=-350.0,
+                            attacker_name=self.name, attack_type="uppercut")
         elif clip_name == "slash":
             fist_pos = joints.get("right_hand")
             if fist_pos:
                 is_staff = self.weapon == "staff"
                 blade_y = fist_pos[1] if is_staff else fist_pos[1] - 25.0 * self.scale
-                return Hitbox(
-                    x=fist_pos[0],
-                    y=blade_y,
-                    radius=(34.0 if is_staff else 42.0) * self.scale,
-                    damage=21.0 if is_staff else 28.0,
-                    knockback_x=(135.0 if is_staff else 160.0) * self.facing,
-                    attacker_name=self.name,
-                    attack_type="staff" if is_staff else "slash",
-                )
+                hb = Hitbox(x=fist_pos[0], y=blade_y, radius=(34.0 if is_staff else 42.0) * self.scale,
+                            damage=21.0 if is_staff else 28.0,
+                            knockback_x=(135.0 if is_staff else 160.0) * self.facing,
+                            attacker_name=self.name, attack_type="staff" if is_staff else "slash")
         elif clip_name == "sweep":
             foot_pos = joints.get("right_foot")
             if foot_pos:
-                return Hitbox(
-                    x=foot_pos[0],
-                    y=foot_pos[1],
-                    radius=35.0 * self.scale,
-                    damage=16.0,
-                    knockback_x=120.0 * self.facing,
-                    attacker_name=self.name,
-                    attack_type="sweep",
-                )
-        return None
+                # The sweep pose dips the foot under the floor; a foot can't go
+                # through the ground, so keep the hitbox at floor level.
+                foot_y = min(foot_pos[1], self.y - 6.0 * self.scale)
+                hb = Hitbox(x=foot_pos[0], y=foot_y, radius=35.0 * self.scale, damage=16.0,
+                            knockback_x=120.0 * self.facing, attacker_name=self.name,
+                            attack_type="sweep", aim="legs")
+        if hb is not None:
+            hb.radius *= reach
+        return hb
 
     # ========================================================================
     # HIGH-LEVEL CHOREOGRAPHY API BUILDERS
     # ========================================================================
 
-    def walk_to(self, target_x: float, duration: Optional[float] = None, speed: float = 240.0) -> WalkToAction:
-        return WalkToAction(self, target_x, speed=speed, duration=duration)
+    def _dur(self, base: float, duration: Optional[float]) -> float:
+        """Default action length shrinks for fast fighters and grows for slow ones."""
+        return duration if duration is not None else base / max(0.1, self.stats.speed)
 
-    def run_to(self, target_x: float, duration: Optional[float] = None, speed: float = 450.0) -> RunToAction:
-        return RunToAction(self, target_x, speed=speed, duration=duration)
+    def walk_to(self, target_x: float, duration: Optional[float] = None, speed: Optional[float] = None) -> WalkToAction:
+        return WalkToAction(self, target_x, speed=speed if speed is not None else 240.0 * self.stats.speed, duration=duration)
 
-    def punch(self, target_fighter: Optional[Fighter] = None, duration: float = 0.45, damage: float = 15.0) -> PunchAction:
-        return PunchAction(self, target_fighter, duration=duration, damage=damage)
+    def run_to(self, target_x: float, duration: Optional[float] = None, speed: Optional[float] = None) -> RunToAction:
+        return RunToAction(self, target_x, speed=speed if speed is not None else 450.0 * self.stats.speed, duration=duration)
 
-    def kick(self, target_fighter: Optional[Fighter] = None, duration: float = 0.55, damage: float = 22.0) -> KickAction:
-        return KickAction(self, target_fighter, duration=duration, damage=damage)
+    def approach(self, target_fighter: Fighter, gap: float = 135.0, duration: float = 0.4) -> ApproachAction:
+        """Walks until `gap` px from `target_fighter`, measured when the action starts."""
+        return ApproachAction(self, target_fighter, gap=gap, duration=duration)
 
-    def uppercut(self, target_fighter: Optional[Fighter] = None, duration: float = 0.55, damage: float = 26.0) -> UppercutAction:
-        return UppercutAction(self, target_fighter, duration=duration, damage=damage)
+    def punch(self, target_fighter: Optional[Fighter] = None, duration: Optional[float] = None, damage: float = 15.0, finisher: bool = False) -> PunchAction:
+        return PunchAction(self, target_fighter, duration=self._dur(0.45, duration), damage=damage, finisher=finisher)
 
-    def sweep(self, target_fighter: Optional[Fighter] = None, duration: float = 0.50, damage: float = 16.0) -> SweepAction:
-        return SweepAction(self, target_fighter, duration=duration, damage=damage)
+    def kick(self, target_fighter: Optional[Fighter] = None, duration: Optional[float] = None, damage: float = 22.0, finisher: bool = False) -> KickAction:
+        return KickAction(self, target_fighter, duration=self._dur(0.55, duration), damage=damage, finisher=finisher)
 
-    def slash(self, target_fighter: Optional[Fighter] = None, duration: float = 0.48, damage: float = 28.0) -> SlashAction:
-        return SlashAction(self, target_fighter, duration=duration, damage=damage)
+    def uppercut(self, target_fighter: Optional[Fighter] = None, duration: Optional[float] = None, damage: float = 26.0, finisher: bool = False) -> UppercutAction:
+        return UppercutAction(self, target_fighter, duration=self._dur(0.55, duration), damage=damage, finisher=finisher)
 
-    def staff_strike(self, target_fighter: Optional[Fighter] = None, duration: float = 0.48, damage: float = 21.0) -> StaffStrikeAction:
-        return StaffStrikeAction(self, target_fighter, duration=duration, damage=damage)
+    def sweep(self, target_fighter: Optional[Fighter] = None, duration: Optional[float] = None, damage: float = 16.0, finisher: bool = False) -> SweepAction:
+        return SweepAction(self, target_fighter, duration=self._dur(0.50, duration), damage=damage, finisher=finisher)
 
-    # --- Realistic martial arts builders (Boxing / Muay Thai / MMA) ---
+    def slash(self, target_fighter: Optional[Fighter] = None, duration: Optional[float] = None, damage: float = 28.0, finisher: bool = False) -> SlashAction:
+        return SlashAction(self, target_fighter, duration=self._dur(0.48, duration), damage=damage, finisher=finisher)
 
-    def jab(self, target_fighter: Optional[Fighter] = None, duration: float = 0.35, damage: float = 12.0) -> JabAction:
-        return JabAction(self, target_fighter, duration=duration, damage=damage)
-
-    def cross(self, target_fighter: Optional[Fighter] = None, duration: float = 0.40, damage: float = 18.0) -> CrossAction:
-        return CrossAction(self, target_fighter, duration=duration, damage=damage)
-
-    def hook(self, target_fighter: Optional[Fighter] = None, duration: float = 0.42, damage: float = 24.0) -> HookAction:
-        return HookAction(self, target_fighter, duration=duration, damage=damage)
-
-    def low_kick(self, target_fighter: Optional[Fighter] = None, duration: float = 0.42, damage: float = 16.0) -> LowKickAction:
-        return LowKickAction(self, target_fighter, duration=duration, damage=damage)
-
-    def check_kick(self, duration: float = 0.45) -> CheckKickAction:
-        return CheckKickAction(self, duration=duration)
-
-    def slip(self, duration: float = 0.40) -> SlipAction:
-        return SlipAction(self, duration=duration)
-
-    def bob_weave(self, duration: float = 0.45) -> BobWeaveAction:
-        return BobWeaveAction(self, duration=duration)
-
-    def clinch_knee(self, target_fighter: Optional[Fighter] = None, duration: float = 0.50, damage: float = 25.0) -> ClinchKneeAction:
-        return ClinchKneeAction(self, target_fighter, duration=duration, damage=damage)
-
-    def takedown(self, target_fighter: Optional[Fighter] = None, duration: float = 0.70, damage: float = 22.0) -> TakedownAction:
-        return TakedownAction(self, target_fighter, duration=duration, damage=damage)
-
-    def ground_pound(self, target_fighter: Optional[Fighter] = None, duration: float = 0.55, damage: float = 28.0) -> GroundPoundAction:
-        return GroundPoundAction(self, target_fighter, duration=duration, damage=damage)
-
-    def stagger(self, duration: float = 0.50) -> StaggerAction:
-        return StaggerAction(self, duration=duration)
+    def staff_strike(self, target_fighter: Optional[Fighter] = None, duration: Optional[float] = None, damage: float = 21.0, finisher: bool = False) -> StaffStrikeAction:
+        return StaffStrikeAction(self, target_fighter, duration=self._dur(0.48, duration), damage=damage, finisher=finisher)
 
     def block(self, duration: float = 0.5) -> BlockAction:
         return BlockAction(self, duration=duration)
@@ -473,8 +403,8 @@ class Fighter:
     def jump(self, height: float = 160.0, duration: float = 0.65) -> JumpAction:
         return JumpAction(self, height=height, duration=duration)
 
-    def counter(self, target_fighter: Fighter, duration: float = 0.7) -> CounterAction:
-        return CounterAction(self, target_fighter, duration=duration)
+    def counter(self, target_fighter: Fighter, duration: Optional[float] = None) -> CounterAction:
+        return CounterAction(self, target_fighter, duration=self._dur(0.7, duration))
 
     def combo(self, *actions_or_name, target: Optional[Fighter] = None) -> ComboAction:
         """
@@ -502,27 +432,6 @@ class Fighter:
                     self.punch(tgt, duration=0.28, damage=12.0),
                     self.punch(tgt, duration=0.28, damage=14.0),
                     self.uppercut(tgt, duration=0.45, damage=25.0),
-                ]
-            elif combo_name == "one_two":
-                # Classic boxing 1-2: lead jab followed by the rear straight.
-                actions = [
-                    self.jab(tgt, duration=0.35, damage=12.0),
-                    self.cross(tgt, duration=0.40, damage=18.0),
-                ]
-            elif combo_name == "dutch_kickboxing":
-                # Dutch-style sequence: punches set up the low kick, knee ends it.
-                actions = [
-                    self.jab(tgt, duration=0.35, damage=12.0),
-                    self.cross(tgt, duration=0.40, damage=18.0),
-                    self.hook(tgt, duration=0.42, damage=24.0),
-                    self.low_kick(tgt, duration=0.42, damage=16.0),
-                ]
-            elif combo_name == "mma_clinch_takedown":
-                # Strike into the clinch, land the knee, then finish the takedown.
-                actions = [
-                    self.cross(tgt, duration=0.40, damage=18.0),
-                    self.clinch_knee(tgt, duration=0.50, damage=25.0),
-                    self.takedown(tgt, duration=0.70, damage=22.0),
                 ]
             else:
                 # Default 1-2 combo
