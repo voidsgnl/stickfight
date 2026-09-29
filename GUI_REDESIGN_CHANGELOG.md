@@ -1,6 +1,9 @@
 # GUI Redesign Change Log — 2026-09-29
 
 ## Completed
+- Added Phase 3 combat timing metadata with normalized anticipation, action, contact, follow-through, recovery, and impact markers.
+- Connected Fighter hitbox availability to the active/contact timing window and exposed attack phase/impact queries.
+- Added timing-window tests and extended hitbox coverage for jab, cross, hook, low kick, and clinch knee.
 - Added the Phase 2 combat animation state machine with validated transitions and state-to-clip mapping.
 - Integrated the state machine into Fighter while retaining AnimationPlayer for playback/blending.
 - Added state-machine tests for valid/invalid transitions, timing, and recovery.
@@ -22,10 +25,9 @@
 - Added this changelog so the design work is recorded as requested.
 
 ## Next
-- Add attack timing markers: anticipation, active/contact, follow-through, and recovery.
-- Connect combat timing markers to hitbox activation and impact events.
-- Build the animation state machine on top of AnimationPlayer.
-- Add attack timing markers for anticipation, active/contact, follow-through, and recovery.
+- Connect the timing layer to explicit one-shot impact events so effects, camera shake, and audio consume the same authored impact marker.
+- Route specialized action clips through the animation state machine instead of direct clip selection.
+- Add timing-marker visualization to the Studio timeline.
 - Add resize handles to timeline blocks for duration editing.
 - Add real camera/effects/audio event types and corresponding engine hooks.
 - Replace CSS character thumbnails with actual renderer thumbnails.
