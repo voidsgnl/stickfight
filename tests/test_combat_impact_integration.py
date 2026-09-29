@@ -79,4 +79,4 @@ def test_knockback_action_uses_physics_velocity():
     assert fighter.physics.x == fighter.x
 
     action.update(scene, 0.35, 0.35)
-    assert fighter.physics.x != 400.0
+    assert fighter.physics.vx < 0.0
