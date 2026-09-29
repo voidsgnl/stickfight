@@ -333,6 +333,7 @@ class Fighter:
         self.current_pose = apply_proportions(pose, self.proportions)
         self.root_dx = rdx
         self.root_dy = rdy
+        self._apply_ground_foot_ik()
         self._apply_ik_target()
 
     def set_ik_target(self, joint: str, target_world: Tuple[float, float], bend_sign: float = 1.0):
@@ -348,6 +349,23 @@ class Fighter:
         target = hurtbox.head_pos
         joint = "left_hand" if self.active_clip.name in {"jab", "hook"} else "right_hand"
         self.set_ik_target(joint, target, bend_sign=1.0 if self.facing >= 0 else -1.0)
+
+    def _apply_ground_foot_ik(self):
+        """Keep grounded feet planted on the physical ground plane."""
+        if not self.physics.is_grounded:
+            return
+        pelvis_world_x = self.x + self.root_dx * self.facing
+        pelvis_world_y = self.y - 140.0 * self.scale + self.root_dy
+        ground_local_y = (self.y - pelvis_world_y) / max(1e-6, self.scale)
+        for hip, knee, foot in (
+            ("left_hip", "left_knee", "left_foot"),
+            ("right_hip", "right_knee", "right_foot"),
+        ):
+            authored = self.current_pose.get(foot)
+            target = (authored[0], ground_local_y)
+            self.current_pose = apply_two_bone_ik(
+                self.current_pose, hip, knee, foot, target, bend_sign=1.0
+            )
 
     def _apply_ik_target(self):
         if self.ik_target is None:
