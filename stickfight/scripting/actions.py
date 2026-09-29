@@ -972,15 +972,25 @@ class GroundControlAction(Action):
 
 
 class GroundEscapeAction(Action):
-    """Escape from grounded guard by creating space and returning to stance."""
-    def __init__(self, fighter: Fighter, duration: float = 0.65, distance: float = 90.0):
+    """Escape shared ground control through guard recovery or a stand-up."""
+
+    def __init__(
+        self,
+        fighter: Fighter,
+        duration: float = 0.80,
+        distance: float = 90.0,
+        stand_up: bool = True,
+    ):
         super().__init__(fighter, duration)
         self.distance = distance
+        self.stand_up = stand_up
+        self.control = None
         self.start_x = 0.0
 
     def on_start(self, scene: FightScene):
         super().on_start(scene)
         self.start_x = self.fighter.x
+        self.control = getattr(self.fighter, "_ground_control", None)
         self.fighter.clear_ik_target()
         self.fighter.state = "grounded"
         self.fighter.physics.vx = 0.0
@@ -988,18 +998,49 @@ class GroundEscapeAction(Action):
         self.fighter.physics.is_grounded = True
         self.fighter.set_state("grounded")
 
+        # If this fighter is the bottom role, escape into guard first.
+        if self.control is None:
+            attacker = getattr(self.fighter, "_grapple_attacker", None)
+            control = getattr(attacker, "_ground_control", None) if attacker else None
+            if control is not None and control.defender is self.fighter:
+                self.control = control
+
     def update(self, scene: FightScene, local_t: float, dt: float):
         self.fighter.update_animation(dt)
         progress = max(0.0, min(1.0, local_t / max(1e-5, self.duration)))
-        # Scoot away first, then rise into a normal stance.
-        if progress < 0.62:
-            retreat = self.distance * (progress / 0.62)
+
+        if self.control is not None and self.control.defender is self.fighter:
+            # Hip escape: create lateral space while blending mount into guard.
+            if self.control.position == "mount" and progress < 0.70:
+                if progress < 0.18:
+                    self.control.transition = min(1.0, progress / 0.18)
+                    self.control.sync()
+                else:
+                    retreat_progress = (progress - 0.18) / 0.52
+                    retreat = self.distance * max(0.0, min(1.0, retreat_progress))
+                    self.fighter.x = self.start_x - self.fighter.facing * retreat
+                    self.fighter.sync_to_physics()
+                    self.control.set_position("guard", transition=min(1.0, retreat_progress))
+            elif progress >= 0.70:
+                if self.stand_up:
+                    self.control.release()
+                    self.fighter.state = "grounded"
+                    self.fighter.set_state("grounded")
+                else:
+                    self.fighter.set_state("grounded")
+            return
+
+        # Stand-up from an already released grounded state.
+        if progress < 0.65:
+            retreat = self.distance * (progress / 0.65)
             self.fighter.x = self.start_x - self.fighter.facing * retreat
             self.fighter.sync_to_physics()
         elif self.fighter.animation_state.current == "grounded":
             self.fighter.set_state("idle")
 
     def on_finish(self, scene: FightScene):
+        if self.control is not None and self.control.defender is self.fighter and self.stand_up:
+            self.control.release()
         self.fighter.state = "idle"
         self.fighter.clear_ik_target()
         self.fighter.set_state("idle")
