@@ -269,3 +269,17 @@ def test_grounded_guard_action_clips_are_registered():
     fighter = Fighter("A", x=500, y=1500)
     for name in ("ground_frame", "ground_shrimp", "ground_sweep", "ground_stand"):
         assert name in fighter.clips
+
+
+def test_ground_guard_contact_ik_updates_both_roles():
+    top = Fighter("A", x=500, y=1500)
+    bottom = Fighter("B", x=560, y=1500)
+    bottom.enter_grounded_control()
+    top.enter_ground_control(bottom, mode="guard")
+    top.update_animation(0.1)
+    bottom.update_animation(0.1)
+
+    assert top.ik_target is not None
+    assert top.ik_target[0] in {"right_hand", "left_hand"}
+    assert bottom._grapple_attacker is top
+    assert bottom._grapple_mode == "bottom_mount"
