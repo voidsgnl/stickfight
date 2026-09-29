@@ -945,6 +945,30 @@ class TakedownAction(Action):
         self.fighter.set_state("idle")
 
 
+class GroundControlAction(Action):
+    """Settle a fighter into persistent mount or bottom-guard control."""
+    def __init__(self, fighter: Fighter, defender: Optional[Fighter] = None,
+                 mode: str = "mount", duration: float = 0.30):
+        super().__init__(fighter, duration)
+        self.defender = defender
+        self.mode = mode
+
+    def on_start(self, scene: FightScene):
+        super().on_start(scene)
+        if self.defender is None:
+            return
+        self.fighter.face_fighter(self.defender)
+        self.fighter.enter_ground_control(self.defender, mode=self.mode)
+
+    def update(self, scene: FightScene, local_t: float, dt: float):
+        self.fighter.update_animation(dt)
+
+    def on_finish(self, scene: FightScene):
+        # Control intentionally persists so another ground action can chain.
+        self.fighter.state = "grounded"
+        self.fighter.set_state("grounded")
+
+
 class GroundEscapeAction(Action):
     """Escape from grounded guard by creating space and returning to stance."""
     def __init__(self, fighter: Fighter, duration: float = 0.65, distance: float = 90.0):
