@@ -378,11 +378,11 @@ class Fighter:
         self.weapon_ik_targets.clear()
         bend = 1.0 if self.facing >= 0 else -1.0
         if mode == "clinch":
-            chest = target.body_center
+            chest = target.pelvis_pos
             self.ik_target = ("right_hand", (chest[0] - self.facing * 12.0, chest[1] - 28.0), bend)
             self.weapon_ik_targets["left_hand"] = ((chest[0] - self.facing * 12.0, chest[1] + 18.0), bend)
         else:
-            hips = target.body_center
+            hips = target.pelvis_pos
             grip = (hips[0] - self.facing * 18.0, hips[1] + 38.0)
             self.ik_target = ("right_hand", grip, bend)
             self.weapon_ik_targets["left_hand"] = ((grip[0], grip[1] + 28.0), bend)
