@@ -80,3 +80,38 @@ def test_ground_pound_targets_grounded_opponent():
     assert "left_hand" in attacker.weapon_ik_targets
     assert attacker._grapple_target is defender
     assert attacker._grapple_mode == "ground_pound"
+
+
+def test_ground_escape_returns_fighter_to_standing_state():
+    from stickfight.scripting.actions import GroundEscapeAction
+
+    fighter = Fighter("B", x=600, y=1500)
+    fighter.enter_grounded_control()
+    action = GroundEscapeAction(fighter, duration=0.65)
+    assert fighter.state == "grounded"
+
+    class Scene:
+        pass
+
+    scene = Scene()
+    action.on_start(scene)
+    action.update(scene, 0.65, 0.65)
+
+    assert fighter.state == "idle"
+    assert fighter.animation_state.current == "idle"
+
+
+def test_ground_reversal_releases_attacker():
+    from stickfight.scripting.actions import GroundReversalAction
+
+    defender = Fighter("B", x=600, y=1500)
+    attacker = Fighter("A", x=540, y=1500)
+    defender.enter_grounded_control()
+
+    action = GroundReversalAction(defender, attacker, duration=0.75)
+    action.on_start(None)
+    action.update(None, 0.50, 0.50)
+
+    assert defender.state == "idle"
+    assert attacker.state == "fallen"
+    assert attacker.physics.vx != 0.0
