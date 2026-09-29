@@ -2218,7 +2218,7 @@ body>header,body>main{display:none!important}
         <div class="ruler"><div class="ruler-label">TIMELINE</div><div id="studioRuler" class="ruler-grid"></div></div>
         <div id="studioTracks"></div>
       </div>
-    
+    </section>
 <aside class="studio-right">
   <div class="prop-title">PROPERTIES</div>
   <div class="prop-section"><h4>Selection</h4><div class="prop-card"><span>OBJECT</span><strong id="studioPropName">Fighter A</strong></div></div>
@@ -2226,7 +2226,7 @@ body>header,body>main{display:none!important}
   <div class="prop-section"><h4>Animation</h4><div class="prop-grid"><div class="prop-card"><span>FRAME</span><strong id="studioPropFrame">0</strong></div><div class="prop-card"><span>FPS</span><strong id="studioPropFps">30</strong></div></div></div>
   <div class="prop-section"><h4>Fight System</h4><div class="prop-card"><span>ACTION</span><strong id="studioPropAction">Idle / Guard</strong></div></div>
   <div class="prop-section"><h4>Layers</h4><div class="prop-card"><span>SCENE</span><strong>Characters · Camera · FX · Audio</strong></div></div>
-</aside></section>
+</aside>
   </div>
   <div class="studio-foot">Studio state is separate from the legacy two-fighter controls. Characters are reusable assets; instances can use different visual styles without changing physics or combat.</div>
 </section>
@@ -2312,7 +2312,7 @@ body>header,body>main{display:none!important}
       return '<div class="studio-track"><div class="track-label">'+esc(g.name)+'</div><div class="track-lane" data-track="'+esc(g.id)+'">'+blocks+'<div class="playhead" style="left:'+(S.cursor/S.frames*100)+'%"></div></div></div>';
     }).join("");
     const sel=$("studioSelected"); sel.innerHTML=S.instances.map(i=>"<option value=\""+i.id+"\">"+esc(i.name)+"</option>").join(""); sel.value=S.selected; const si=S.instances.find(i=>i.id===S.selected)||S.instances[0]; if(si){$("studioX").value=si.x||0;$("studioY").value=si.y||0;$("studioRotation").value=si.rotation||0;$("studioScale").value=si.scale||1;} $("studioAssets").innerHTML=S.assets.map(a=>'<div class="asset-row"><span class="asset-dot"></span><div class="asset-meta"><div class="asset-name">'+esc(a.name)+'</div><div class="asset-style">'+esc(a.style)+'</div></div></div>').join("");
-    $("studioTime").textContent=(S.cursor/S.fps).toFixed(2)+"s";renderStudioStage();
+    $("studioTime").textContent=(S.cursor/S.fps).toFixed(2)+"s"; const ps=S.instances.find(i=>i.id===S.selected)||S.instances[0]; const pa=S.combatEvents.filter(e=>e.target_id===S.selected&&S.cursor>=e.start_frame&&S.cursor<=e.end_frame).sort((a,b)=>b.start_frame-a.start_frame)[0]; if(ps){if($("studioPropName"))$("studioPropName").textContent=ps.name;if($("studioPropX"))$("studioPropX").textContent=Math.round(ps.x||0);if($("studioPropY"))$("studioPropY").textContent=Math.round(ps.y||0);if($("studioPropRot"))$("studioPropRot").textContent=Math.round(ps.rotation||0)+"°";if($("studioPropScale"))$("studioPropScale").textContent=Math.round((ps.scale||1)*100)+"%";} if($("studioPropFrame"))$("studioPropFrame").textContent=Math.round(S.cursor);if($("studioPropFps"))$("studioPropFps").textContent=S.fps;if($("studioPropAction"))$("studioPropAction").textContent=pa?pa.action.replace(/_/g," "):"Idle / Guard";renderStudioStage();
   }
   function addCharacter(){
     const name=($("studioCharName").value||"Character "+(S.instances.length+1)).trim();
