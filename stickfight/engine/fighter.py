@@ -390,9 +390,14 @@ class Fighter:
             self.weapon_ik_targets["left_hand"] = ((chest[0] - self.facing * 12.0, chest[1] + 18.0), bend)
         else:
             hips = target.pelvis_pos
-            grip = (hips[0] - self.facing * 18.0, hips[1] + 38.0)
-            self.ik_target = ("right_hand", grip, bend)
-            self.weapon_ik_targets["left_hand"] = ((grip[0], grip[1] + 28.0), bend)
+            if mode == "ground_pound":
+                grip = (hips[0] - self.facing * 12.0, hips[1] - 8.0)
+                self.ik_target = ("right_hand", grip, bend)
+                self.weapon_ik_targets["left_hand"] = ((hips[0] + self.facing * 10.0, hips[1] + 18.0), bend)
+            else:
+                grip = (hips[0] - self.facing * 18.0, hips[1] + 38.0)
+                self.ik_target = ("right_hand", grip, bend)
+                self.weapon_ik_targets["left_hand"] = ((grip[0], grip[1] + 28.0), bend)
 
     def _apply_grapple_deformation(self):
         """Deform the defender around a live grappling interaction."""
