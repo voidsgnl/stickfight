@@ -1,3 +1,22 @@
+## 2026-09-29 — Restore Non-Responsive Studio Controls and Fighter Preview
+
+### What I did
+- Added a separate Studio UI recovery script after the main editor script.
+- The recovery layer restores the critical inline button handlers if the large editor script fails to parse or initialize.
+- Added an immediate browser-side two-fighter SVG preview so the viewport cannot remain as only the `Fight Preview` alt text.
+- The recovery layer then attempts the real `/api/preview` renderer and replaces the fallback with the actual Pygame-rendered snapshot when successful.
+- Restored Generate/Render status polling and visible error reporting in the Studio.
+- Kept the existing engine, skeleton, animation, physics, collision, and renderer untouched.
+
+### Diagnosis
+- Seeing only `Fight Preview` means the `<img>` element has no usable image source.
+- Multiple unrelated buttons failing at the same time strongly indicates the large inline JavaScript is not successfully initializing in the browser, rather than a Pygame drawing-only problem.
+- The recovery layer is isolated in its own script block so a JavaScript parse/runtime failure in the main editor script cannot leave the entire Studio inert.
+
+### Validation
+- Source updated on `main`.
+- Browser-side execution still needs to be verified from the user's local GUI session.
+
 ## 2026-09-29 — Fix GUI Preview/Generate Request Blocking
 
 ### What I did
