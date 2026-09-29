@@ -246,6 +246,8 @@ class Fighter:
         self._impact_consumed_key: Optional[tuple] = None
         self._previous_clip_name: str = self.active_clip.name
         self._previous_clip_time: float = self.clip_time
+        self.ik_target: Optional[Tuple[str, Tuple[float, float], float]] = None
+        self.weapon_ik_targets: Dict[str, Tuple[Tuple[float, float], float]] = {}
 
     def sync_from_physics(self):
         """Copies the simulated world position into the fighter."""
@@ -335,20 +337,54 @@ class Fighter:
         self.root_dy = rdy
         self._apply_ground_foot_ik()
         self._apply_ik_target()
+        self._apply_weapon_ik()
 
     def set_ik_target(self, joint: str, target_world: Tuple[float, float], bend_sign: float = 1.0):
         """Set a world-space hand/foot target for the current pose."""
         self.ik_target = (joint, target_world, bend_sign)
+        self.weapon_ik_targets.clear()
 
     def clear_ik_target(self):
         self.ik_target = None
+        self.weapon_ik_targets.clear()
+
+    def _apply_weapon_ik(self):
+        """Keep secondary weapon grips attached to the primary hand target."""
+        if not self.weapon_ik_targets:
+            return
+        for joint, (target_world, bend_sign) in self.weapon_ik_targets.items():
+            pelvis_world_x = self.x + self.root_dx * self.facing
+            pelvis_world_y = self.y - 140.0 * self.scale + self.root_dy
+            tx = (target_world[0] - pelvis_world_x) / max(1e-6, self.scale)
+            ty = (target_world[1] - pelvis_world_y) / max(1e-6, self.scale)
+            if self.facing < 0:
+                tx = -tx
+            if joint == "left_hand":
+                self.current_pose = apply_two_bone_ik(
+                    self.current_pose, "left_shoulder", "left_elbow", "left_hand",
+                    (tx, ty), bend_sign,
+                )
+            elif joint == "right_hand":
+                self.current_pose = apply_two_bone_ik(
+                    self.current_pose, "right_shoulder", "right_elbow", "right_hand",
+                    (tx, ty), bend_sign,
+                )
 
     def aim_attack_at(self, other: "Fighter"):
         """Aim the active striking hand at the opponent's head using IK."""
         hurtbox = other.get_hurtbox()
         target = hurtbox.head_pos
         joint = "left_hand" if self.active_clip.name in {"jab", "hook"} else "right_hand"
-        self.set_ik_target(joint, target, bend_sign=1.0 if self.facing >= 0 else -1.0)
+        bend = 1.0 if self.facing >= 0 else -1.0
+        self.set_ik_target(joint, target, bend_sign=bend)
+        if self.weapon in {"sword", "staff"}:
+            offset = 34.0 if self.weapon == "sword" else 55.0
+            secondary = (
+                target[0] - self.facing * offset,
+                target[1] + (12.0 if self.weapon == "sword" else 22.0),
+            )
+            secondary_joint = "left_hand" if joint == "right_hand" else "right_hand"
+            self.weapon_ik_targets[secondary_joint] = (secondary, bend)
 
     def _apply_ground_foot_ik(self):
         """Keep grounded feet planted on the physical ground plane."""
