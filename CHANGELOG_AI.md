@@ -413,3 +413,9 @@ B = scene.add_fighter("B", x=730, y=1500, render_style="ink_fight")
 - Added live selection/transform/frame/action values to the Properties panel.
 - Responsive fallback remains available for narrower screens.
 - No browser verification or automated tests were run as part of this UI-only pass.
+
+
+## 2026-09-30 — Fix Studio Frame API Syntax Regression
+- Fixed an invalid `elif` in `StudioRequestHandler.do_POST()` that caused `python3 gui.py` to fail during import with a SyntaxError.
+- The `/api/studio/frame` handler is now the first POST route check and returns normally before the existing preview/render routes.
+- This was introduced by the Studio UI integration pass; no combat/render logic was changed.
