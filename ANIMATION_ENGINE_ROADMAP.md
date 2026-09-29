@@ -102,6 +102,10 @@ Coverage includes:
 - [x] Add combat animation state machine.
 - [x] Define validated state transitions.
 - [x] Integrate state machine with Fighter.
+- [x] Add normalized combat timing markers.
+- [x] Expose current attack phase and impact marker from Fighter.
+- [x] Gate attack hitboxes to the active/contact window.
+- [x] Add timing and hitbox-window tests.
 
 ## Phase 2 — Animation State Machine
 
@@ -138,6 +142,10 @@ The state machine must not replace the choreography system. Choreography request
 
 ## Phase 3 — Better Combat Animation
 
+**Implemented:** normalized attack timing metadata now lives in `stickfight/engine/combat_timing.py`. Attack clips expose anticipation, action, contact, follow-through, recovery, and an authored impact marker. `Fighter.get_hitbox()` now returns a strike hitbox only during the active contact window, so collision is no longer available across the entire attack animation. The same normalized timings work when choreography changes an action duration.
+
+Current attack timing coverage includes punch, kick, uppercut, sweep, slash, jab, cross, hook, low kick, clinch knee, takedown, and ground pound. Existing action classes remain responsible for resolving their one-shot impact; the timing layer now determines whether the animation is actually in its damaging window.
+
 Expand clips into structured combat phases:
 
 ```
@@ -152,7 +160,7 @@ FOLLOW-THROUGH
 RECOVERY
 ```
 
-Every attack should eventually expose meaningful timing markers such as:
+Every attack should expose meaningful timing markers such as:
 
 - startup
 - active
