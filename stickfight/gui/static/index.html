@@ -934,6 +934,19 @@ body>header,body>main{display:none!important}
 #storyStudio .workspace-tabs{display:flex;gap:1px;background:#171819;border-bottom:1px solid #0d0e10;padding:0 7px}
 #storyStudio .workspace-tab{padding:6px 10px;font-size:9px;color:#8f959c;border-bottom:2px solid transparent}
 #storyStudio .workspace-tab.active{color:#fff;border-bottom-color:var(--adobe-orange)}
+#storyStudio .workspace-tab{background:transparent;border:0;border-bottom:2px solid transparent;color:#8f959c;cursor:pointer}
+#storyStudio .workspace-tab.active{background:#202224}
+#storyStudio .studio-workspace-mode{display:flex;align-items:center;gap:10px;padding:6px 12px;background:#1d1f21;border-bottom:1px solid #111;color:#8f959c;font-size:9px;letter-spacing:.7px;text-transform:uppercase}
+#storyStudio .studio-workspace-mode strong{color:#e5e8eb;font-size:10px}
+#storyStudio.workspace-fight .fight-action-panel{display:block}
+#storyStudio.workspace-animation .fight-action-panel{display:none}
+#storyStudio.workspace-story .fight-action-panel{display:none}
+#storyStudio.workspace-audio .fight-action-panel{display:none}
+#storyStudio.workspace-audio .asset-pane{display:none}
+#storyStudio.workspace-audio .studio-right{grid-column:3}
+#storyStudio.workspace-audio .timeline-pane{grid-column:1 / span 2}
+#storyStudio .audio-placeholder{display:none}
+#storyStudio.workspace-audio .audio-placeholder{display:block}
 #storyStudio .bottom-status{position:absolute;right:8px;bottom:3px;font-size:8px;color:#70767d}
 @media(max-width:1050px){#storyStudio .studio-body{grid-template-columns:210px minmax(430px,1fr)!important}#storyStudio .studio-right{display:none!important}}
 @media(max-width:760px){body{overflow:auto!important}#storyStudio{position:relative!important;min-height:100vh!important;height:auto!important}#storyStudio .studio-body{grid-template-columns:1fr!important;height:auto!important}#storyStudio .asset-pane{display:none!important}#storyStudio .timeline-pane{min-height:900px}}
@@ -2175,9 +2188,10 @@ body>header,body>main{display:none!important}
   <div class="tool-group"><button class="tool-btn" title="Bone / Pose">♙</button><button class="tool-btn" title="Keyframe">◆</button><button class="tool-btn" title="Camera">▣</button><button class="tool-btn" title="Text / Dialogue">T</button></div>
   <div class="tool-group"><button class="tool-btn" title="Undo">↶</button><button class="tool-btn" title="Redo">↷</button></div>
   <span class="tool-label">WORKSPACE</span>
-  <div class="workspace-tabs"><div class="workspace-tab active">Animation</div><div class="workspace-tab">Fight</div><div class="workspace-tab">Story</div><div class="workspace-tab">Audio</div></div>
+  <div class="workspace-tabs" id="studioWorkspaceTabs" role="tablist" aria-label="Studio workspace"><button type="button" class="workspace-tab active" data-workspace="animation" role="tab" aria-selected="true">Animation</button><button type="button" class="workspace-tab" data-workspace="fight" role="tab" aria-selected="false">Fight</button><button type="button" class="workspace-tab" data-workspace="story" role="tab" aria-selected="false">Story</button><button type="button" class="workspace-tab" data-workspace="audio" role="tab" aria-selected="false">Audio</button></div>
   <div class="spacer"></div><span class="tool-label">100%</span><button class="tool-btn">−</button><button class="tool-btn">+</button>
 </div>
+  <div class="studio-workspace-mode" id="studioWorkspaceMode" aria-live="polite"><strong>ANIMATION</strong><span id="studioWorkspaceHint">Keyframes, posing, transforms and timing</span></div>
   <div class="studio-head">
     <h2>Fight Animation Studio — Combat Authoring</h2>
     <div class="studio-actions">
@@ -2225,7 +2239,7 @@ body>header,body>main{display:none!important}
   <div class="prop-section"><h4>Transform</h4><div class="prop-grid"><div class="prop-card"><span>X</span><strong id="studioPropX">0</strong></div><div class="prop-card"><span>Y</span><strong id="studioPropY">0</strong></div><div class="prop-card"><span>ROTATION</span><strong id="studioPropRot">0°</strong></div><div class="prop-card"><span>SCALE</span><strong id="studioPropScale">100%</strong></div></div></div>
   <div class="prop-section"><h4>Animation</h4><div class="prop-grid"><div class="prop-card"><span>FRAME</span><strong id="studioPropFrame">0</strong></div><div class="prop-card"><span>FPS</span><strong id="studioPropFps">30</strong></div></div></div>
   <div class="prop-section"><h4>Fight System</h4><div class="prop-card"><span>ACTION</span><strong id="studioPropAction">Idle / Guard</strong></div></div>
-  <div class="prop-section"><h4>Layers</h4><div class="prop-card"><span>SCENE</span><strong>Characters · Camera · FX · Audio</strong></div></div>
+  <div class="prop-section"><h4>Layers</h4><div class="prop-card"><span>SCENE</span><strong>Characters · Camera · FX · Audio</strong></div></div><div class="audio-placeholder prop-section"><h4>Audio workspace</h4><div class="prop-card"><span>TRACKS</span><strong>Dialogue · Foley · Music · Ambience</strong></div><div class="prop-card" style="margin-top:6px"><span>STATUS</span><strong>Audio authoring foundation</strong></div></div>
 </aside>
   </div>
   <div class="studio-foot">Studio state is separate from the legacy two-fighter controls. Characters are reusable assets; instances can use different visual styles without changing physics or combat.</div>
@@ -2309,7 +2323,8 @@ body>header,body>main{display:none!important}
     $("studioTracks").innerHTML=groups.map(g=>{
       const events=g.kind==="event"?S.tracks.filter(t=>t.event.actor==="scene"):S.tracks.filter(t=>t.event.actor===(g.id==="char-a"?"A":"B"));
       const blocks=events.map(t=>{const left=t.start/S.frames*100, w=Math.max(.8,t.duration/S.frames*100); return '<div class="event" title="frame '+t.start+'" style="left:'+left+'%;width:'+w+'%">'+esc(t.name)+'</div>';}).join("");
-      return '<div class="studio-track"><div class="track-label">'+esc(g.name)+'</div><div class="track-lane" data-track="'+esc(g.id)+'">'+blocks+'<div class="playhead" style="left:'+(S.cursor/S.frames*100)+'%"></div></div></div>';
+      const keys=(S.keyframes[g.id]||[]).map(k=>'<div class="key" title="Keyframe '+k.frame+'" data-frame="'+k.frame+'" style="left:'+(k.frame/S.frames*100)+'%"></div>').join("");
+      return '<div class="studio-track"><div class="track-label">'+esc(g.name)+'</div><div class="track-lane" data-track="'+esc(g.id)+'">'+blocks+keys+'<div class="playhead" style="left:'+(S.cursor/S.frames*100)+'%"></div></div></div>';
     }).join("");
     const sel=$("studioSelected"); sel.innerHTML=S.instances.map(i=>"<option value=\""+i.id+"\">"+esc(i.name)+"</option>").join(""); sel.value=S.selected; const si=S.instances.find(i=>i.id===S.selected)||S.instances[0]; if(si){$("studioX").value=si.x||0;$("studioY").value=si.y||0;$("studioRotation").value=si.rotation||0;$("studioScale").value=si.scale||1;} $("studioAssets").innerHTML=S.assets.map(a=>'<div class="asset-row"><span class="asset-dot"></span><div class="asset-meta"><div class="asset-name">'+esc(a.name)+'</div><div class="asset-style">'+esc(a.style)+'</div></div></div>').join("");
     $("studioTime").textContent=(S.cursor/S.fps).toFixed(2)+"s"; const ps=S.instances.find(i=>i.id===S.selected)||S.instances[0]; const pa=S.combatEvents.filter(e=>e.target_id===S.selected&&S.cursor>=e.start_frame&&S.cursor<=e.end_frame).sort((a,b)=>b.start_frame-a.start_frame)[0]; if(ps){if($("studioPropName"))$("studioPropName").textContent=ps.name;if($("studioPropX"))$("studioPropX").textContent=Math.round(ps.x||0);if($("studioPropY"))$("studioPropY").textContent=Math.round(ps.y||0);if($("studioPropRot"))$("studioPropRot").textContent=Math.round(ps.rotation||0)+"°";if($("studioPropScale"))$("studioPropScale").textContent=Math.round((ps.scale||1)*100)+"%";} if($("studioPropFrame"))$("studioPropFrame").textContent=Math.round(S.cursor);if($("studioPropFps"))$("studioPropFps").textContent=S.fps;if($("studioPropAction"))$("studioPropAction").textContent=pa?pa.action.replace(/_/g," "):"Idle / Guard";renderStudioStage();
@@ -2324,13 +2339,12 @@ body>header,body>main{display:none!important}
     render();
   }
   function addKey(){
-    const frame=S.cursor;
-    const st=window.state;
-    if(st){
-      st.timeline=st.timeline||[];
-      st.timeline.push({time:frame/S.fps,actor:"scene",action:"keyframe",duration:1,frame});
-      if(typeof window.renderTimelineTracks==="function") window.renderTimelineTracks();
-    }
+    const frame=Math.round(S.cursor), si=S.instances.find(i=>i.id===S.selected)||S.instances[0];
+    if(!si)return;
+    const keys=S.keyframes[si.id]||(S.keyframes[si.id]=[]);
+    const snapshot={frame,x:Number(si.x)||0,y:Number(si.y)||0,rotation:Number(si.rotation)||0,scale:Number(si.scale)||1};
+    const at=keys.findIndex(k=>k.frame===frame); if(at>=0) keys[at]=snapshot; else keys.push(snapshot);
+    keys.sort((a,b)=>a.frame-b.frame);
     render();
   }
   function play(){
@@ -2358,7 +2372,27 @@ body>header,body>main{display:none!important}
   $("studioFps").addEventListener("change",e=>{S.fps=Math.max(1,Number(e.target.value)||30);render()});
   $("studioFrames").addEventListener("change",e=>{S.frames=Math.max(1,Number(e.target.value)||180);render()});
   document.addEventListener("click",e=>{const lane=e.target.closest("#studioRuler,.studio-track .track-lane");if(!lane)return;const rect=lane.getBoundingClientRect(),x=Math.max(0,Math.min(rect.width,e.clientX-rect.left));S.cursor=Math.round(x/rect.width*S.frames);applyFrame();render()});
-  document.addEventListener("DOMContentLoaded",()=>setTimeout(()=>{renderFightActionPalette();render();},80));
+  const WORKSPACES={
+    animation:{label:"ANIMATION",hint:"Keyframes, posing, transforms and timing"},
+    fight:{label:"FIGHT",hint:"Combat choreography, actions, timing and impact"},
+    story:{label:"STORY",hint:"Scenes, dialogue, camera direction and narrative beats"},
+    audio:{label:"AUDIO",hint:"Dialogue, Foley, music and ambience tracks"}
+  };
+  function setWorkspace(name){
+    const cfg=WORKSPACES[name]||WORKSPACES.animation, root=$("storyStudio"), hint=$("studioWorkspaceHint"), mode=$("studioWorkspaceMode");
+    root.classList.remove("workspace-animation","workspace-fight","workspace-story","workspace-audio");
+    root.classList.add("workspace-"+name);
+    document.querySelectorAll("#studioWorkspaceTabs .workspace-tab").forEach(tab=>{
+      const active=tab.dataset.workspace===name; tab.classList.toggle("active",active); tab.setAttribute("aria-selected",active?"true":"false");
+    });
+    if(mode)mode.querySelector("strong").textContent=cfg.label;
+    if(hint)hint.textContent=cfg.hint;
+    render();
+  }
+  document.addEventListener("click",e=>{
+    const tab=e.target.closest("#studioWorkspaceTabs .workspace-tab"); if(tab)setWorkspace(tab.dataset.workspace);
+  });
+    document.addEventListener("DOMContentLoaded",()=>setTimeout(()=>{renderFightActionPalette();render();},80));
 })();
 </script>
 </body>
