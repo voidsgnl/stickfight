@@ -849,7 +849,95 @@
   
   #studioStage{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:3}#studioStage .studio-real-frame{width:100%;height:100%;object-fit:contain;display:block}#studioStage .studio-char{position:absolute;transform-origin:center bottom;min-width:30px;text-align:center}#studioStage .studio-stick{width:44px;height:92px;margin:auto;position:relative}#studioStage .studio-head{width:20px;height:20px;border:3px solid currentColor;border-radius:50%;margin:0 auto 3px}#studioStage .studio-body{width:4px;height:38px;background:currentColor;margin:auto;border-radius:3px}#studioStage .studio-limb{position:absolute;height:3px;background:currentColor;border-radius:3px;transform-origin:left center}.studio-arm-l{width:24px;left:5px;top:34px;transform:rotate(145deg)}.studio-arm-r{width:24px;right:5px;top:34px;transform-origin:right center;transform:rotate(35deg)}.studio-leg-l{width:30px;left:5px;top:72px;transform:rotate(112deg)}.studio-leg-r{width:30px;right:5px;top:72px;transform-origin:right center;transform:rotate(68deg)}#studioStage .studio-label{font-size:10px;font-weight:800;white-space:nowrap;margin-top:3px;text-shadow:0 1px 3px #000}#studioStage .selected{filter:drop-shadow(0 0 8px rgba(0,229,255,.9))}
 </style>
-</head>
+
+<style id="adobe-studio-vibe">
+/* Animation Studio workspace — dense, panelized, desktop-editor feel */
+:root{
+  --adobe-bg:#202124;--adobe-panel:#2b2d30;--adobe-panel2:#25272a;--adobe-line:#3b3e42;
+  --adobe-text:#e7e9ec;--adobe-muted:#9da2a8;--adobe-blue:#4da3ff;--adobe-orange:#ff8a00;
+}
+body{background:#18191b!important;background-image:none!important;color:var(--adobe-text)!important;overflow:hidden!important}
+body>header,body>main{display:none!important}
+#storyStudio{
+  display:grid!important;grid-template-rows:34px 42px 1fr!important;
+  position:fixed!important;inset:0!important;margin:0!important;border:0!important;border-radius:0!important;
+  background:#1d1f21!important;overflow:hidden!important;z-index:500!important;
+  color:var(--adobe-text)!important;
+}
+#storyStudio .adobe-menubar{display:flex;align-items:center;height:34px;background:#171819;border-bottom:1px solid #08090a;padding:0 10px;gap:3px;font-size:12px}
+#storyStudio .adobe-menu-brand{font-weight:800;letter-spacing:.4px;margin-right:10px;color:#fff}
+#storyStudio .adobe-menu-brand b{color:var(--adobe-orange)}
+#storyStudio .adobe-menu-item{padding:7px 9px;border-radius:3px;color:#c7cbd0;cursor:pointer}
+#storyStudio .adobe-menu-item:hover{background:#34373b;color:#fff}
+#storyStudio .adobe-menubar .spacer{flex:1}
+#storyStudio .adobe-doc{color:#aeb4bb;font-size:11px;padding:0 10px}
+#storyStudio .adobe-toolbar{display:flex;align-items:center;gap:6px;padding:0 10px;background:#25272a;border-bottom:1px solid #111214}
+#storyStudio .tool-group{display:flex;gap:2px;padding-right:7px;border-right:1px solid #3b3e42}
+#storyStudio .tool-btn{width:30px;height:28px;border:1px solid transparent;background:transparent;color:#bfc4ca;border-radius:3px;cursor:pointer;font-size:14px}
+#storyStudio .tool-btn:hover,#storyStudio .tool-btn.active{background:#3a3d42;border-color:#4a4e54;color:#fff}
+#storyStudio .tool-label{font-size:10px;color:#858b92;margin-left:5px}
+#storyStudio .studio-head{display:none!important}
+#storyStudio .studio-body{
+  display:grid!important;grid-template-columns:250px minmax(520px,1fr) 285px!important;min-height:0!important;height:100%!important;
+}
+#storyStudio .asset-pane{
+  padding:0!important;background:#25272a!important;border-right:1px solid #111!important;overflow:auto!important;
+}
+#storyStudio .asset-pane:before{
+  content:"TOOLS / ASSETS";display:block;padding:10px 12px 8px;font-size:10px;font-weight:800;letter-spacing:1px;color:#9da2a8;border-bottom:1px solid var(--adobe-line)
+}
+#storyStudio .asset-pane h3{padding:9px 12px 5px;margin:0!important;font-size:9px!important;color:#858b92!important}
+#storyStudio .asset-pane>div,#storyStudio .asset-pane>input,#storyStudio .asset-pane>select{margin-left:10px;margin-right:10px}
+#storyStudio .asset-list{padding:0 10px}
+#storyStudio .asset-row{border-radius:3px!important;background:#303236!important;border:1px solid #3a3d42!important}
+#storyStudio .asset-row:hover{background:#383b40!important}
+#storyStudio .timeline-pane{
+  display:grid!important;grid-template-rows:36px minmax(280px,1fr) 250px!important;
+  min-width:0!important;background:#181a1c!important;overflow:hidden!important;
+}
+#storyStudio .timeline-toolbar{
+  padding:0 9px!important;background:#292b2e!important;border-bottom:1px solid #111!important;
+}
+#storyStudio .timeline-toolbar label{font-size:9px;color:#969ca3;text-transform:uppercase}
+#storyStudio .timeline-toolbar input{height:24px!important;padding:3px 6px!important;border-radius:2px!important;background:#1d1f21!important}
+#storyStudio .stage-wrap{
+  position:relative;display:flex;align-items:center;justify-content:center;min-height:0;
+  background:#151617;
+  background-image:linear-gradient(45deg,#17191b 25%,transparent 25%),linear-gradient(-45deg,#17191b 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#17191b 75%),linear-gradient(-45deg,transparent 75%,#17191b 75%);
+  background-size:24px 24px;background-position:0 0,0 12px,12px -12px,-12px 0;
+  border-bottom:1px solid #0d0e10;
+}
+#storyStudio .stage-chrome{position:absolute;left:10px;top:8px;right:10px;display:flex;justify-content:space-between;z-index:3;pointer-events:none}
+#storyStudio .stage-pill{background:rgba(25,26,28,.92);border:1px solid #45494f;border-radius:3px;padding:4px 7px;font-size:9px;color:#aeb4bb}
+#studioStage{height:92%;aspect-ratio:9/16;max-width:48%;background:#0d0e10;border:1px solid #4a4e54;box-shadow:0 12px 40px #000;display:flex;align-items:center;justify-content:center;overflow:hidden}
+#studioStage .studio-real-frame{width:100%!important;height:100%!important;object-fit:contain!important}
+#storyStudio .timeline-scroll{min-height:0!important;background:#222426!important;border-top:1px solid #111;overflow:auto!important}
+#storyStudio .ruler,#storyStudio .studio-track{grid-template-columns:145px 1fr!important;min-width:900px!important}
+#storyStudio .ruler-label{background:#2a2c2f;color:#8d939a;padding:8px 10px}
+#storyStudio .ruler-grid{background:repeating-linear-gradient(90deg,#373a3e 0,#373a3e 1px,transparent 1px,transparent 30px)!important}
+#storyStudio .track-label{background:#292b2e!important;border-right:1px solid #111!important;color:#c8cdd3!important}
+#storyStudio .track-lane{background:repeating-linear-gradient(90deg,#292b2e 0,#292b2e 1px,transparent 1px,transparent 30px)!important}
+#storyStudio .event{border-radius:2px!important;background:#3e78b5!important;color:#fff!important;border:1px solid #6099d2}
+#storyStudio .combat-event{background:#a8542b!important;border-color:#d77a48!important}
+#storyStudio .key{background:#ffad33!important}
+#storyStudio .playhead{background:#ff4b4b!important}
+#storyStudio .studio-right{
+  background:#25272a;border-left:1px solid #111;overflow:auto;color:#cfd3d8
+}
+#storyStudio .prop-title{padding:10px 12px 8px;border-bottom:1px solid #3b3e42;font-size:10px;font-weight:800;letter-spacing:1px;color:#aab0b7}
+#storyStudio .prop-section{padding:11px 12px;border-bottom:1px solid #36393d}
+#storyStudio .prop-section h4{font-size:9px;color:#858b92;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px}
+#storyStudio .prop-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+#storyStudio .prop-card{background:#1d1f21;border:1px solid #393c40;border-radius:3px;padding:7px}
+#storyStudio .prop-card span{display:block;font-size:8px;color:#777d84;margin-bottom:3px}
+#storyStudio .prop-card strong{font-size:11px;color:#e5e8eb}
+#storyStudio .workspace-tabs{display:flex;gap:1px;background:#171819;border-bottom:1px solid #0d0e10;padding:0 7px}
+#storyStudio .workspace-tab{padding:6px 10px;font-size:9px;color:#8f959c;border-bottom:2px solid transparent}
+#storyStudio .workspace-tab.active{color:#fff;border-bottom-color:var(--adobe-orange)}
+#storyStudio .bottom-status{position:absolute;right:8px;bottom:3px;font-size:8px;color:#70767d}
+@media(max-width:1050px){#storyStudio .studio-body{grid-template-columns:210px minmax(430px,1fr)!important}#storyStudio .studio-right{display:none!important}}
+@media(max-width:760px){body{overflow:auto!important}#storyStudio{position:relative!important;min-height:100vh!important;height:auto!important}#storyStudio .studio-body{grid-template-columns:1fr!important;height:auto!important}#storyStudio .asset-pane{display:none!important}#storyStudio .timeline-pane{min-height:900px}}
+</style></head>
 <body>
   <header class="studio-header">
     <div class="studio-brand">
@@ -2075,6 +2163,21 @@
 </style>
 
 <section id="storyStudio" aria-label="Story Animation Studio">
+<div class="adobe-menubar">
+  <div class="adobe-menu-brand">FIGHT <b>ANIMATION</b> STUDIO</div>
+  <div class="adobe-menu-item">File</div><div class="adobe-menu-item">Edit</div><div class="adobe-menu-item">View</div>
+  <div class="adobe-menu-item">Insert</div><div class="adobe-menu-item">Modify</div><div class="adobe-menu-item">Window</div><div class="adobe-menu-item">Help</div>
+  <div class="spacer"></div><div class="adobe-doc">Episode 01 / Scene 03</div>
+  <button class="header-btn accent" type="button">EXPORT</button>
+</div>
+<div class="adobe-toolbar">
+  <div class="tool-group"><button class="tool-btn active" title="Selection">↖</button><button class="tool-btn" title="Transform">⌗</button><button class="tool-btn" title="Pan">✋</button><button class="tool-btn" title="Zoom">⌕</button></div>
+  <div class="tool-group"><button class="tool-btn" title="Bone / Pose">♙</button><button class="tool-btn" title="Keyframe">◆</button><button class="tool-btn" title="Camera">▣</button><button class="tool-btn" title="Text / Dialogue">T</button></div>
+  <div class="tool-group"><button class="tool-btn" title="Undo">↶</button><button class="tool-btn" title="Redo">↷</button></div>
+  <span class="tool-label">WORKSPACE</span>
+  <div class="workspace-tabs"><div class="workspace-tab active">Animation</div><div class="workspace-tab">Fight</div><div class="workspace-tab">Story</div><div class="workspace-tab">Audio</div></div>
+  <div class="spacer"></div><span class="tool-label">100%</span><button class="tool-btn">−</button><button class="tool-btn">+</button>
+</div>
   <div class="studio-head">
     <h2>Fight Animation Studio — Combat Authoring</h2>
     <div class="studio-actions">
@@ -2107,15 +2210,27 @@
         <label>Frames <input id="studioFrames" type="number" min="1" max="100000" value="180" style="width:75px"></label>
         <span id="studioTime" style="margin-left:auto;color:#8b949e">0.00s</span>
       </div>
-      <div class="timeline-scroll">
+      
+<div class="stage-wrap">
+  <div class="stage-chrome"><span class="stage-pill">SCENE 03 · FIGHT / ACTION</span><span class="stage-pill">9:16 · 540×960</span></div>
+  <div id="studioStage"><span style="font-size:10px;color:#697078">Rendering production frame…</span></div>
+</div><div class="timeline-scroll">
         <div class="ruler"><div class="ruler-label">TIMELINE</div><div id="studioRuler" class="ruler-grid"></div></div>
         <div id="studioTracks"></div>
       </div>
-    </section>
+    
+<aside class="studio-right">
+  <div class="prop-title">PROPERTIES</div>
+  <div class="prop-section"><h4>Selection</h4><div class="prop-card"><span>OBJECT</span><strong id="studioPropName">Fighter A</strong></div></div>
+  <div class="prop-section"><h4>Transform</h4><div class="prop-grid"><div class="prop-card"><span>X</span><strong id="studioPropX">0</strong></div><div class="prop-card"><span>Y</span><strong id="studioPropY">0</strong></div><div class="prop-card"><span>ROTATION</span><strong id="studioPropRot">0°</strong></div><div class="prop-card"><span>SCALE</span><strong id="studioPropScale">100%</strong></div></div></div>
+  <div class="prop-section"><h4>Animation</h4><div class="prop-grid"><div class="prop-card"><span>FRAME</span><strong id="studioPropFrame">0</strong></div><div class="prop-card"><span>FPS</span><strong id="studioPropFps">30</strong></div></div></div>
+  <div class="prop-section"><h4>Fight System</h4><div class="prop-card"><span>ACTION</span><strong id="studioPropAction">Idle / Guard</strong></div></div>
+  <div class="prop-section"><h4>Layers</h4><div class="prop-card"><span>SCENE</span><strong>Characters · Camera · FX · Audio</strong></div></div>
+</aside></section>
   </div>
   <div class="studio-foot">Studio state is separate from the legacy two-fighter controls. Characters are reusable assets; instances can use different visual styles without changing physics or combat.</div>
 </section>
-
+<div class="bottom-status">GPU PREVIEW · PRODUCTION FIGHT RENDERER</div>
 <script>
 (function(){
   const S = window.__storyStudio = {
