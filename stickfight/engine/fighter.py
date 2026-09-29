@@ -439,6 +439,12 @@ class Fighter:
         attacker = self._grapple_attacker
         target = self._grapple_target
         direction = 1.0 if attacker.x >= self.x else -1.0
+        if self._grapple_mode == "ground_control":
+            self.current_pose.set("pelvis", (0.0, 18.0))
+            self.current_pose.set("chest", (direction * 10.0, -32.0))
+            self.current_pose.set("neck", (direction * 14.0, -58.0))
+            self.current_pose.set("head", (direction * 18.0, -82.0))
+            return
         if target is not None and self._grapple_mode == "takedown":
             target_pelvis = target.get_hurtbox().pelvis_pos
             distance = target.x - self.x
