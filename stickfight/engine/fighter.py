@@ -19,6 +19,7 @@ from stickfight.engine.skeleton import (
     PROPORTIONS_CYBORG,
 )
 from stickfight.engine.animation_player import AnimationPlayer
+from stickfight.engine.animation_state import AnimationStateMachine
 from stickfight.engine.animation import (
     AnimationClip,
     create_idle_clip,
@@ -231,6 +232,7 @@ class Fighter:
         # Runtime playback is separated from clip definitions so animation
         # timing/blending can evolve without coupling it to Fighter physics.
         self.animation_player = AnimationPlayer(self.clips, initial="idle")
+        self.animation_state = AnimationStateMachine(initial="idle")
         self.active_clip: AnimationClip = self.animation_player.active_clip
         self.clip_time: float = self.animation_player.clip_time
         self.current_pose: Pose = apply_proportions(make_idle_pose(), self.proportions)
@@ -277,8 +279,22 @@ class Fighter:
             self.active_clip = self.animation_player.active_clip
             self.clip_time = self.animation_player.clip_time
 
+    def set_state(self, state_name: str, blend: Optional[float] = None) -> bool:
+        """Enter a validated combat animation state."""
+        if not self.animation_state.transition_to(state_name):
+            return False
+        state = self.animation_state.states[state_name]
+        transition_blend = state.blend if blend is None else blend
+        if state.clip not in self.clips:
+            # Keep the state machine useful even while specialized clips are
+            # added incrementally.
+            return False
+        self.set_animation(state.clip, loop=state.loop, blend=transition_blend)
+        return True
+
     def update_animation(self, dt: float):
         """Advance animation playback and apply the current rig proportions."""
+        self.animation_state.update(dt)
         pose, rdx, rdy = self.animation_player.update(dt)
         self.active_clip = self.animation_player.active_clip
         self.clip_time = self.animation_player.clip_time
