@@ -342,6 +342,13 @@ class Fighter:
     def clear_ik_target(self):
         self.ik_target = None
 
+    def aim_attack_at(self, other: "Fighter"):
+        """Aim the active striking hand at the opponent's head using IK."""
+        hurtbox = other.get_hurtbox()
+        target = hurtbox.head_pos
+        joint = "left_hand" if self.active_clip.name in {"jab", "hook"} else "right_hand"
+        self.set_ik_target(joint, target, bend_sign=1.0 if self.facing >= 0 else -1.0)
+
     def _apply_ik_target(self):
         if self.ik_target is None:
             return
