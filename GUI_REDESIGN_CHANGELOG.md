@@ -41,6 +41,11 @@
 - Routed action impact checks through the same one-shot Fighter impact-consumption path used by the combat event architecture.
 - Added regression coverage for crossing the impact marker in a large frame step.
 
+## Completed
+- Added attack-specific impact profiles for punches, kicks, specialized strikes, takedowns, ground pounds, and blade slashes.
+- Impact profiles now control sound selection, pitch/gain, camera shake, heavy-impact treatment, and knockback scaling while preserving the shared CombatImpactEvent pipeline.
+- Added integration coverage proving different attack types produce different impact responses.
+
 ## Next
 - Add richer per-attack effect/audio profiles so each attack type can author its own impact presentation.
 - Add resize handles to timeline blocks for duration editing.
