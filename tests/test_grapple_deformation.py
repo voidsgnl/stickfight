@@ -181,3 +181,27 @@ def test_ground_control_is_shared_relationship():
     control.release()
     assert attacker._ground_control is None
     assert defender._grapple_attacker is None
+
+def test_mount_to_guard_transition_moves_both_fighters():
+    attacker = Fighter("A", x=500, y=1500)
+    defender = Fighter("B", x=560, y=1500)
+    defender.enter_grounded_control()
+    attacker.enter_ground_control(defender, mode="mount")
+    control = attacker._ground_control
+    attacker.set_animation("grounded_guard", loop=True)
+    attacker.update_animation(0.1)
+    mount_chest = attacker.current_pose.get("chest")
+
+    control.set_position("guard", transition=0.0)
+    control.sync()
+    attacker.update_animation(0.1)
+    guard_start = attacker.current_pose.get("chest")
+
+    control.transition = 1.0
+    control.sync()
+    attacker.update_animation(0.1)
+    guard_chest = attacker.current_pose.get("chest")
+
+    assert mount_chest != guard_chest
+    assert guard_start != guard_chest
+    assert defender._grapple_mode == "bottom_mount"
