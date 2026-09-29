@@ -1,3 +1,19 @@
+## 2026-09-29 — Upgrade Studio Preview Character Renderer
+
+### What I implemented
+- Replaced the temporary line-only placeholder figure with a richer SVG character renderer in the Studio viewport.
+- Added distinct visual treatment for Anime, Cartoon, Ink Fight, Bold, Silhouette, Classic, and Custom style families.
+- Characters now have a head design, torso silhouette, connected limbs, hands/feet, facial details where appropriate, and style-specific graphic treatment.
+- Existing Studio transforms (position, rotation, scale), selection, keyframes, interpolation, and playback continue to drive the rendered character.
+
+### Architecture / safety
+- The renderer remains presentation-only inside the Studio preview; existing production `Renderer`, skeleton, animation clips, IK, physics, collision, weapons, and combat behavior are unchanged.
+- This provides a real visual authoring target while the next integration phase connects the Studio model to the production skeleton/renderer for render/export parity.
+
+### Status
+- Implemented on `story-animation-studio-foundation`.
+- Browser/runtime verification has not been executed in this change.
+
 ## 2026-09-29 — Connect Studio Timeline to Viewport
 
 ### What I implemented
