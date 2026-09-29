@@ -952,6 +952,7 @@ class GroundControlAction(Action):
         super().__init__(fighter, duration)
         self.defender = defender
         self.mode = mode
+        self.control = None
 
     def on_start(self, scene: FightScene):
         super().on_start(scene)
@@ -959,6 +960,7 @@ class GroundControlAction(Action):
             return
         self.fighter.face_fighter(self.defender)
         self.fighter.enter_ground_control(self.defender, mode=self.mode)
+        self.control = self.fighter._ground_control
 
     def update(self, scene: FightScene, local_t: float, dt: float):
         self.fighter.update_animation(dt)
