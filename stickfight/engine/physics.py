@@ -30,6 +30,13 @@ class PhysicsBody:
         if iy < 0:
             self.is_grounded = False
 
+    def set_velocity(self, vx: float, vy: float = 0.0):
+        """Set deterministic scripted velocity while retaining physics simulation."""
+        self.vx = float(vx)
+        self.vy = float(vy)
+        if abs(vy) > 1e-6:
+            self.is_grounded = False
+
     def update(self, dt: float):
         if not self.is_grounded:
             self.vy += self.gravity * dt
