@@ -573,6 +573,29 @@ def create_preview_surface(config: Dict[str, Any]) -> pygame.Surface:
     return surface
 
 
+def _apply_studio_pose_overrides(fighter: Fighter, pose_overrides: Any) -> None:
+    """Apply additive per-joint Studio offsets after the production animation/IK pass."""
+    if not isinstance(pose_overrides, dict):
+        return
+    allowed = {
+        "head", "neck", "chest",
+        "left_shoulder", "left_elbow", "left_hand",
+        "right_shoulder", "right_elbow", "right_hand",
+        "left_hip", "left_knee", "left_foot",
+        "right_hip", "right_knee", "right_foot",
+    }
+    for joint, value in pose_overrides.items():
+        if joint not in allowed or not isinstance(value, dict):
+            continue
+        try:
+            dx = max(-180.0, min(180.0, float(value.get("x", 0.0))))
+            dy = max(-180.0, min(180.0, float(value.get("y", 0.0))))
+        except (TypeError, ValueError):
+            continue
+        base_x, base_y = fighter.current_pose.get(joint)
+        fighter.current_pose.set(joint, base_x + dx, base_y + dy)
+
+
 def create_studio_frame_surface(config: Dict[str, Any]) -> pygame.Surface:
     """Render a Studio frame through the production Fight renderer.
 
@@ -627,6 +650,8 @@ def create_studio_frame_surface(config: Dict[str, Any]) -> pygame.Surface:
         action = normalize_action(char.get("action", "idle"))
         fighter.set_animation(action, loop=False if action != "idle" else True)
         fighter.update_animation(0.0)
+        # Manual Studio pose edits layer on top of the real production clip.
+        _apply_studio_pose_overrides(fighter, char.get("pose", {}))
         fighters.append(fighter)
 
     for fighter in fighters:
