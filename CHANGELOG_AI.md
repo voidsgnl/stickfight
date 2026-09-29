@@ -403,3 +403,13 @@ B = scene.add_fighter("B", x=730, y=1500, render_style="ink_fight")
 - Fixed `Fighter.clear_grapple_reaction()` where an accidentally duplicated fragment referenced undefined `attacker` and `mode` variables.
 - The cleanup method now only clears the active grapple reaction state, matching its purpose and preventing render-time `NameError` failures when an IK/timeline action finishes.
 - Validation: source-level fix applied from the traceback; full render/test execution has not yet been run in this session.
+
+
+## 2026-09-30 — Adobe-Inspired Animation Studio Workspace
+- Reworked the Studio UI into a dense desktop animation-editor layout inspired by professional animation applications.
+- Added application menu bar, compact tool rail, workspace tabs, scene/stage chrome, production viewport, Properties panel, and a dedicated bottom timeline area.
+- Changed the Studio shell from a single-screen dashboard/card layout to a panelized editor so tools and information can be opened/used by workspace area rather than competing for one screen.
+- Preserved the existing production fight renderer, combat action palette, transform keyframes, timeline state, and Studio authoring model underneath the visual redesign.
+- Added live selection/transform/frame/action values to the Properties panel.
+- Responsive fallback remains available for narrower screens.
+- No browser verification or automated tests were run as part of this UI-only pass.
