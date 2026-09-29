@@ -52,25 +52,54 @@ class Timeline:
             e.finished = False
         self.active_events.clear()
 
+    def _busy_fighters(self) -> Set[Fighter]:
+        busy: Set[Fighter] = set()
+        for e in self.active_events:
+            busy |= e.action.involved_fighters()
+        return busy
+
+    def _try_start(self, e: TimelineEvent, scene: FightScene) -> bool:
+        """Validates and starts one event. Returns False if it was skipped."""
+        involved = e.action.involved_fighters()
+        label = e.action.label
+        downed = sorted(f.name for f in involved if f.ko)
+        if downed and e.action.allowed_when_down:
+            return False  # a scripted fall for someone already knocked out is simply redundant
+        if downed:
+            scene.warn(f"t={e.start_time:.2f}s: {label} skipped because {', '.join(downed)} is already knocked out")
+            return False
+        clash = sorted(f.name for f in involved & self._busy_fighters())
+        if clash:
+            scene.warn(f"t={e.start_time:.2f}s: {label} overlaps another action for {', '.join(clash)}")
+        if not e.action.allowed_when_down:
+            grounded = sorted(f.name for f in involved if f.state == "fallen")
+            if grounded:
+                scene.warn(f"t={e.start_time:.2f}s: {label} scheduled while {', '.join(grounded)} is on the floor")
+        e.action.on_start(scene)
+        return True
+
     def update(self, current_time: float, dt: float, scene: FightScene):
         """Updates all timeline events for the current timestamp."""
         # 1. Start events that reached their start_time
         for e in self.events:
             if not e.started and current_time >= e.start_time:
                 e.started = True
-                e.action.on_start(scene)
-                self.active_events.append(e)
+                if self._try_start(e, scene):
+                    self.active_events.append(e)
+                else:
+                    e.finished = True
 
-        # 2. Update active events
-        fighters_with_actions: Set[Fighter] = set()
+        # 2. Update active events. Everyone an action touches is "busy" (a
+        # parallel action keeps *all* its fighters busy, so none of them gets
+        # its animation advanced a second time by the idle pass below).
+        busy: Set[Fighter] = set()
         still_active: List[TimelineEvent] = []
 
         for e in self.active_events:
             local_t = current_time - e.start_time
             if local_t <= e.action.duration:
                 e.action.update(scene, local_t, dt)
-                if e.action.fighter:
-                    fighters_with_actions.add(e.action.fighter)
+                busy |= e.action.involved_fighters()
                 still_active.append(e)
             else:
                 # Finished
@@ -79,7 +108,8 @@ class Timeline:
 
         self.active_events = still_active
 
-        # 3. Idle update for fighters without an active action
+        # 3. Idle update for fighters without an active action. Downed
+        # fighters keep animating so their fall clip actually plays.
         for f in scene.fighters:
-            if f not in fighters_with_actions and f.state != "fallen":
+            if f not in busy:
                 f.update_animation(dt)

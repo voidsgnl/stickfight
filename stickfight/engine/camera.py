@@ -10,7 +10,9 @@ import random
 
 
 class Camera:
-    def __init__(self, viewport_width: int = 1080, viewport_height: int = 1920):
+    def __init__(self, viewport_width: int = 1080, viewport_height: int = 1920, rng: Optional[random.Random] = None):
+        # Shake direction comes from this RNG so renders are reproducible.
+        self.rng = rng if rng is not None else random.Random(0)
         self.width = viewport_width
         self.height = viewport_height
 
@@ -92,7 +94,7 @@ class Camera:
             self.shake_timer -= dt
             decay = max(0.0, self.shake_timer)
             mag = self.shake_intensity * (decay / 0.25 if decay < 0.25 else 1.0)
-            angle = random.uniform(0, 2 * math.pi)
+            angle = self.rng.uniform(0, 2 * math.pi)
             self.shake_offset_x = math.cos(angle) * mag
             self.shake_offset_y = math.sin(angle) * mag
             if self.shake_timer <= 0:

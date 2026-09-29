@@ -4,6 +4,7 @@ Physics simulation for stick fighters: gravity, velocities, ground constraints, 
 
 from __future__ import annotations
 from dataclasses import dataclass
+import math
 
 
 @dataclass
@@ -38,8 +39,9 @@ class PhysicsBody:
 
         # Apply ground friction if grounded
         if self.is_grounded:
-            damping = max(0.0, 1.0 - self.friction * dt)
-            self.vx *= damping
+            # Exponential damping is frame-rate independent (unlike 1 - k*dt,
+            # which goes wrong at large timesteps).
+            self.vx *= math.exp(-self.friction * dt)
 
         self.x += self.vx * dt
         self.y += self.vy * dt

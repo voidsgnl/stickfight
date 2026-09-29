@@ -4,7 +4,7 @@ Visual effects system: hit sparks, shockwaves, dust bursts, flash frames, and im
 
 from __future__ import annotations
 from dataclasses import dataclass, field
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 import math
 import random
 import pygame
@@ -93,7 +93,9 @@ class SlashArc:
 
 
 class EffectsManager:
-    def __init__(self):
+    def __init__(self, rng: Optional[random.Random] = None):
+        # Particle randomness comes from this RNG so renders are reproducible.
+        self.rng = rng if rng is not None else random.Random(0)
         self.particles: List[Particle] = []
         self.shockwaves: List[Shockwave] = []
         self.impact_texts: List[ImpactText] = []
@@ -111,16 +113,16 @@ class EffectsManager:
         """Weapon on weapon clash with high-density steel sparks."""
         self.shockwaves.append(Shockwave(x=x, y=y, max_radius=75.0, color=(255, 255, 220)))
         for _ in range(28):
-            angle = random.uniform(0, 2 * math.pi)
-            speed = random.uniform(220, 550)
+            angle = self.rng.uniform(0, 2 * math.pi)
+            speed = self.rng.uniform(220, 550)
             self.particles.append(Particle(
                 x=x,
                 y=y,
                 vx=math.cos(angle) * speed,
                 vy=math.sin(angle) * speed,
                 color=(255, 245, 140),
-                radius=random.uniform(2.5, 5.5),
-                life=random.uniform(0.18, 0.4),
+                radius=self.rng.uniform(2.5, 5.5),
+                life=self.rng.uniform(0.18, 0.4),
                 max_life=0.4
             ))
         self.flash_alpha = 95.0
@@ -136,16 +138,16 @@ class EffectsManager:
         spark_count = 12 if is_blocked else (24 if is_heavy else 16)
         spark_color = (100, 200, 255) if is_blocked else (255, 220, 60)
         for _ in range(spark_count):
-            angle = random.uniform(0, 2 * math.pi)
-            speed = random.uniform(150, 450 if is_heavy else 300)
+            angle = self.rng.uniform(0, 2 * math.pi)
+            speed = self.rng.uniform(150, 450 if is_heavy else 300)
             self.particles.append(Particle(
                 x=x,
                 y=y,
                 vx=math.cos(angle) * speed,
                 vy=math.sin(angle) * speed,
                 color=spark_color,
-                radius=random.uniform(2.5, 5.0),
-                life=random.uniform(0.15, 0.35),
+                radius=self.rng.uniform(2.5, 5.0),
+                life=self.rng.uniform(0.15, 0.35),
                 max_life=0.35
             ))
 
@@ -160,19 +162,34 @@ class EffectsManager:
         text_col = (130, 210, 255) if is_blocked else ((255, 230, 70) if is_heavy else (255, 170, 60))
         self.impact_texts.append(ImpactText(text=text_label, x=x, y=y - 45.0, color=text_col))
 
+    def trigger_parry(self, x: float, y: float):
+        """Perfect-block flash: cyan shockwave, bright sparks, PARRY! text."""
+        self.shockwaves.append(Shockwave(x=x, y=y, max_radius=95.0, color=(140, 235, 255)))
+        for _ in range(24):
+            angle = self.rng.uniform(0, 2 * math.pi)
+            speed = self.rng.uniform(260, 620)
+            self.particles.append(Particle(
+                x=x, y=y, vx=math.cos(angle) * speed, vy=math.sin(angle) * speed,
+                color=(190, 245, 255), radius=self.rng.uniform(2.5, 5.0),
+                life=self.rng.uniform(0.18, 0.38), max_life=0.38,
+            ))
+        self.flash_alpha = 110.0
+        self.flash_color = (200, 245, 255)
+        self.impact_texts.append(ImpactText(text="PARRY!", x=x, y=y - 50.0, color=(150, 240, 255)))
+
     def trigger_dust_puff(self, x: float, y: float, count: int = 10):
         """Spawns dust particles near the ground."""
         for _ in range(count):
-            vx = random.uniform(-120, 120)
-            vy = random.uniform(-60, -10)
+            vx = self.rng.uniform(-120, 120)
+            vy = self.rng.uniform(-60, -10)
             self.particles.append(Particle(
-                x=x + random.uniform(-15, 15),
+                x=x + self.rng.uniform(-15, 15),
                 y=y,
                 vx=vx,
                 vy=vy,
                 color=(180, 180, 180),
-                radius=random.uniform(3.0, 7.0),
-                life=random.uniform(0.2, 0.4),
+                radius=self.rng.uniform(3.0, 7.0),
+                life=self.rng.uniform(0.2, 0.4),
                 max_life=0.4
             ))
 
@@ -195,6 +212,8 @@ class EffectsManager:
 
         if self.flash_alpha > 0:
             self.flash_alpha = max(0.0, self.flash_alpha - 350.0 * dt)
+            if self.flash_alpha == 0.0:
+                self.flash_color = (255, 255, 255)  # undo tinted flashes (parry)
 
     def draw(self, surface: pygame.Surface, camera_to_screen_fn):
         """Renders particles, shockwaves, impact texts, and flash overlay."""
