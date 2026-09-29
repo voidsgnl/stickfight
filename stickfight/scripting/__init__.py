@@ -12,6 +12,8 @@ from stickfight.scripting.actions import (
     JumpAction,
     CounterAction,
     ParallelAction,
+    GroundEscapeAction,
+    GroundReversalAction,
 )
 
 __all__ = [
@@ -28,4 +30,6 @@ __all__ = [
     "JumpAction",
     "CounterAction",
     "ParallelAction",
+    "GroundEscapeAction",
+    "GroundReversalAction",
 ]
