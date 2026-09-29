@@ -90,6 +90,7 @@
 - Added persistent grounded combat transition after takedown settlement, enabling grounded follow-up actions instead of returning directly to standing.
 - Connected ground-and-pound to the grounded state with downward contact IK and grounded-only impact validation.
 - Added grounded escape and reversal actions, including space creation and attacker release back into the fight flow.
+- Added procedural top-control positioning: the attacker now maintains a close base, lowered posture, and live hand contact over a grounded opponent.
 - Added regression coverage for attacker contact preservation.
 
 ## Next
