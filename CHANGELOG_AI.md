@@ -1,3 +1,21 @@
+## 2026-09-29 — Connect Studio Timeline to Viewport
+
+### What I implemented
+- Added a dedicated Studio viewport overlay to the existing preview area.
+- Studio character instances now render as selectable procedural stick figures in the viewport.
+- X/Y position, rotation, and scale from the Studio inspector are reflected visually.
+- Timeline scrubbing and playback now interpolate keyed transforms and update the viewport.
+- The selected character receives a visual selection glow; character names and style families are shown in the viewport.
+
+### Architecture / safety
+- This is an additive Studio authoring layer; the existing fight renderer, physics, collision, combat choreography, and legacy preview path remain intact.
+- The viewport overlay is intentionally a Studio preview representation and does not replace the production fighter renderer yet.
+
+### Status
+- Implemented on `story-animation-studio-foundation`.
+- Browser/runtime verification has not been executed in this change.
+- Next step: replace the placeholder Studio figure with the actual character renderer/skeleton so authored transforms and poses drive production-quality visuals.
+
 ## 2026-09-29 — Initial Story Animation Timeline Workspace
 
 ### What I implemented
