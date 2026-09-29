@@ -261,6 +261,16 @@ class Fighter:
         self.sync_to_physics()
         self.physics.apply_impulse(ix, iy)
 
+    @property
+    def is_airborne(self) -> bool:
+        """Whether the physics body is currently off the ground."""
+        return not self.physics.is_grounded
+
+    def update_physics(self, dt: float):
+        """Advance physics and synchronize the fighter's world position."""
+        self.physics.update(dt)
+        self.sync_from_physics()
+
     def reset_physics(self):
         """Restores the body to the fighter's spawn position and grounded state."""
         self.physics.x = self.x
