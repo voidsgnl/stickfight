@@ -89,6 +89,7 @@
 - Added attacker follow-through: the attacker lowers their hips, bends the knees, and refreshes both hand contact targets against the defender's live grounded pelvis.
 - Added persistent grounded combat transition after takedown settlement, enabling grounded follow-up actions instead of returning directly to standing.
 - Connected ground-and-pound to the grounded state with downward contact IK and grounded-only impact validation.
+- Added grounded escape and reversal actions, including space creation and attacker release back into the fight flow.
 - Added regression coverage for attacker contact preservation.
 
 ## Next
