@@ -149,3 +149,10 @@ B = scene.add_fighter("B", x=730, y=1500, render_style="ink_fight")
 ### Validation
 - Fixed the runtime mismatch causing `FightScene.render() got an unexpected keyword argument 'progress_callback'`.
 - Next step: rerun `python3 gui.py` and start another render/preview.
+
+
+## 2026-09-29 — Studio control binding repair
+- Corrected the HTML script order so the main Studio code runs before the recovery layer and both scripts remain inside the document body.
+- Added a final DOMContentLoaded rebinding pass that restores the recovery handlers after the main script has loaded, preventing inline controls from becoming inert when the large editor script overrides globals.
+- Exposed the recovery handlers through an internal binding registry and retained the working fighter-preview fallback.
+- Validation: source structure was inspected; live browser clicking was not available in this session.
