@@ -248,6 +248,8 @@ class Fighter:
         self._previous_clip_time: float = self.clip_time
         self.ik_target: Optional[Tuple[str, Tuple[float, float], float]] = None
         self.weapon_ik_targets: Dict[str, Tuple[Tuple[float, float], float]] = {}
+        self._grapple_attacker: Optional["Fighter"] = None
+        self._grapple_mode: Optional[str] = None
 
     def sync_from_physics(self):
         """Copies the simulated world position into the fighter."""
@@ -335,6 +337,7 @@ class Fighter:
         self.current_pose = apply_proportions(pose, self.proportions)
         self.root_dx = rdx
         self.root_dy = rdy
+        self._apply_grapple_deformation()
         self._apply_ground_foot_ik()
         self._apply_ik_target()
         self._apply_weapon_ik()
@@ -347,6 +350,7 @@ class Fighter:
     def clear_ik_target(self):
         self.ik_target = None
         self.weapon_ik_targets.clear()
+        self.clear_grapple_reaction()
 
     def _apply_weapon_ik(self):
         """Keep secondary weapon grips attached to the primary hand target."""
@@ -387,7 +391,41 @@ class Fighter:
             self.ik_target = ("right_hand", grip, bend)
             self.weapon_ik_targets["left_hand"] = ((grip[0], grip[1] + 28.0), bend)
 
+    def _apply_grapple_deformation(self):
+        """Deform the defender around a live grappling interaction."""
+        if self._grapple_attacker is None or self._grapple_mode is None:
+            return
+        duration = max(1e-6, self.active_clip.duration)
+        progress = max(0.0, min(1.0, self.clip_time / duration))
+        blend = progress * progress * (3.0 - 2.0 * progress)
+        attacker = self._grapple_attacker
+        direction = 1.0 if attacker.x >= self.x else -1.0
+        if self._grapple_mode == "takedown":
+            lean = 24.0 * blend * direction
+            drop = 24.0 * blend
+            self.current_pose.set("pelvis", (lean * 0.35, drop))
+            self.current_pose.set("chest", (lean, -50.0 + drop * 0.55))
+            self.current_pose.set("neck", (lean * 1.25, -84.0 + drop * 0.65))
+            self.current_pose.set("head", (lean * 1.55, -112.0 + drop * 0.75))
+            for side, offset in (("left", -1.0), ("right", 1.0)):
+                hip = self.current_pose.get(f"{side}_hip")
+                knee = self.current_pose.get(f"{side}_knee")
+                self.current_pose.set(f"{side}_hip", (hip[0] + lean * 0.35, hip[1] + drop))
+                self.current_pose.set(f"{side}_knee", (knee[0] + lean * 0.65 + direction * 8.0 * offset * blend, knee[1] + drop * 0.35))
+
     def apply_grapple_reaction(self, attacker: "Fighter", mode: str = "takedown"):
+        """Orient and pose a defender in response to a close-range grapple."""
+        dx = attacker.x - self.x
+        self.facing = 1 if dx >= 0 else -1
+        self._grapple_attacker = attacker
+        self._grapple_mode = mode
+        self.set_animation("fall" if mode == "takedown" else "hit", loop=False)
+
+    def clear_grapple_reaction(self):
+        """Stop procedural grappling deformation."""
+        self._grapple_attacker = None
+        self._grapple_mode = None
+
         """Orient and pose a defender in response to a close-range grapple."""
         dx = attacker.x - self.x
         self.facing = 1 if dx >= 0 else -1
