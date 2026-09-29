@@ -6,7 +6,9 @@ text captions, and headless frame encoding to MP4 via FFmpeg.
 from __future__ import annotations
 import os
 import math
+import shutil
 import subprocess
+import threading
 from typing import Dict, Tuple, List, Optional, TYPE_CHECKING
 import pygame
 
@@ -555,6 +557,27 @@ class Renderer:
         surface.blit(lbl2, (self.width - 60 - lbl2.get_width(), y_top - 38))
 
 
+class FFmpegNotFoundError(RuntimeError):
+    """Raised when the ffmpeg executable cannot be located."""
+
+
+def find_ffmpeg() -> str:
+    """Locates ffmpeg: $STICKFIGHT_FFMPEG first, then PATH."""
+    override = os.environ.get("STICKFIGHT_FFMPEG")
+    if override:
+        if os.path.isfile(override):
+            return override
+        raise FFmpegNotFoundError(f"STICKFIGHT_FFMPEG is set to '{override}' but that file does not exist.")
+    found = shutil.which("ffmpeg")
+    if found:
+        return found
+    raise FFmpegNotFoundError(
+        "FFmpeg was not found on your PATH, so videos cannot be encoded.\n"
+        "  Install it (e.g. `sudo apt install ffmpeg`, `brew install ffmpeg`, or https://ffmpeg.org/download.html)\n"
+        "  or point STICKFIGHT_FFMPEG at the executable."
+    )
+
+
 class VideoExporter:
     """Encodes rendered frames and synchronized audio into MP4 using FFmpeg pipe."""
     def __init__(self, output_path: str, width: int = 1080, height: int = 1920, fps: int = 30, audio_path: Optional[str] = None):
@@ -564,13 +587,15 @@ class VideoExporter:
         self.fps = fps
         self.audio_path = audio_path
         self.process: Optional[subprocess.Popen] = None
+        self._stderr_chunks: List[bytes] = []
+        self._stderr_thread: Optional[threading.Thread] = None
 
         os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
 
     def start(self):
         cmd = [
-            "ffmpeg",
-            "-y",
+            find_ffmpeg(),
+            "-y", "-hide_banner", "-loglevel", "error", "-nostats",
             "-f", "rawvideo",
             "-vcodec", "rawvideo",
             "-s", f"{self.width}x{self.height}",
@@ -596,19 +621,50 @@ class VideoExporter:
         ])
 
         self.process = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
+        # Drain stderr continuously: if nobody reads it, a full pipe buffer
+        # blocks FFmpeg, which then stops reading frames -> render deadlocks.
+        self._stderr_thread = threading.Thread(target=self._drain_stderr, daemon=True)
+        self._stderr_thread.start()
+
+    def _drain_stderr(self):
+        stream = self.process.stderr if self.process else None
+        if stream is None:
+            return
+        for chunk in iter(lambda: stream.read(4096), b""):
+            self._stderr_chunks.append(chunk)
+
+    def _stderr_text(self) -> str:
+        if self._stderr_thread:
+            self._stderr_thread.join(timeout=5)
+        return b"".join(self._stderr_chunks).decode("utf-8", errors="ignore").strip()
 
     def write_frame(self, surface: pygame.Surface):
-        if self.process and self.process.stdin:
-            frame_bytes = pygame.image.tobytes(surface, "RGB")
+        if not (self.process and self.process.stdin):
+            return
+        frame_bytes = pygame.image.tobytes(surface, "RGB")
+        try:
             self.process.stdin.write(frame_bytes)
+        except (BrokenPipeError, OSError):
+            # FFmpeg exited early (bad codec, disk full, ...): report why.
+            self.process.wait()
+            raise RuntimeError(f"FFmpeg stopped accepting frames (exit code {self.process.returncode}):\n{self._stderr_text()}")
 
     def finish(self) -> int:
-        if self.process:
-            if self.process.stdin:
+        if not self.process:
+            return -1
+        if self.process.stdin:
+            try:
                 self.process.stdin.close()
-            stderr_out = self.process.stderr.read() if self.process.stderr else b""
-            ret = self.process.wait()
-            if ret != 0:
-                print(f"[FFmpeg Error]: {stderr_out.decode('utf-8', errors='ignore')}")
-            return ret
-        return -1
+            except (BrokenPipeError, OSError):
+                pass
+        ret = self.process.wait()
+        err = self._stderr_text()
+        if ret != 0:
+            print(f"[FFmpeg Error]: {err}")
+        return ret
+
+    def abort(self):
+        """Stops the encoder without waiting for it (used when rendering fails)."""
+        if self.process and self.process.poll() is None:
+            self.process.kill()
+            self.process.wait()
