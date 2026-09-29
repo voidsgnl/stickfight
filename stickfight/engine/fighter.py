@@ -370,6 +370,29 @@ class Fighter:
                     (tx, ty), bend_sign,
                 )
 
+    def set_grapple_targets(self, other: "Fighter", mode: str = "takedown"):
+        """Create world-space contact targets for close-range grappling."""
+        if other is None:
+            return
+        target = other.get_hurtbox()
+        self.weapon_ik_targets.clear()
+        bend = 1.0 if self.facing >= 0 else -1.0
+        if mode == "clinch":
+            chest = target.body_center
+            self.ik_target = ("right_hand", (chest[0] - self.facing * 12.0, chest[1] - 28.0), bend)
+            self.weapon_ik_targets["left_hand"] = ((chest[0] - self.facing * 12.0, chest[1] + 18.0), bend)
+        else:
+            hips = target.body_center
+            grip = (hips[0] - self.facing * 18.0, hips[1] + 38.0)
+            self.ik_target = ("right_hand", grip, bend)
+            self.weapon_ik_targets["left_hand"] = ((grip[0], grip[1] + 28.0), bend)
+
+    def apply_grapple_reaction(self, attacker: "Fighter", mode: str = "takedown"):
+        """Orient and pose a defender in response to a close-range grapple."""
+        dx = attacker.x - self.x
+        self.facing = 1 if dx >= 0 else -1
+        self.set_animation("fall" if mode == "takedown" else "hit", loop=False)
+
     def aim_attack_at(self, other: "Fighter"):
         """Aim the active striking hand at the opponent's head using IK."""
         hurtbox = other.get_hurtbox()
