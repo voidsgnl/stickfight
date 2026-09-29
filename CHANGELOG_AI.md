@@ -1,3 +1,21 @@
+## 2026-09-29 — Initial Story Animation Timeline Workspace
+
+### What I implemented
+- Added a dedicated Story Animation Studio workspace below the existing editor instead of replacing the legacy fight controls.
+- Added a reusable character/asset panel with support for adding additional character instances and selecting visual families including anime and cartoon.
+- Added a frame-based timeline ruler with playhead, character tracks, camera/events tracks, event blocks, FPS and duration controls.
+- Added timeline scrubbing, basic playback, reset, and keyframe insertion.
+- The workspace mirrors the existing legacy timeline state for compatibility, so current fight presets and rendering continue to work while the new editor is developed.
+- Kept the Studio state isolated in `window.__storyStudio`; it does not rewrite the existing Fighter, physics, collision, or combat code.
+
+### Stability rule
+The new timeline is an additive migration layer. Future editor features should move functionality from the legacy controls into the Studio model incrementally, with the old path retained until the replacement has equivalent behavior and validation.
+
+### Status
+- Implemented on `story-animation-studio-foundation`.
+- Browser interaction/render verification has not yet been executed here.
+- Next step: connect timeline selection/keyframes to actual character transforms and scene playback, then add asset editing and multi-character preview.
+
 ## 2026-09-29 — Modular Story Animation Studio Foundation
 
 ### What I implemented
