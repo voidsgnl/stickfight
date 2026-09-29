@@ -8,6 +8,7 @@ import os
 import sys
 import time
 from typing import List, Dict, Optional, Tuple, Any, Union
+from dataclasses import dataclass
 import pygame
 
 from stickfight.engine.fighter import Fighter
@@ -20,6 +21,32 @@ from stickfight.engine.collision import check_hit, Hitbox
 from stickfight.engine.combat_events import CombatImpactEvent
 from stickfight.engine.skeleton import BodyProportions
 from stickfight.scripting.actions import Action, HitAction, KnockbackAction, ParallelAction, CameraAction
+
+@dataclass(frozen=True)
+class ImpactProfile:
+    sound: str
+    shake_intensity: float
+    shake_duration: float
+    heavy: bool
+    effect_heavy: bool
+    knockback_multiplier: float
+    sound_pitch: float = 1.0
+    sound_gain: float = 1.0
+
+IMPACT_PROFILES: Dict[str, ImpactProfile] = {
+    "punch": ImpactProfile("punch", 9.0, 0.20, False, False, 1.0, 1.02, 0.96),
+    "jab": ImpactProfile("punch", 7.0, 0.16, False, False, 0.80, 1.08, 0.90),
+    "cross": ImpactProfile("punch", 10.0, 0.22, False, False, 1.10, 0.96, 0.98),
+    "hook": ImpactProfile("punch", 11.0, 0.24, False, True, 1.15, 0.94, 1.00),
+    "kick": ImpactProfile("kick", 15.0, 0.28, True, True, 1.45, 0.92, 1.00),
+    "low_kick": ImpactProfile("kick", 12.0, 0.24, False, True, 1.20, 0.98, 0.98),
+    "uppercut": ImpactProfile("punch", 14.0, 0.27, True, True, 1.35, 0.90, 1.00),
+    "sweep": ImpactProfile("kick", 13.0, 0.25, True, True, 1.30, 0.95, 0.98),
+    "clinch_knee": ImpactProfile("kick", 14.0, 0.26, True, True, 1.30, 0.90, 1.00),
+    "takedown": ImpactProfile("kick", 16.0, 0.30, True, True, 1.55, 0.88, 1.00),
+    "ground_pound": ImpactProfile("kick", 18.0, 0.34, True, True, 1.70, 0.82, 1.00),
+    "slash": ImpactProfile("blade_slice", 13.0, 0.25, True, True, 1.25, 1.00, 0.96),
+}
 
 
 class FightScene:
@@ -153,17 +180,32 @@ class FightScene:
     def _on_combat_impact(self, event: CombatImpactEvent):
         """Drive audio, visual effects, camera response, and hit reaction from one impact event."""
         defender = event.defender
-        is_heavy = event.damage >= 20.0
+        profile = IMPACT_PROFILES.get(
+            event.attack_type,
+            ImpactProfile("punch", 9.0, 0.20, False, False, 1.0),
+        )
         if event.blocked:
             self.effects.trigger_hit_effect(event.x, event.y, is_blocked=True, is_heavy=False)
             self.audio.schedule_sound(self.current_time, "block")
             self.camera.shake(intensity=6.0, duration=0.15)
             return
 
-        sound_name = "kick" if event.attack_type in ("kick", "low_kick") else "punch"
-        self.audio.schedule_sound(self.current_time, sound_name)
-        self.effects.trigger_hit_effect(event.x, event.y, is_blocked=False, is_heavy=is_heavy)
-        self.camera.shake(intensity=14.0 if is_heavy else 9.0, duration=0.25)
+        self.audio.schedule_sound(
+            self.current_time,
+            profile.sound,
+            pitch=profile.sound_pitch,
+            gain=profile.sound_gain,
+        )
+        self.effects.trigger_hit_effect(
+            event.x,
+            event.y,
+            is_blocked=False,
+            is_heavy=profile.effect_heavy,
+        )
+        self.camera.shake(
+            intensity=profile.shake_intensity,
+            duration=profile.shake_duration,
+        )
 
         if defender is None:
             return
@@ -177,7 +219,10 @@ class FightScene:
         if is_heavy:
             defender.state = "knockback"
             defender.set_animation("knockback", loop=False)
-            defender.apply_impulse(hitbox.knockback_x, hitbox.knockback_y)
+            defender.apply_impulse(
+                hitbox.knockback_x * profile.knockback_multiplier,
+                hitbox.knockback_y * profile.knockback_multiplier,
+            )
         else:
             defender.state = "hit"
             defender.set_animation("hit", loop=False)
