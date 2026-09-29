@@ -87,6 +87,7 @@
 - Added regression coverage for the grounded phase.
 
 - Added attacker follow-through: the attacker lowers their hips, bends the knees, and refreshes both hand contact targets against the defender's live grounded pelvis.
+- Added persistent grounded combat transition after takedown settlement, enabling grounded follow-up actions instead of returning directly to standing.
 - Added regression coverage for attacker contact preservation.
 
 ## Next
