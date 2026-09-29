@@ -40,3 +40,16 @@ def test_takedown_reaches_ground_settlement_phase():
     pose = defender.current_pose
     assert pose.get("pelvis")[1] > 40.0
     assert pose.get("chest")[1] > -10.0
+
+
+def test_takedown_attacker_follow_through_crouches_and_tracks_contact():
+    attacker = Fighter("A", x=500, y=1500)
+    defender = Fighter("B", x=580, y=1500)
+
+    attacker.set_grapple_targets(defender, mode="takedown")
+    attacker.set_animation("takedown", loop=False)
+    attacker.update_animation(0.45)
+
+    assert attacker.current_pose.get("pelvis")[1] > 0.0
+    assert "right_hand" in attacker.weapon_ik_targets
+    assert attacker.ik_target is not None
