@@ -242,6 +242,8 @@ class Fighter:
         self.root_dy: float = 0.0
         self.combat_events = CombatEventBus()
         self._impact_event_key: Optional[tuple] = None
+        self._previous_clip_name: str = self.active_clip.name
+        self._previous_clip_time: float = self.clip_time
 
     def sync_from_physics(self):
         """Copies the simulated world position into the fighter."""
@@ -282,6 +284,9 @@ class Fighter:
         if self.animation_player.play(clip_name, loop=loop, blend=blend):
             self.active_clip = self.animation_player.active_clip
             self.clip_time = self.animation_player.clip_time
+            self._previous_clip_name = self.active_clip.name
+            self._previous_clip_time = self.clip_time
+            self._impact_event_key = None
 
     def set_state(
         self,
@@ -303,7 +308,11 @@ class Fighter:
     def update_animation(self, dt: float):
         """Advance animation playback and apply the current rig proportions."""
         self.animation_state.update(dt)
+        previous_clip = self.active_clip
+        previous_time = self.clip_time
         pose, rdx, rdy = self.animation_player.update(dt)
+        self._previous_clip_name = previous_clip.name
+        self._previous_clip_time = previous_time
         self.active_clip = self.animation_player.active_clip
         self.clip_time = self.animation_player.clip_time
         # Apply this fighter's archetype rig scaling on top of the shared
@@ -375,6 +384,24 @@ class Fighter:
         timing = self.attack_timing
         return timing is not None and timing.is_impact_frame(self.clip_time, self.active_clip.duration, tolerance=tolerance)
 
+    def consume_attack_impact(self) -> bool:
+        """Consume the authored impact once when playback crosses its marker."""
+        timing = self.attack_timing
+        if timing is None or self._previous_clip_name != self.active_clip.name:
+            return False
+        crossed = timing.crossed_impact(
+            self._previous_clip_time,
+            self.clip_time,
+            self.active_clip.duration,
+        )
+        if not crossed:
+            return False
+        key = (self.active_clip.name, timing.impact)
+        if self._impact_event_key == key:
+            return False
+        self._impact_event_key = key
+        return True
+
     def emit_impact(
         self,
         defender: Optional[Fighter] = None,
@@ -382,13 +409,9 @@ class Fighter:
         blocked: bool = False,
     ) -> bool:
         """Emit the current animation's impact marker at most once per clip."""
-        if not self.is_attack_impact():
+        if not self.consume_attack_impact():
             return False
-        key = (self.active_clip.name, self.animation_player.clip_time)
-        if self._impact_event_key is not None:
-            clip_name, previous_time = self._impact_event_key
-            if clip_name == key[0] and abs(previous_time - key[1]) < 0.05:
-                return False
+        key = self._impact_event_key
         joints = self.get_world_joints()
         hand = joints.get("right_hand", (self.x, self.y - 120.0))
         event = CombatImpactEvent(
