@@ -2131,7 +2131,22 @@
     S.instances[0].name=S.assets[0].name; S.instances[1].name=S.assets[1].name;
     S.tracks = (st.timeline||[]).map((e,i)=>({id:"legacy-"+i,name:(e.actor||"scene")+" · "+(e.action||"event"),kind:"event",start:Math.round((Number(e.time)||0)*S.fps),duration:Math.max(1,Math.round((Number(e.duration)||.5)*S.fps)),event:e}));
   }
-  function renderStudioStage(){const stage=$("studioStage");if(!stage)return;const rect=stage.getBoundingClientRect(),w=rect.width||600,h=rect.height||420;stage.innerHTML=S.instances.filter(i=>i.visible!==false).map((i,idx)=>{const x=Math.max(20,Math.min(w-20,w/2+(Number(i.x)||0))),y=Math.max(100,Math.min(h-20,h-80-(Number(i.y)||0))),rot=Number(i.rotation)||0,scale=Number(i.scale)||1,asset=S.assets.find(a=>a.id===i.asset)||S.assets[idx%S.assets.length]||{};return '<div class="studio-char '+(i.id===S.selected?'selected':'')+'" style="left:'+x+'px;top:'+y+'px;transform:translate(-50%,-100%) rotate('+rot+'deg) scale('+scale+')"><div class="studio-stick"><div class="studio-head"></div><div class="studio-body"></div><span class="studio-limb studio-arm-l"></span><span class="studio-limb studio-arm-r"></span><span class="studio-limb studio-leg-l"></span><span class="studio-limb studio-leg-r"></span></div><div class="studio-label">'+esc(i.name)+' · '+esc(asset.style||'classic')+'</div></div>';}).join('')}
+  function renderStudioStage(){
+    const stage=$("studioStage");if(!stage)return;
+    const rect=stage.getBoundingClientRect(),w=rect.width||600,h=rect.height||420;
+    const palette={classic:"#e9eef5",ink_fight:"#111111",bold:"#7de7ff",silhouette:"#d9e0ea",anime:"#f4a261",cartoon:"#ffd166",custom:"#c084fc"};
+    stage.innerHTML=S.instances.filter(i=>i.visible!==false).map((i,idx)=>{
+      const x=Math.max(50,Math.min(w-50,w/2+(Number(i.x)||0))),y=Math.max(120,Math.min(h-25,h-70-(Number(i.y)||0))),rot=Number(i.rotation)||0,scale=Number(i.scale)||1;
+      const asset=S.assets.find(a=>a.id===i.asset)||S.assets[idx%S.assets.length]||{},style=asset.style||"classic",c=palette[style]||palette.custom;
+      const dark=style==="ink_fight"?"#050505":"#151a22";
+      const head=style==="anime"?'<path d="M-17-10 Q0-30 17-10 L13 12 Q0 25 -13 12Z" fill="'+c+'" stroke="'+dark+'" stroke-width="5"/><path d="M-18-9 Q0-36 20-8 Q4-23 -17-4Z" fill="'+dark+'"/><circle cx="-6" cy="1" r="2.5" fill="#fff"/><circle cx="6" cy="1" r="2.5" fill="#fff"/>':style==="cartoon"?'<circle cy="0" r="20" fill="'+c+'" stroke="'+dark+'" stroke-width="5"/><circle cx="-7" cy="-2" r="4" fill="#fff"/><circle cx="7" cy="-2" r="4" fill="#fff"/><path d="M-8 8 Q0 15 8 8" fill="none" stroke="'+dark+'" stroke-width="3"/>':'<circle cy="0" r="18" fill="'+c+'" stroke="'+dark+'" stroke-width="5"/><circle cx="'+(i.id===S.selected?7:6)+'" cy="-2" r="3" fill="#fff"/>';
+      const torso=style==="cartoon"?'<path d="M-22 24 Q0 14 22 24 L18 75 Q0 87 -18 75Z" fill="'+c+'" stroke="'+dark+'" stroke-width="6"/>':style==="anime"?'<path d="M-18 20 L18 20 L24 72 L0 84 L-24 72Z" fill="'+c+'" stroke="'+dark+'" stroke-width="5"/>':'<path d="M-18 20 L18 20 L22 76 L0 84 L-22 76Z" fill="'+c+'" stroke="'+dark+'" stroke-width="5"/>';
+      const limbs='<path d="M-14 31 L-48 56 L-65 87 M14 31 L48 55 L68 82 M-12 74 L-25 112 L-31 145 M12 74 L27 111 L34 145" fill="none" stroke="'+dark+'" stroke-width="'+(style==="ink_fight"?10:12)+'" stroke-linecap="round" stroke-linejoin="round"/><circle cx="-65" cy="87" r="8" fill="'+c+'" stroke="'+dark+'" stroke-width="4"/><circle cx="68" cy="82" r="8" fill="'+c+'" stroke="'+dark+'" stroke-width="4"/><path d="M-38 145 L-58 148 M34 145 L55 148" stroke="'+dark+'" stroke-width="7" stroke-linecap="round"/>';
+      const badge=style==="anime"||style==="cartoon"?'<path d="M-21 54 Q0 64 21 54" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="3"/>':"";
+      return '<div class="studio-char '+(i.id===S.selected?'selected':'')+'" style="left:'+x+'px;top:'+y+'px;transform:translate(-50%,-100%) rotate('+rot+'deg) scale('+scale+')"><svg width="150" height="175" viewBox="-75 -35 150 190" aria-label="'+esc(i.name)+'">'+head+torso+limbs+badge+'</svg><div class="studio-label">'+esc(i.name)+' · '+esc(style)+'</div></div>';
+    }).join("");
+  }
+
   function render(){
     syncLegacy();
     const scale=Math.max(1,S.frames/180), width=Math.max(600,S.frames*4);
