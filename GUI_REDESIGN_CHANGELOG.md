@@ -1,6 +1,9 @@
 # GUI Redesign Change Log — 2026-09-29
 
 ## Completed
+- Added the Phase 2 combat animation state machine with validated transitions and state-to-clip mapping.
+- Integrated the state machine into Fighter while retaining AnimationPlayer for playback/blending.
+- Added state-machine tests for valid/invalid transitions, timing, and recovery.
 - Started the animation-engine upgrade: added a dedicated AnimationPlayer runtime for clip playback, completion tracking, and cross-fade transitions.
 - Routed Fighter animation playback through AnimationPlayer while preserving the existing Fighter/choreography API.
 - Added animation-player tests for playback, completion, and cross-fade behavior.
@@ -19,6 +22,8 @@
 - Added this changelog so the design work is recorded as requested.
 
 ## Next
+- Add attack timing markers: anticipation, active/contact, follow-through, and recovery.
+- Connect combat timing markers to hitbox activation and impact events.
 - Build the animation state machine on top of AnimationPlayer.
 - Add attack timing markers for anticipation, active/contact, follow-through, and recovery.
 - Add resize handles to timeline blocks for duration editing.
