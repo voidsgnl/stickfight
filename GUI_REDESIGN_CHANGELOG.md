@@ -100,3 +100,5 @@
 - Add real camera/effects/audio event types and corresponding engine hooks.
 - Replace CSS character thumbnails with actual renderer thumbnails.
 - Add multi-scene project management.
+
+- Added explicit ground-control modes: `mount` and `guard`, with distinct attacker deformation and linked bottom positions; added `GroundControlAction` for choreography chaining.
