@@ -62,6 +62,11 @@
 ## Completed
 - Restored the missing `WalkToAction` class declaration in the choreography action module so `RunToAction` has a valid base class.
 
+## Completed
+- Added procedural grounded-foot IK so planted feet conform to the physics ground plane during animation.
+- Airborne fighters bypass foot planting, preserving jump/fall/knockback poses.
+- Added regression coverage for grounded and airborne foot behavior.
+
 ## Next
 - Add richer per-attack effect/audio profiles so each attack type can author its own impact presentation.
 - Add resize handles to timeline blocks for duration editing.
