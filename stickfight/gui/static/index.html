@@ -847,7 +847,7 @@
     @media (max-width:900px){.studio-workspace{height:auto;min-height:0;display:flex;flex-direction:column}.canvas-column{order:1;min-height:820px}.left-sidebar{order:2;border-right:0;border-top:1px solid #20252d}.right-sidebar{order:3;border-left:0;border-top:1px solid #20252d}.studio-header{position:relative}.brand-subtitle{display:none}}
 
   
-  #studioStage{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:3}#studioStage .studio-char{position:absolute;transform-origin:center bottom;min-width:30px;text-align:center}#studioStage .studio-stick{width:44px;height:92px;margin:auto;position:relative}#studioStage .studio-head{width:20px;height:20px;border:3px solid currentColor;border-radius:50%;margin:0 auto 3px}#studioStage .studio-body{width:4px;height:38px;background:currentColor;margin:auto;border-radius:3px}#studioStage .studio-limb{position:absolute;height:3px;background:currentColor;border-radius:3px;transform-origin:left center}.studio-arm-l{width:24px;left:5px;top:34px;transform:rotate(145deg)}.studio-arm-r{width:24px;right:5px;top:34px;transform-origin:right center;transform:rotate(35deg)}.studio-leg-l{width:30px;left:5px;top:72px;transform:rotate(112deg)}.studio-leg-r{width:30px;right:5px;top:72px;transform-origin:right center;transform:rotate(68deg)}#studioStage .studio-label{font-size:10px;font-weight:800;white-space:nowrap;margin-top:3px;text-shadow:0 1px 3px #000}#studioStage .selected{filter:drop-shadow(0 0 8px rgba(0,229,255,.9))}
+  #studioStage{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:3}#studioStage .studio-real-frame{width:100%;height:100%;object-fit:contain;display:block}#studioStage .studio-char{position:absolute;transform-origin:center bottom;min-width:30px;text-align:center}#studioStage .studio-stick{width:44px;height:92px;margin:auto;position:relative}#studioStage .studio-head{width:20px;height:20px;border:3px solid currentColor;border-radius:50%;margin:0 auto 3px}#studioStage .studio-body{width:4px;height:38px;background:currentColor;margin:auto;border-radius:3px}#studioStage .studio-limb{position:absolute;height:3px;background:currentColor;border-radius:3px;transform-origin:left center}.studio-arm-l{width:24px;left:5px;top:34px;transform:rotate(145deg)}.studio-arm-r{width:24px;right:5px;top:34px;transform-origin:right center;transform:rotate(35deg)}.studio-leg-l{width:30px;left:5px;top:72px;transform:rotate(112deg)}.studio-leg-r{width:30px;right:5px;top:72px;transform-origin:right center;transform:rotate(68deg)}#studioStage .studio-label{font-size:10px;font-weight:800;white-space:nowrap;margin-top:3px;text-shadow:0 1px 3px #000}#studioStage .selected{filter:drop-shadow(0 0 8px rgba(0,229,255,.9))}
 </style>
 </head>
 <body>
@@ -2111,8 +2111,8 @@
   const S = window.__storyStudio = {
     fps:30, frames:180, cursor:0, playing:false, timer:null,
     assets: [
-      {id:"asset-a",name:"Fighter A",style:"classic"},
-      {id:"asset-b",name:"Fighter B",style:"classic"}
+      {id:"asset-a",name:"Fighter A",style:"classic",archetype:"ninja",color:"#2d3038",weapon:"none",archetype:"classic",color:"#e63946",weapon:"none"},
+      {id:"asset-b",name:"Fighter B",style:"classic",archetype:"warrior",color:"#e6ebf5",weapon:"none"}
     ],
     instances: [
       {id:"char-a",asset:"asset-a",name:"Fighter A",track:true},
@@ -2131,20 +2131,23 @@
     S.instances[0].name=S.assets[0].name; S.instances[1].name=S.assets[1].name;
     S.tracks = (st.timeline||[]).map((e,i)=>({id:"legacy-"+i,name:(e.actor||"scene")+" · "+(e.action||"event"),kind:"event",start:Math.round((Number(e.time)||0)*S.fps),duration:Math.max(1,Math.round((Number(e.duration)||.5)*S.fps)),event:e}));
   }
-  function renderStudioStage(){
+  let studioFrameRequest=0;
+  async function renderStudioStage(){
     const stage=$("studioStage");if(!stage)return;
-    const rect=stage.getBoundingClientRect(),w=rect.width||600,h=rect.height||420;
-    const palette={classic:"#e9eef5",ink_fight:"#111111",bold:"#7de7ff",silhouette:"#d9e0ea",anime:"#f4a261",cartoon:"#ffd166",custom:"#c084fc"};
-    stage.innerHTML=S.instances.filter(i=>i.visible!==false).map((i,idx)=>{
-      const x=Math.max(50,Math.min(w-50,w/2+(Number(i.x)||0))),y=Math.max(120,Math.min(h-25,h-70-(Number(i.y)||0))),rot=Number(i.rotation)||0,scale=Number(i.scale)||1;
-      const asset=S.assets.find(a=>a.id===i.asset)||S.assets[idx%S.assets.length]||{},style=asset.style||"classic",c=palette[style]||palette.custom;
-      const dark=style==="ink_fight"?"#050505":"#151a22";
-      const head=style==="anime"?'<path d="M-17-10 Q0-30 17-10 L13 12 Q0 25 -13 12Z" fill="'+c+'" stroke="'+dark+'" stroke-width="5"/><path d="M-18-9 Q0-36 20-8 Q4-23 -17-4Z" fill="'+dark+'"/><circle cx="-6" cy="1" r="2.5" fill="#fff"/><circle cx="6" cy="1" r="2.5" fill="#fff"/>':style==="cartoon"?'<circle cy="0" r="20" fill="'+c+'" stroke="'+dark+'" stroke-width="5"/><circle cx="-7" cy="-2" r="4" fill="#fff"/><circle cx="7" cy="-2" r="4" fill="#fff"/><path d="M-8 8 Q0 15 8 8" fill="none" stroke="'+dark+'" stroke-width="3"/>':'<circle cy="0" r="18" fill="'+c+'" stroke="'+dark+'" stroke-width="5"/><circle cx="'+(i.id===S.selected?7:6)+'" cy="-2" r="3" fill="#fff"/>';
-      const torso=style==="cartoon"?'<path d="M-22 24 Q0 14 22 24 L18 75 Q0 87 -18 75Z" fill="'+c+'" stroke="'+dark+'" stroke-width="6"/>':style==="anime"?'<path d="M-18 20 L18 20 L24 72 L0 84 L-24 72Z" fill="'+c+'" stroke="'+dark+'" stroke-width="5"/>':'<path d="M-18 20 L18 20 L22 76 L0 84 L-22 76Z" fill="'+c+'" stroke="'+dark+'" stroke-width="5"/>';
-      const limbs='<path d="M-14 31 L-48 56 L-65 87 M14 31 L48 55 L68 82 M-12 74 L-25 112 L-31 145 M12 74 L27 111 L34 145" fill="none" stroke="'+dark+'" stroke-width="'+(style==="ink_fight"?10:12)+'" stroke-linecap="round" stroke-linejoin="round"/><circle cx="-65" cy="87" r="8" fill="'+c+'" stroke="'+dark+'" stroke-width="4"/><circle cx="68" cy="82" r="8" fill="'+c+'" stroke="'+dark+'" stroke-width="4"/><path d="M-38 145 L-58 148 M34 145 L55 148" stroke="'+dark+'" stroke-width="7" stroke-linecap="round"/>';
-      const badge=style==="anime"||style==="cartoon"?'<path d="M-21 54 Q0 64 21 54" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="3"/>':"";
-      return '<div class="studio-char '+(i.id===S.selected?'selected':'')+'" style="left:'+x+'px;top:'+y+'px;transform:translate(-50%,-100%) rotate('+rot+'deg) scale('+scale+')"><svg width="150" height="175" viewBox="-75 -35 150 190" aria-label="'+esc(i.name)+'">'+head+torso+limbs+badge+'</svg><div class="studio-label">'+esc(i.name)+' · '+esc(style)+'</div></div>';
-    }).join("");
+    const request=++studioFrameRequest;
+    const chars=S.instances.filter(i=>i.visible!==false).map((i,idx)=>{
+      const a=S.assets.find(x=>x.id===i.asset)||{};
+      return {id:i.id,name:i.name,x:Number(i.x)||0,y:Number(i.y)||0,rotation:Number(i.rotation)||0,scale:Number(i.scale)||1,
+        facing:idx%2===0?1:-1,archetype:a.archetype||"classic",style:a.style||"classic",color:a.color||"#2d3038",headband_color:a.headband_color||null,weapon:a.weapon||"none"};
+    });
+    try{
+      const res=await fetch("/api/studio/frame",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({characters:chars,environment:"dojo"})});
+      if(!res.ok)return;
+      const blob=await res.blob(); if(request!==studioFrameRequest)return;
+      const url=URL.createObjectURL(blob);
+      stage.innerHTML='<img class="studio-real-frame" alt="Fight animation frame">';
+      const img=stage.querySelector("img"); img.src=url; setTimeout(()=>URL.revokeObjectURL(url),1500);
+    }catch(e){console.warn("Studio fight frame preview unavailable",e);}
   }
 
   function render(){
