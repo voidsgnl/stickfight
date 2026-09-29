@@ -38,3 +38,17 @@ def test_fighter_only_emits_impact_at_marker():
     assert fighter.emit_impact(damage=15.0) is False
     assert len(events) == 1
     assert events[0].attack_type == "punch"
+
+
+def test_impact_event_crossing_survives_large_frame_step():
+    fighter = Fighter("A", x=400, y=1500)
+    fighter.set_animation("punch", loop=False)
+
+    # Jump from before the marker to after it. The event must still be
+    # consumable even though playback did not land inside the old tolerance.
+    fighter.update_animation(0.10)
+    assert fighter.consume_attack_impact() is False
+
+    fighter.update_animation(0.15)
+    assert fighter.consume_attack_impact() is True
+    assert fighter.consume_attack_impact() is False
