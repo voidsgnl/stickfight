@@ -112,3 +112,5 @@
 - Ground escape now uses the shared ground-control relationship, creating space and transitioning mount pressure toward guard before optional release.
 
 - Added shared guard interaction actions for defensive framing, shrimp movement, sweeps/reversals, and stand-up release.
+
+- Added dedicated grounded combat animation clips for frame, shrimp, sweep, and stand actions and wired them into guard interaction playback.
