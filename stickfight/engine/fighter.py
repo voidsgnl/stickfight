@@ -6,6 +6,7 @@ from __future__ import annotations
 from typing import Dict, Tuple, Optional, List
 import math
 
+from stickfight.engine.ik import apply_two_bone_ik
 from stickfight.engine.skeleton import (
     Pose,
     make_idle_pose,
@@ -330,8 +331,35 @@ class Fighter:
         # Apply this fighter's archetype rig scaling on top of the shared
         # canonical pose so every clip renders on the correct body type.
         self.current_pose = apply_proportions(pose, self.proportions)
+        self._apply_ik_target()
         self.root_dx = rdx
         self.root_dy = rdy
+
+    def set_ik_target(self, joint: str, target_world: Tuple[float, float], bend_sign: float = 1.0):
+        """Set a world-space hand/foot target for the current pose."""
+        self.ik_target = (joint, target_world, bend_sign)
+
+    def clear_ik_target(self):
+        self.ik_target = None
+
+    def _apply_ik_target(self):
+        if self.ik_target is None:
+            return
+        joint, target_world, bend_sign = self.ik_target
+        pelvis_world_x = self.x + self.root_dx * self.facing
+        pelvis_world_y = self.y - 140.0 * self.scale + self.root_dy
+        tx = (target_world[0] - pelvis_world_x) / max(1e-6, self.scale)
+        ty = (target_world[1] - pelvis_world_y) / max(1e-6, self.scale)
+        if self.facing < 0:
+            tx = -tx
+        if joint == "right_hand":
+            self.current_pose = apply_two_bone_ik(
+                self.current_pose, "right_shoulder", "right_elbow", "right_hand", (tx, ty), bend_sign
+            )
+        elif joint == "left_hand":
+            self.current_pose = apply_two_bone_ik(
+                self.current_pose, "left_shoulder", "left_elbow", "left_hand", (tx, ty), bend_sign
+            )
 
     def face_target(self, target_x: float):
         """Orient facing toward target coordinate."""
