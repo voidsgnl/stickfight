@@ -3,16 +3,19 @@
 ## Completed
 - Reworked the Stick Fight Studio interface into a professional three-pane animation workspace.
 - Added character inspector panels for Fighter A and Fighter B.
-- Added a dedicated Visual Style selector: ink_fight, bold, classic, silhouette, segmented, tech.
+- Added Visual Style selection: ink_fight, bold, classic, silhouette, segmented, tech.
 - Made ink_fight the default GUI art direction.
-- Added a central viewport toolbar, transport controls, viewport metadata, and timeline workspace.
-- Kept the existing procedural generation, choreography timeline, presets, preview, render progress, and MP4 download flow.
+- Added central viewport toolbar, transport controls, viewport metadata, and production render controls.
+- Upgraded the choreography timeline from a plain event list into a visual multi-track sequencer with Fighter A, Fighter B, Camera, Effects, and Audio lanes.
+- Timeline actions now render as duration blocks positioned on a time ruler.
+- Timeline blocks can be dragged horizontally to change their start time.
+- Preserved the existing procedural generation, choreography, preview, render progress, and MP4 export flow.
 - Wired visual_style through stickfight/gui/app.py for preview, timeline rendering, and procedural rendering.
 - Fixed the choreography duration-control hook.
-- Updated the GUI document title.
+- Added this changelog so the design work is recorded as requested.
 
 ## Next
-- Turn the event list into draggable visual timeline blocks/keyframes.
-- Add camera, effects, and audio tracks.
+- Add resize handles to timeline blocks for duration editing.
+- Add real camera/effects/audio event types and corresponding engine hooks.
 - Replace CSS character thumbnails with actual renderer thumbnails.
 - Add multi-scene project management.
