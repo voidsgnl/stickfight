@@ -78,6 +78,11 @@
 - Defender orientation and fall response now react to the attacker's actual position.
 - Added regression tests for clinch hand contacts and takedown defender response.
 
+## Completed
+- Added progressive takedown deformation driven by the live attacker position.
+- Defender torso, head, hips, and knees now react through the takedown instead of only switching to a canned fall pose.
+- Added explicit grappling-state cleanup and regression tests.
+
 ## Next
 - Add richer per-attack effect/audio profiles so each attack type can author its own impact presentation.
 - Add resize handles to timeline blocks for duration editing.
