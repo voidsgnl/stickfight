@@ -1075,6 +1075,13 @@ class GroundGuardAction(Action):
         self.fighter.physics.vy = 0.0
         self.fighter.physics.is_grounded = True
         self.fighter.set_state("grounded", blend=0.08)
+        clip = {
+            "frame": "ground_frame",
+            "shrimp": "ground_shrimp",
+            "sweep": "ground_sweep",
+            "stand": "ground_stand",
+        }[self.mode]
+        self.fighter.set_state("grounded", clip_name=clip, blend=0.08)
 
     def update(self, scene: FightScene, local_t: float, dt: float):
         self.fighter.update_animation(dt)
