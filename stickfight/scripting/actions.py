@@ -64,6 +64,7 @@ class Action:
 
     def on_finish(self, scene: FightScene):
         self.fighter.x = self.target_x
+        self.fighter.clear_ik_target()
         self.fighter.set_animation("idle")
 
 
@@ -101,6 +102,7 @@ class PunchAction(Action):
                     scene.resolve_attack(self.fighter, self.defender, hitbox)
 
     def on_finish(self, scene: FightScene):
+        self.fighter.clear_ik_target()
         self.fighter.set_state("idle")
 
 
@@ -132,6 +134,7 @@ class KickAction(Action):
                     scene.resolve_attack(self.fighter, self.defender, hitbox)
 
     def on_finish(self, scene: FightScene):
+        self.fighter.clear_ik_target()
         self.fighter.set_state("idle")
 
 
@@ -149,6 +152,7 @@ class BlockAction(Action):
 
     def on_finish(self, scene: FightScene):
         self.fighter.state = "idle"
+        self.fighter.clear_ik_target()
         self.fighter.set_animation("idle")
 
 
@@ -167,6 +171,7 @@ class DodgeAction(Action):
 
     def on_finish(self, scene: FightScene):
         self.fighter.state = "idle"
+        self.fighter.clear_ik_target()
         self.fighter.set_animation("idle")
 
 
@@ -184,6 +189,7 @@ class HitAction(Action):
 
     def on_finish(self, scene: FightScene):
         self.fighter.state = "idle"
+        self.fighter.clear_ik_target()
         self.fighter.set_animation("idle")
 
 
@@ -214,6 +220,7 @@ class KnockbackAction(Action):
 
     def on_finish(self, scene: FightScene):
         self.fighter.state = "idle"
+        self.fighter.clear_ik_target()
         self.fighter.set_animation("idle")
 
 
@@ -272,6 +279,7 @@ class JumpAction(Action):
         # Do not snap an airborne fighter back to the floor when the animation
         # clip ends; physics owns the landing position.
         self.fighter.state = "idle" if self.fighter.physics.is_grounded else "jumping"
+        self.fighter.clear_ik_target()
         self.fighter.set_animation("idle")
         if self.fighter.physics.is_grounded:
             scene.effects.trigger_dust_puff(self.fighter.x, self.fighter.y, count=8)
@@ -306,6 +314,7 @@ class CounterAction(Action):
 
     def on_finish(self, scene: FightScene):
         self.fighter.state = "idle"
+        self.fighter.clear_ik_target()
         self.fighter.set_animation("idle")
 
 
@@ -363,6 +372,7 @@ class UppercutAction(Action):
                 scene.effects.trigger_dust_puff(self.fighter.x, self.fighter.y, count=12)
 
     def on_finish(self, scene: FightScene):
+        self.fighter.clear_ik_target()
         self.fighter.set_state("idle")
 
 
@@ -398,6 +408,7 @@ class SweepAction(Action):
                 scene.camera.shake(intensity=9.0, duration=0.2)
 
     def on_finish(self, scene: FightScene):
+        self.fighter.clear_ik_target()
         self.fighter.set_state("idle")
 
 
@@ -452,6 +463,7 @@ class SlashAction(Action):
                     scene.resolve_attack(self.fighter, self.defender, hitbox)
 
     def on_finish(self, scene: FightScene):
+        self.fighter.clear_ik_target()
         self.fighter.set_state("idle")
 
 
@@ -482,6 +494,7 @@ class StaffStrikeAction(Action):
                 scene.resolve_attack(self.fighter, self.defender, hitbox)
 
     def on_finish(self, scene: FightScene):
+        self.fighter.clear_ik_target()
         self.fighter.set_animation("idle")
 
 
@@ -527,6 +540,7 @@ class ComboAction(Action):
     def on_finish(self, scene: FightScene):
         if self.current_idx < len(self.actions):
             self.actions[self.current_idx].on_finish(scene)
+        self.fighter.clear_ik_target()
         self.fighter.set_animation("idle")
 
 
@@ -641,6 +655,7 @@ class JabAction(Action):
 
     def on_finish(self, scene: FightScene):
         self.fighter.state = "idle"
+        self.fighter.clear_ik_target()
         self.fighter.set_state("idle")
 
 
@@ -674,6 +689,7 @@ class CrossAction(Action):
 
     def on_finish(self, scene: FightScene):
         self.fighter.state = "idle"
+        self.fighter.clear_ik_target()
         self.fighter.set_state("idle")
 
 
@@ -707,6 +723,7 @@ class HookAction(Action):
 
     def on_finish(self, scene: FightScene):
         self.fighter.state = "idle"
+        self.fighter.clear_ik_target()
         self.fighter.set_state("idle")
 
 
@@ -759,6 +776,7 @@ class LowKickAction(Action):
 
     def on_finish(self, scene: FightScene):
         self.fighter.state = "idle"
+        self.fighter.clear_ik_target()
         self.fighter.set_state("idle")
 
 
@@ -777,6 +795,7 @@ class CheckKickAction(Action):
 
     def on_finish(self, scene: FightScene):
         self.fighter.state = "idle"
+        self.fighter.clear_ik_target()
         self.fighter.set_animation("idle")
 
 
@@ -799,6 +818,7 @@ class SlipAction(Action):
 
     def on_finish(self, scene: FightScene):
         self.fighter.state = "idle"
+        self.fighter.clear_ik_target()
         self.fighter.set_animation("idle")
 
 
@@ -817,6 +837,7 @@ class BobWeaveAction(Action):
 
     def on_finish(self, scene: FightScene):
         self.fighter.state = "idle"
+        self.fighter.clear_ik_target()
         self.fighter.set_animation("idle")
 
 
@@ -850,6 +871,7 @@ class ClinchKneeAction(Action):
 
     def on_finish(self, scene: FightScene):
         self.fighter.state = "idle"
+        self.fighter.clear_ik_target()
         self.fighter.set_state("idle")
 
 
@@ -905,6 +927,7 @@ class TakedownAction(Action):
 
     def on_finish(self, scene: FightScene):
         self.fighter.state = "idle"
+        self.fighter.clear_ik_target()
         self.fighter.set_state("idle")
 
 
@@ -946,6 +969,7 @@ class GroundPoundAction(Action):
 
     def on_finish(self, scene: FightScene):
         self.fighter.state = "idle"
+        self.fighter.clear_ik_target()
         self.fighter.set_state("idle")
 
 
@@ -967,4 +991,5 @@ class StaggerAction(Action):
 
     def on_finish(self, scene: FightScene):
         self.fighter.state = "idle"
+        self.fighter.clear_ik_target()
         self.fighter.set_animation("idle")
