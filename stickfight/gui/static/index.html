@@ -772,375 +772,350 @@
     input:checked + .slider-toggle:before {
       transform: translateX(16px);
     }
+   
+    /* Professional studio layer */
+    body { background: #07090c; background-image: radial-gradient(circle at 50% -10%, rgba(0,229,255,.055), transparent 38%), linear-gradient(180deg,#07090c 0%,#090b0f 100%); }
+    .studio-header { height: 64px; padding: 0 20px; background: rgba(8,10,14,.96); border-bottom: 1px solid #20252d; display:flex; align-items:center; justify-content:space-between; gap:20px; position:sticky; top:0; z-index:100; }
+    .studio-brand { display:flex; align-items:center; gap:11px; min-width:240px; }
+    .brand-mark { width:32px; height:32px; display:grid; place-items:center; border:1px solid #2a323d; border-radius:8px; color:#fff; font-size:18px; background:linear-gradient(145deg,#171c24,#0b0e13); box-shadow:0 0 18px rgba(0,229,255,.08); }
+    .brand-title { font-size:15px; font-weight:900; letter-spacing:1.3px; color:#f4f7fb; }
+    .brand-title span { color:#00d2ff; }
+    .brand-subtitle { font-size:8px; color:#66717e; letter-spacing:1.5px; margin-top:2px; }
+    .studio-nav { display:flex; align-self:stretch; align-items:center; gap:4px; }
+    .nav-btn { height:100%; padding:0 14px; background:transparent; border:0; border-bottom:2px solid transparent; color:#6f7986; font-size:10px; font-weight:800; letter-spacing:.9px; cursor:pointer; }
+    .nav-btn.active,.nav-btn:hover { color:#eef2f6; border-bottom-color:#00d2ff; }
+    .header-actions { display:flex; gap:7px; min-width:240px; justify-content:flex-end; }
+    .header-btn,.small-action { border:1px solid #29313b; background:#11151b; color:#aeb7c2; border-radius:6px; padding:7px 10px; font-size:9px; font-weight:800; letter-spacing:.7px; cursor:pointer; }
+    .header-btn:hover,.small-action:hover { border-color:#45515f; color:#fff; }
+    .header-btn.accent { color:#00d2ff; border-color:rgba(0,210,255,.28); background:rgba(0,210,255,.06); }
+    .studio-workspace { max-width:none; width:100%; height:calc(100vh - 64px); min-height:760px; display:grid; grid-template-columns:290px minmax(520px,1fr) 290px; gap:0; padding:0; }
+    .sidebar { background:#0b0e13; overflow:auto; border-color:#20252d; scrollbar-width:thin; }
+    .left-sidebar { border-right:1px solid #20252d; }
+    .right-sidebar { border-left:1px solid #20252d; }
+    .inspector-section { padding:17px 15px; border-bottom:1px solid #1d222a; }
+    .section-heading { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:15px; }
+    .section-heading.compact { margin-bottom:12px; }
+    .section-heading h2 { font-size:14px; color:#edf1f5; letter-spacing:.2px; margin-top:3px; }
+    .eyebrow { color:#56616e; font-size:8px; font-weight:900; letter-spacing:1.5px; }
+    .fighter-dot { width:7px; height:7px; border-radius:50%; margin-top:5px; box-shadow:0 0 10px currentColor; }
+    .fighter-dot-a { background:#ff3d67; color:#ff3d67; }.fighter-dot-b { background:#00d2ff; color:#00d2ff; }
+    .fighter-identity { display:grid; grid-template-columns:58px 1fr; gap:10px; align-items:center; margin-bottom:16px; }
+    .mini-fighter { width:58px; height:68px; background:#0f1319; border:1px solid #252c35; border-radius:7px; position:relative; overflow:hidden; }
+    .mini-fighter:before { content:""; position:absolute; width:12px; height:12px; border:3px solid #dfe6ee; border-radius:50%; left:20px; top:10px; }
+    .mini-fighter:after { content:""; position:absolute; width:3px; height:30px; background:#dfe6ee; left:27px; top:25px; transform:rotate(2deg); box-shadow:-13px 9px 0 -1px #dfe6ee,13px 9px 0 -1px #dfe6ee,-9px 35px 0 -1px #dfe6ee,9px 35px 0 -1px #dfe6ee; }
+    .mini-a:before,.mini-a:after { border-color:#ff3d67; background:#ff3d67; }.mini-b:before,.mini-b:after { border-color:#00d2ff; background:#00d2ff; }
+    .mini-a:after,.mini-b:after { background:transparent; }
+    .identity-fields .form-input { width:100%; }
+    .control-block { margin-top:14px; }
+    .form-label { color:#687481; font-size:8px; font-weight:900; letter-spacing:1.2px; }
+    .form-input { background:#0f1318; border:1px solid #242b34; color:#e9eef4; border-radius:6px; padding:8px 9px; font-size:11px; }
+    .form-input:focus { border-color:#00d2ff; box-shadow:0 0 0 2px rgba(0,210,255,.08); }
+    .studio-archetypes { grid-template-columns:repeat(3,1fr); gap:5px; margin-top:7px; }
+    .archetype-card { min-height:62px; padding:7px 3px; background:#0e1217; border:1px solid #222932; border-radius:6px; color:#7e8996; font-size:9px; font-weight:800; text-transform:uppercase; }
+    .archetype-card:hover { background:#131820; border-color:#394451; transform:none; }
+    .archetype-card.active { background:rgba(0,210,255,.07); border-color:rgba(0,210,255,.55); box-shadow:inset 0 0 0 1px rgba(0,210,255,.06); color:#f2f6fa; }
+    .panel-a .archetype-card.active { border-color:rgba(255,61,103,.55); background:rgba(255,61,103,.07); }
+    .character-glyph { width:25px; height:31px; display:block; position:relative; margin-bottom:4px; opacity:.85; }
+    .character-glyph:before { content:""; position:absolute; width:7px; height:7px; border:2px solid currentColor; border-radius:50%; left:8px; top:0; }
+    .character-glyph:after { content:""; position:absolute; width:2px; height:18px; background:currentColor; left:11px; top:11px; box-shadow:-8px 7px 0 -0.2px currentColor,8px 7px 0 -0.2px currentColor,-6px 25px 0 -0.2px currentColor,6px 25px 0 -0.2px currentColor; }
+    .ninja-glyph { color:#ff3d67; transform:skewX(-4deg); }.warrior-glyph{color:#d8dee7}.monk-glyph{color:#ffb700}.cyber-glyph{color:#00d2ff}.brawler-glyph{color:#ff8a3d}.classic-glyph{color:#87919e}
+    .pills { display:flex; gap:4px; margin-top:7px; }.settings-grid { display:grid; grid-template-columns:1fr 1fr; }
+    .pill-btn { padding:7px 6px; background:#0f1318; border:1px solid #242b34; color:#727e8a; border-radius:5px; font-size:9px; font-weight:800; }
+    .pill-btn.active { color:#f1f5f8; border-color:#4a5663; background:#181d24; }
+    .color-row { margin-top:7px; }.swatches{gap:5px}.swatch{width:18px;height:18px;border:1px solid #313a45}
+    .slider-row { color:#687481; font-size:9px; font-weight:800; letter-spacing:.8px; }.slider-row strong{color:#dfe5eb;font-size:9px}.slider{margin-top:7px;accent-color:#00d2ff}
+    .visual-section { background:#0a0d12; }.style-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}.style-card{min-height:78px;padding:8px;background:#0e1217;border:1px solid #222932;border-radius:6px;color:#78838f;text-align:left;cursor:pointer}.style-card.active{border-color:#00d2ff;background:rgba(0,210,255,.06);color:#edf2f7}.style-card b{display:block;font-size:9px}.style-card small{font-size:7px;color:#58636f}.style-sample{height:25px;width:100%;display:block;margin-bottom:6px;border-radius:4px;background:#080b0f;position:relative;overflow:hidden}.style-sample:before{content:"";position:absolute;left:38%;top:4px;width:8px;height:8px;border:2px solid #dfe6ec;border-radius:50%}.style-sample:after{content:"";position:absolute;left:49%;top:13px;width:3px;height:10px;background:#dfe6ec;box-shadow:-9px 5px 0 -0.3px #dfe6ec,9px 5px 0 -0.3px #dfe6ec}.ink-sample:after{height:11px;background:#f0eee7}.ink-sample:before{border-color:#f0eee7}.bold-sample:after{width:5px;background:#fff}.bold-sample:before{border-width:3px}.classic-sample:before,.classic-sample:after{opacity:.8}.silhouette-sample:before,.silhouette-sample:after{background:#111;border-color:#111}.segmented-sample:after{box-shadow:-9px 5px 0 -0.3px #00d2ff,9px 5px 0 -0.3px #00d2ff}.tech-sample:after{background:#00d2ff}.tech-sample:before{border-color:#00d2ff}
+    .canvas-column { min-width:0; background:#07090d; display:grid; grid-template-rows:42px minmax(380px,1fr) 42px minmax(220px,34vh); }
+    .workspace-toolbar,.transport-bar{display:flex;align-items:center;justify-content:space-between;padding:0 12px;background:#0b0e13;border-bottom:1px solid #20252d;color:#687481}.toolbar-group{display:flex;gap:4px;align-items:center}.toolbar-icon,.transport-btn{width:28px;height:26px;background:#11161d;border:1px solid #242c35;border-radius:5px;color:#aab3bd;cursor:pointer}.toolbar-icon:hover,.transport-btn:hover{color:#fff;border-color:#45515f}.transport-btn.primary{color:#00d2ff;border-color:rgba(0,210,255,.3)}
+    .viewport-meta{display:flex;align-items:center;gap:8px;font-family:monospace;font-size:10px;color:#c2cad3}.live-indicator{color:#00e676;font-weight:900;font-size:8px;letter-spacing:1px}.live-indicator i{display:inline-block;width:6px;height:6px;border-radius:50%;background:#00e676;box-shadow:0 0 8px #00e676;margin-right:4px}.meta-divider{color:#414a55}.resolution-chip{font-family:monospace;font-size:8px;padding:4px 6px;border:1px solid #252d36;border-radius:4px;color:#6e7a87}
+    .viewport-shell{position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#050608;box-shadow:inset 0 0 80px rgba(0,0,0,.7)}.viewport-grid{position:absolute;inset:0;opacity:.08;background-image:linear-gradient(#7d8792 1px,transparent 1px),linear-gradient(90deg,#7d8792 1px,transparent 1px);background-size:48px 48px;pointer-events:none}.viewport-shell #previewImg,.viewport-shell #videoPlayer{max-height:calc(100vh - 420px);max-width:88%;border-radius:3px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+    .preview-badge{top:10px;left:10px;background:rgba(7,10,14,.86);border:1px solid #26303a;color:#00d2ff;font-size:8px;letter-spacing:1px}.preview-badge.live-dot::before{background:#00d2ff;box-shadow:0 0 8px #00d2ff}
+    .transport-bar{border-top:1px solid #20252d;border-bottom:1px solid #20252d;gap:10px}.scrub-track{height:4px;background:#202731;flex:1;position:relative;border-radius:4px}.scrub-fill{display:block;width:0;height:100%;background:#00d2ff;border-radius:4px}.scrub-handle{position:absolute;left:0;top:-4px;width:12px;height:12px;border:2px solid #00d2ff;background:#080b0f;border-radius:50%}.timecode{font-family:monospace;font-size:9px;color:#7d8894;min-width:55px;text-align:right}
+    .timeline-editor{background:#090c11;border-top:1px solid #20252d;min-height:0;overflow:hidden}.timeline-head{height:40px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;border-bottom:1px solid #1c222a}.timeline-tabs{display:flex;height:100%;gap:15px}.timeline-tab{background:transparent;border:0;border-bottom:2px solid transparent;color:#66727f;font-size:9px;font-weight:900;letter-spacing:1px;cursor:pointer}.timeline-tab.active{color:#edf2f6;border-bottom-color:#00d2ff}.timeline-actions{display:flex;gap:5px}.small-action.danger{color:#c46a76}
+    .timeline-container{display:none;padding:9px 12px;background:#090c11;border:0;width:100%;gap:7px}.timeline-header{font-size:9px;color:#aeb7c1;display:flex;justify-content:space-between}.timeline-header b{color:#00d2ff;margin-left:4px}.timeline-hint{color:#4f5b67;font-size:8px}.timeline-quick-actions{padding:5px;background:#0d1117;border:1px solid #1d242d;display:flex;gap:4px;overflow:auto}.quick-label{font-size:7px;color:#596572;font-weight:900;align-self:center;margin-right:3px}.action-chip{white-space:nowrap;padding:4px 6px;background:#12171e;border:1px solid #242c35;color:#89939e;border-radius:4px;font-size:7px}.action-chip:hover{color:#fff;background:#181e26;transform:none}
+    .timeline-ruler{display:flex;justify-content:space-between;padding:0 4px;color:#48535f;font:8px monospace}.timeline-tracks{max-height:92px;overflow:auto;display:flex;flex-direction:column;gap:4px}.timeline-event-row{padding:5px 7px;background:#0d1116;border:1px solid #1d242c;border-radius:4px;font-size:8px}.event-time-badge{min-width:36px;padding:2px 4px;font-size:8px}.event-actor-badge,.event-action-name{font-size:8px}.add-event-box{grid-template-columns:60px 95px 1fr 70px 28px;gap:4px;padding:5px;background:#0d1117;border:1px solid #1d242d}.add-btn-icon{height:28px;background:#00d2ff;color:#041015;font-size:15px}
+    .settings-section{border-bottom:1px solid #1d222a}.toggle-row{font-size:9px;color:#78838f}.toggle-switch{width:30px;height:16px}.slider-toggle:before{width:10px;height:10px}.render-card{margin:12px;background:linear-gradient(145deg,#10161d,#0c1016);border:1px solid #28323d;border-radius:8px;padding:14px;box-shadow:0 14px 35px rgba(0,0,0,.25)}.render-label{font-size:7px;font-weight:900;letter-spacing:1.3px;color:#5f6c79}.status-led{display:inline-block;width:5px;height:5px;border-radius:50%;background:#00e676;box-shadow:0 0 7px #00e676;margin-right:5px}.render-title{font-size:15px;font-weight:800;color:#f2f5f8;margin-top:8px}.render-meta{font-size:8px;color:#5e6975;margin:4px 0 12px;line-height:1.5}.btn-render{padding:11px 10px;border-radius:6px;background:#00d2ff;color:#041015;font-size:9px;letter-spacing:1px;box-shadow:0 7px 20px rgba(0,210,255,.18)}.btn-render:hover{background:#40e8ff;transform:none;box-shadow:0 9px 25px rgba(0,210,255,.28)}.btn-download{margin-top:6px;padding:9px;border-radius:6px;font-size:8px}.progress-box{padding:8px;margin-bottom:7px}.progress-bar-fill{background:#00d2ff}
+    @media (max-width:1200px){.studio-workspace{grid-template-columns:250px minmax(460px,1fr) 250px}.studio-nav{display:none}.header-actions{min-width:auto}.header-btn:first-child{display:none}}
+    @media (max-width:900px){.studio-workspace{height:auto;min-height:0;display:flex;flex-direction:column}.canvas-column{order:1;min-height:820px}.left-sidebar{order:2;border-right:0;border-top:1px solid #20252d}.right-sidebar{order:3;border-left:0;border-top:1px solid #20252d}.studio-header{position:relative}.brand-subtitle{display:none}}
+
   </style>
 </head>
 <body>
-
-  <header>
-    <div class="brand">
-      <span class="brand-icon">⚔️</span>
-      <span class="brand-title">STICK FIGHT STUDIO</span>
-      <span class="brand-tag">TIMELINE PRO</span>
+  <header class="studio-header">
+    <div class="studio-brand">
+      <div class="brand-mark">⚔</div>
+      <div>
+        <div class="brand-title">STICK FIGHT <span>STUDIO</span></div>
+        <div class="brand-subtitle">2D FIGHT ANIMATION WORKSPACE</div>
+      </div>
     </div>
-
-    <div class="presets-bar">
-      <button class="preset-btn" onclick="loadPreset('ninja_vs_samurai')">🗡️ Ninja vs Samurai</button>
-      <button class="preset-btn" onclick="loadPreset('cyborg_vs_ninja')">⚡ Cyber Clash</button>
-      <button class="preset-btn" onclick="loadPreset('brawler_vs_monk')">🥊 Street vs Shaolin</button>
-      <button class="preset-btn" onclick="loadPreset('realistic_boxing')">🥊 Boxing Title</button>
-      <button class="preset-btn" onclick="loadPreset('realistic_mma')">🥋 MMA Championship</button>
-      <button class="preset-btn" onclick="loadPreset('classic_showdown')">⚪ Classic Duel</button>
-      <button class="preset-btn random-btn" onclick="randomizeAll()">🎲 Randomize</button>
+    <nav class="studio-nav" aria-label="Studio navigation">
+      <button class="nav-btn active">PROJECT</button>
+      <button class="nav-btn">EDIT</button>
+      <button class="nav-btn">VIEW</button>
+      <button class="nav-btn">RENDER</button>
+    </nav>
+    <div class="header-actions">
+      <button class="header-btn" onclick="loadPreset('ninja_vs_samurai')">OPEN PRESET</button>
+      <button class="header-btn accent" onclick="randomizeAll()">RANDOM FIGHT</button>
     </div>
   </header>
 
-  <main>
-    <!-- LEFT PANEL: FIGHTER A -->
-    <div class="panel panel-a">
-      <div class="panel-header">
-        <span class="panel-title">
-          <span>🥋 Fighter A</span>
-          <span class="badge-fighter-a">Challenger 1</span>
-        </span>
-      </div>
+  <main class="studio-workspace">
+    <aside class="sidebar left-sidebar">
+      <section class="inspector-section fighter-section fighter-a-section">
+        <div class="section-heading">
+          <div>
+            <span class="eyebrow">CHARACTER 01</span>
+            <h2>Fighter A</h2>
+          </div>
+          <span class="fighter-dot fighter-dot-a"></span>
+        </div>
+        <div class="fighter-identity">
+          <div class="mini-fighter mini-a"><span></span></div>
+          <div class="identity-fields">
+            <label class="form-label">NAME</label>
+            <input type="text" id="fa_name" class="form-input" value="Shadow" oninput="schedulePreview()">
+          </div>
+        </div>
 
-      <div class="form-group">
-        <label class="form-label">Fighter Name</label>
-        <input type="text" id="fa_name" class="form-input" value="Shadow" oninput="schedulePreview()">
-      </div>
+        <div class="control-block">
+          <label class="form-label">CHARACTER ARCHETYPE</label>
+          <div class="archetype-grid studio-archetypes" id="fa_archetypes">
+            <div class="archetype-card active" data-type="ninja" onclick="selectArchetype('a','ninja')"><span class="character-glyph ninja-glyph"></span><span>Ninja</span></div>
+            <div class="archetype-card" data-type="warrior" onclick="selectArchetype('a','warrior')"><span class="character-glyph warrior-glyph"></span><span>Warrior</span></div>
+            <div class="archetype-card" data-type="monk" onclick="selectArchetype('a','monk')"><span class="character-glyph monk-glyph"></span><span>Monk</span></div>
+            <div class="archetype-card" data-type="cyber" onclick="selectArchetype('a','cyber')"><span class="character-glyph cyber-glyph"></span><span>Cyber</span></div>
+            <div class="archetype-card" data-type="brawler" onclick="selectArchetype('a','brawler')"><span class="character-glyph brawler-glyph"></span><span>Brawler</span></div>
+            <div class="archetype-card" data-type="classic" onclick="selectArchetype('a','classic')"><span class="character-glyph classic-glyph"></span><span>Classic</span></div>
+          </div>
+        </div>
 
-      <div class="form-group">
-        <label class="form-label">Character Design</label>
-        <div class="archetype-grid" id="fa_archetypes">
-          <div class="archetype-card active" data-type="ninja" onclick="selectArchetype('a', 'ninja')">
-            <span class="archetype-icon">🥷</span>
-            <span class="archetype-name">Ninja</span>
+        <div class="control-block">
+          <label class="form-label">WEAPON</label>
+          <div class="pills" id="fa_weapon">
+            <div class="pill-btn" data-val="none" onclick="selectWeapon('a','none')">Hands</div>
+            <div class="pill-btn active" data-val="sword" onclick="selectWeapon('a','sword')">Katana</div>
+            <div class="pill-btn" data-val="staff" onclick="selectWeapon('a','staff')">Staff</div>
           </div>
-          <div class="archetype-card" data-type="warrior" onclick="selectArchetype('a', 'warrior')">
-            <span class="archetype-icon">⚔️</span>
-            <span class="archetype-name">Warrior</span>
+        </div>
+
+        <div class="control-block">
+          <label class="form-label">COLOR</label>
+          <div class="color-row">
+            <input type="color" id="fa_color" class="color-picker" value="#2d3038" oninput="schedulePreview()">
+            <div class="swatches">
+              <div class="swatch" style="background:#2d3038" onclick="setFighterColor('a','#2d3038')"></div>
+              <div class="swatch" style="background:#e63946" onclick="setFighterColor('a','#e63946')"></div>
+              <div class="swatch" style="background:#00d2ff" onclick="setFighterColor('a','#00d2ff')"></div>
+              <div class="swatch" style="background:#f58c23" onclick="setFighterColor('a','#f58c23')"></div>
+              <div class="swatch" style="background:#f0f3f8" onclick="setFighterColor('a','#f0f3f8')"></div>
+            </div>
           </div>
-          <div class="archetype-card" data-type="monk" onclick="selectArchetype('a', 'monk')">
-            <span class="archetype-icon">🥢</span>
-            <span class="archetype-name">Monk</span>
-          </div>
-          <div class="archetype-card" data-type="cyber" onclick="selectArchetype('a', 'cyber')">
-            <span class="archetype-icon">🤖</span>
-            <span class="archetype-name">Cyber</span>
-          </div>
-          <div class="archetype-card" data-type="brawler" onclick="selectArchetype('a', 'brawler')">
-            <span class="archetype-icon">🥊</span>
-            <span class="archetype-name">Brawler</span>
-          </div>
-          <div class="archetype-card" data-type="classic" onclick="selectArchetype('a', 'classic')">
-            <span class="archetype-icon">⚪</span>
-            <span class="archetype-name">Classic</span>
-          </div>
+        </div>
+
+        <div class="control-block">
+          <div class="slider-row"><span>SCALE</span><strong id="fa_scale_lbl">1.0x</strong></div>
+          <input type="range" id="fa_scale" class="slider" min="0.8" max="1.3" step="0.05" value="1.0" oninput="updateLabel('fa_scale','fa_scale_lbl','x'); schedulePreview()">
+        </div>
+      </section>
+
+      <section class="inspector-section visual-section">
+        <div class="section-heading compact"><div><span class="eyebrow">ART DIRECTION</span><h2>Visual Style</h2></div></div>
+        <div class="style-grid" id="visual_style_selector">
+          <button class="style-card active" data-val="ink_fight" onclick="selectVisualStyle('ink_fight')"><span class="style-sample ink-sample"></span><b>Ink Fight</b><small>Black ink / comic</small></button>
+          <button class="style-card" data-val="bold" onclick="selectVisualStyle('bold')"><span class="style-sample bold-sample"></span><b>Bold</b><small>Heavy line</small></button>
+          <button class="style-card" data-val="classic" onclick="selectVisualStyle('classic')"><span class="style-sample classic-sample"></span><b>Classic</b><small>Clean skeleton</small></button>
+          <button class="style-card" data-val="silhouette" onclick="selectVisualStyle('silhouette')"><span class="style-sample silhouette-sample"></span><b>Silhouette</b><small>Solid shadow</small></button>
+          <button class="style-card" data-val="segmented" onclick="selectVisualStyle('segmented')"><span class="style-sample segmented-sample"></span><b>Segmented</b><small>Defined joints</small></button>
+          <button class="style-card" data-val="tech" onclick="selectVisualStyle('tech')"><span class="style-sample tech-sample"></span><b>Tech</b><small>Cybernetic</small></button>
+        </div>
+      </section>
+    </aside>
+
+    <section class="canvas-column">
+      <div class="workspace-toolbar">
+        <div class="toolbar-group">
+          <button class="toolbar-icon" title="Play/Pause">▶</button>
+          <button class="toolbar-icon" title="Step Back">‹</button>
+          <button class="toolbar-icon" title="Step Forward">›</button>
+        </div>
+        <div class="viewport-meta">
+          <span class="live-indicator"><i></i> LIVE</span>
+          <span id="viewportTime">00:00.00</span>
+          <span class="meta-divider">/</span>
+          <span id="viewportDuration">06.5s</span>
+        </div>
+        <div class="toolbar-group">
+          <span class="resolution-chip">9:16</span>
+          <span class="resolution-chip">1080×1920</span>
+          <button class="toolbar-icon">⛶</button>
         </div>
       </div>
 
-      <div class="form-group">
-        <label class="form-label">Equipped Weapon</label>
-        <div class="pills" id="fa_weapon">
-          <div class="pill-btn" data-val="none" onclick="selectWeapon('a', 'none')">Bare Hands</div>
-          <div class="pill-btn active" data-val="sword" onclick="selectWeapon('a', 'sword')">Katana</div>
-          <div class="pill-btn" data-val="staff" onclick="selectWeapon('a', 'staff')">Bo Staff</div>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Suit Color</label>
-        <div class="color-row">
-          <input type="color" id="fa_color" class="color-picker" value="#2d3038" oninput="schedulePreview()">
-          <div class="swatches">
-            <div class="swatch" style="background:#2d3038" onclick="setFighterColor('a', '#2d3038')"></div>
-            <div class="swatch" style="background:#e63946" onclick="setFighterColor('a', '#e63946')"></div>
-            <div class="swatch" style="background:#00d2ff" onclick="setFighterColor('a', '#00d2ff')"></div>
-            <div class="swatch" style="background:#f58c23" onclick="setFighterColor('a', '#f58c23')"></div>
-            <div class="swatch" style="background:#f0f3f8" onclick="setFighterColor('a', '#f0f3f8')"></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Headband / Ribbon Color</label>
-        <div class="color-row">
-          <input type="color" id="fa_headband" class="color-picker" value="#eb2d2d" oninput="schedulePreview()">
-          <div class="swatches">
-            <div class="swatch" style="background:#eb2d2d" onclick="setHeadbandColor('a', '#eb2d2d')"></div>
-            <div class="swatch" style="background:#ffb700" onclick="setHeadbandColor('a', '#ffb700')"></div>
-            <div class="swatch" style="background:#00e5ff" onclick="setHeadbandColor('a', '#00e5ff')"></div>
-            <div class="swatch" style="background:#ffffff" onclick="setHeadbandColor('a', '#ffffff')"></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <div class="slider-row">
-          <span>Scale Size</span>
-          <span id="fa_scale_lbl">1.0x</span>
-        </div>
-        <input type="range" id="fa_scale" class="slider" min="0.8" max="1.3" step="0.05" value="1.0" oninput="updateLabel('fa_scale', 'fa_scale_lbl', 'x'); schedulePreview()">
-      </div>
-    </div>
-
-    <!-- CENTER PANEL: LIVE VIEWPORT & CHOREOGRAPHY SEQUENCER -->
-    <div class="panel viewport-panel">
-      <!-- Mode Tabs: AI Generator vs Timeline Choreographer -->
-      <div class="mode-tabs">
-        <div class="mode-tab active" id="tabProcedural" onclick="switchChoreographyMode('procedural')">
-          ⚡ AI Fight Generator
-        </div>
-        <div class="mode-tab" id="tabTimeline" onclick="switchChoreographyMode('timeline')">
-          🎬 Visual Timeline Choreographer
-        </div>
-      </div>
-
-      <div class="viewport-wrapper">
-        <div class="preview-badge live-dot" id="previewBadge">LIVE PREVIEW</div>
+      <div class="viewport-shell">
+        <div class="viewport-grid"></div>
+        <div class="preview-badge live-dot" id="previewBadge">LIVE SNAPSHOT</div>
         <img id="previewImg" alt="Fight Preview" src="">
         <video id="videoPlayer" controls loop playsinline></video>
       </div>
 
-      <!-- VISUAL TIMELINE SEQUENCER CONTAINER -->
-      <div class="timeline-container" id="timelineContainer">
-        <div class="timeline-header">
-          <span>Choreographed Action Sequence (<span id="eventCount">0</span> actions)</span>
-          <div style="display: flex; gap: 6px;">
-            <button class="preset-btn" style="padding: 3px 8px; font-size: 11px;" onclick="loadPresetTimeline()">📋 Load Preset</button>
-            <button class="preset-btn" style="padding: 3px 8px; font-size: 11px; color: #ff5252;" onclick="clearTimeline()">🗑️ Clear</button>
+      <div class="transport-bar">
+        <button class="transport-btn">⏮</button>
+        <button class="transport-btn primary">▶</button>
+        <button class="transport-btn">⏭</button>
+        <div class="scrub-track"><span class="scrub-fill"></span><span class="scrub-handle"></span></div>
+        <span class="timecode">00:00.00</span>
+      </div>
+
+      <div class="timeline-editor">
+        <div class="timeline-head">
+          <div class="timeline-tabs">
+            <button class="timeline-tab active" id="tabProcedural" onclick="switchChoreographyMode('procedural')">PROCEDURAL</button>
+            <button class="timeline-tab" id="tabTimeline" onclick="switchChoreographyMode('timeline')">CHOREOGRAPHY</button>
+          </div>
+          <div class="timeline-actions">
+            <button class="small-action" onclick="loadPresetTimeline()">LOAD PRESET</button>
+            <button class="small-action danger" onclick="clearTimeline()">CLEAR</button>
           </div>
         </div>
 
-        <!-- Quick Action Add Chips -->
-        <div class="timeline-quick-actions">
-          <span style="font-size: 11px; font-weight: 700; color: var(--text-muted); align-self: center; margin-right: 4px;">Quick Add:</span>
-          <div class="action-chip" onclick="quickAddAction('A', 'jab')">🥊 A: Jab</div>
-          <div class="action-chip" onclick="quickAddAction('B', 'cross')">💥 B: Cross</div>
-          <div class="action-chip" onclick="quickAddAction('A', 'hook')">🥊 A: Hook</div>
-          <div class="action-chip" onclick="quickAddAction('B', 'slip')">💫 B: Slip</div>
-          <div class="action-chip" onclick="quickAddAction('A', 'bob_weave')">🛡️ A: Bob&Weave</div>
-          <div class="action-chip" onclick="quickAddAction('A', 'low_kick')">🦵 A: Low Kick</div>
-          <div class="action-chip" onclick="quickAddAction('B', 'check_kick')">🛡️ B: Check Kick</div>
-          <div class="action-chip" onclick="quickAddAction('A', 'clinch_knee')">🦵 A: Clinch Knee</div>
-          <div class="action-chip" onclick="quickAddAction('A', 'takedown')">🤼 A: Takedown</div>
-          <div class="action-chip" onclick="quickAddAction('A', 'ground_pound')">💥 A: Ground&Pound</div>
-          <div class="action-chip" onclick="quickAddAction('B', 'fall')">💀 B: Fall (KO)</div>
-          <div class="action-chip" onclick="quickAddAction('scene', 'caption')">💬 Caption</div>
+        <div class="timeline-container" id="timelineContainer">
+          <div class="timeline-header">
+            <span>ACTION TRACKS <b id="eventCount">0</b></span>
+            <span class="timeline-hint">Add actions to build the sequence</span>
+          </div>
+          <div class="timeline-quick-actions">
+            <span class="quick-label">QUICK ADD</span>
+            <div class="action-chip" onclick="quickAddAction('A','jab')">A · JAB</div>
+            <div class="action-chip" onclick="quickAddAction('B','cross')">B · CROSS</div>
+            <div class="action-chip" onclick="quickAddAction('A','hook')">A · HOOK</div>
+            <div class="action-chip" onclick="quickAddAction('B','slip')">B · SLIP</div>
+            <div class="action-chip" onclick="quickAddAction('A','low_kick')">A · LOW KICK</div>
+            <div class="action-chip" onclick="quickAddAction('A','takedown')">A · TAKEDOWN</div>
+            <div class="action-chip" onclick="quickAddAction('B','fall')">B · KO</div>
+            <div class="action-chip" onclick="quickAddAction('scene','caption')">SCENE · CAPTION</div>
+          </div>
+          <div class="timeline-ruler"><span>0s</span><span>1s</span><span>2s</span><span>3s</span><span>4s</span><span>5s</span><span>6s</span></div>
+          <div class="timeline-tracks" id="timelineTracks"></div>
+          <div class="add-event-box">
+            <input type="number" id="add_time" class="form-input" placeholder="TIME" value="1.0" step="0.1" min="0">
+            <select id="add_actor" class="form-input"><option value="A">FIGHTER A</option><option value="B">FIGHTER B</option><option value="scene">SCENE</option></select>
+            <select id="add_action" class="form-input">
+              <optgroup label="REALISTIC COMBAT">
+                <option value="jab">Lead Jab</option><option value="cross">Rear Cross</option><option value="hook">Hook Punch</option><option value="low_kick">Low Leg Kick</option><option value="check_kick">Shin Check Kick</option><option value="slip">Head Slip</option><option value="bob_weave">Bob & Weave</option><option value="clinch_knee">Clinch Knee</option><option value="takedown">Double-Leg Takedown</option><option value="ground_pound">Ground & Pound</option><option value="stagger">Heavy Stagger</option>
+              </optgroup>
+              <optgroup label="ARCADE / MARTIAL ARTS">
+                <option value="throw">Grappling Throw</option><option value="dive_kick">Aerial Dive Kick</option><option value="air_juggle">Air Juggle</option><option value="wall_bounce">Wall Bounce</option><option value="punch">Classic Punch</option><option value="kick">High Kick</option><option value="uppercut">Uppercut</option><option value="sweep">Sweep</option><option value="slash">Sword Slash</option><option value="staff_strike">Staff Strike</option><option value="block">Block / Parry</option><option value="dodge">Matrix Dodge</option><option value="jump">Jump / Flip</option><option value="knockback">Knockback</option><option value="fall">Fall / KO</option><option value="walk_to">Walk To Target</option><option value="caption">Screen Caption</option>
+              </optgroup>
+            </select>
+            <input type="number" id="add_dur" class="form-input" placeholder="DURATION" value="0.4" step="0.05" min="0.1">
+            <button class="add-btn-icon" onclick="addCustomAction()" title="Add action">+</button>
+          </div>
         </div>
-
-        <!-- Sequenced Events Track List -->
-        <div class="timeline-tracks" id="timelineTracks">
-          <!-- Dynamically populated -->
-        </div>
-
-        <!-- Add Custom Action Row -->
-        <div class="add-event-box">
-          <input type="number" id="add_time" class="form-input" style="padding: 5px;" placeholder="Time" value="1.0" step="0.1" min="0">
-          <select id="add_actor" class="form-input" style="padding: 4px;">
-            <option value="A">🔴 Fighter A</option>
-            <option value="B">🔵 Fighter B</option>
-            <option value="scene">🟡 Scene</option>
-          </select>
-          <select id="add_action" class="form-input" style="padding: 4px;">
-            <optgroup label="🥊 Realistic Combat">
-              <option value="jab">🥊 Lead Jab</option>
-              <option value="cross">💥 Rear Cross</option>
-              <option value="hook">🥊 Hook Punch</option>
-              <option value="low_kick">🦵 Low Leg Kick</option>
-              <option value="check_kick">🛡️ Shin Check Kick</option>
-              <option value="slip">💫 Head Slip</option>
-              <option value="bob_weave">🛡️ Bob & Weave</option>
-              <option value="clinch_knee">🦵 Clinch Knee Strike</option>
-              <option value="takedown">🤼 Double-Leg Takedown</option>
-              <option value="ground_pound">💥 Ground & Pound Strike</option>
-              <option value="stagger">😵 Heavy Stagger</option>
-            </optgroup>
-            <optgroup label="⚡ Arcade & Martial Arts">
-              <option value="throw">🤼 Grappling Throw / Slam</option>
-              <option value="dive_kick">🦅 Aerial Dive Kick</option>
-              <option value="air_juggle">🌪️ Air Juggle Strike</option>
-              <option value="wall_bounce">🧱 Wall Bounce</option>
-              <option value="punch">👊 Classic Punch</option>
-              <option value="kick">🦶 High Kick</option>
-              <option value="uppercut">💥 Uppercut</option>
-              <option value="sweep">🧹 Sweep</option>
-              <option value="slash">🗡️ Sword Slash</option>
-              <option value="staff_strike">🥢 Staff Strike</option>
-              <option value="block">🛡️ Block / Parry</option>
-              <option value="dodge">🌪️ Matrix Dodge</option>
-              <option value="jump">🤸 Jump / Flip</option>
-              <option value="knockback">💫 Knockback</option>
-              <option value="fall">💀 Fall Down (KO)</option>
-              <option value="walk_to">🏃 Walk To Target</option>
-              <option value="caption">💬 Screen Caption</option>
-            </optgroup>
-          </select>
-          <input type="number" id="add_dur" class="form-input" style="padding: 5px;" placeholder="Dur" value="0.4" step="0.05" min="0.1">
-          <button class="add-btn-icon" onclick="addCustomAction()" title="Add to Timeline">+</button>
-        </div>
-
       </div>
+    </section>
 
-      <!-- Action & Render Controls -->
-      <div class="render-section">
+    <aside class="sidebar right-sidebar">
+      <section class="inspector-section fighter-section fighter-b-section">
+        <div class="section-heading">
+          <div><span class="eyebrow">CHARACTER 02</span><h2>Fighter B</h2></div>
+          <span class="fighter-dot fighter-dot-b"></span>
+        </div>
+        <div class="fighter-identity">
+          <div class="mini-fighter mini-b"><span></span></div>
+          <div class="identity-fields">
+            <label class="form-label">NAME</label>
+            <input type="text" id="fb_name" class="form-input" value="Kensei" oninput="schedulePreview()">
+          </div>
+        </div>
+        <div class="control-block">
+          <label class="form-label">CHARACTER ARCHETYPE</label>
+          <div class="archetype-grid studio-archetypes" id="fb_archetypes">
+            <div class="archetype-card" data-type="ninja" onclick="selectArchetype('b','ninja')"><span class="character-glyph ninja-glyph"></span><span>Ninja</span></div>
+            <div class="archetype-card active" data-type="warrior" onclick="selectArchetype('b','warrior')"><span class="character-glyph warrior-glyph"></span><span>Warrior</span></div>
+            <div class="archetype-card" data-type="monk" onclick="selectArchetype('b','monk')"><span class="character-glyph monk-glyph"></span><span>Monk</span></div>
+            <div class="archetype-card" data-type="cyber" onclick="selectArchetype('b','cyber')"><span class="character-glyph cyber-glyph"></span><span>Cyber</span></div>
+            <div class="archetype-card" data-type="brawler" onclick="selectArchetype('b','brawler')"><span class="character-glyph brawler-glyph"></span><span>Brawler</span></div>
+            <div class="archetype-card" data-type="classic" onclick="selectArchetype('b','classic')"><span class="character-glyph classic-glyph"></span><span>Classic</span></div>
+          </div>
+        </div>
+        <div class="control-block">
+          <label class="form-label">WEAPON</label>
+          <div class="pills" id="fb_weapon">
+            <div class="pill-btn" data-val="none" onclick="selectWeapon('b','none')">Hands</div>
+            <div class="pill-btn active" data-val="sword" onclick="selectWeapon('b','sword')">Katana</div>
+            <div class="pill-btn" data-val="staff" onclick="selectWeapon('b','staff')">Staff</div>
+          </div>
+        </div>
+        <div class="control-block">
+          <label class="form-label">COLOR</label>
+          <div class="color-row">
+            <input type="color" id="fb_color" class="color-picker" value="#e6ebf5" oninput="schedulePreview()">
+            <div class="swatches">
+              <div class="swatch" style="background:#e6ebf5" onclick="setFighterColor('b','#e6ebf5')"></div>
+              <div class="swatch" style="background:#2d3038" onclick="setFighterColor('b','#2d3038')"></div>
+              <div class="swatch" style="background:#ffb700" onclick="setFighterColor('b','#ffb700')"></div>
+              <div class="swatch" style="background:#00d2ff" onclick="setFighterColor('b','#00d2ff')"></div>
+              <div class="swatch" style="background:#eb3c3c" onclick="setFighterColor('b','#eb3c3c')"></div>
+            </div>
+          </div>
+        </div>
+        <div class="control-block">
+          <div class="slider-row"><span>SCALE</span><strong id="fb_scale_lbl">1.0x</strong></div>
+          <input type="range" id="fb_scale" class="slider" min="0.8" max="1.3" step="0.05" value="1.0" oninput="updateLabel('fb_scale','fb_scale_lbl','x'); schedulePreview()">
+        </div>
+      </section>
+
+      <section class="inspector-section settings-section">
+        <div class="section-heading compact"><div><span class="eyebrow">SCENE SETTINGS</span><h2>Production</h2></div></div>
+        <div class="control-block">
+          <label class="form-label">COMBAT STYLE</label>
+          <div class="pills" id="style_selector">
+            <div class="pill-btn active" data-val="arcade" onclick="selectStyle('arcade')">Arcade</div>
+            <div class="pill-btn" data-val="realistic" onclick="selectStyle('realistic')">Realistic MMA</div>
+          </div>
+        </div>
+        <div class="control-block">
+          <label class="form-label">ENVIRONMENT</label>
+          <div class="pills settings-grid" id="env_selector">
+            <div class="pill-btn active" data-val="dojo" onclick="selectEnv('dojo')">Dojo</div>
+            <div class="pill-btn" data-val="cyberpunk" onclick="selectEnv('cyberpunk')">Cyber</div>
+            <div class="pill-btn" data-val="city" onclick="selectEnv('city')">City</div>
+            <div class="pill-btn" data-val="plain" onclick="selectEnv('plain')">Plain</div>
+          </div>
+        </div>
+        <div class="control-block">
+          <label class="form-label">OUTPUT</label>
+          <div class="pills settings-grid" id="format_selector">
+            <div class="pill-btn active" data-val="vertical" onclick="selectFormat('vertical')">9:16</div>
+            <div class="pill-btn" data-val="horizontal" onclick="selectFormat('horizontal')">16:9</div>
+            <div class="pill-btn" data-val="square" onclick="selectFormat('square')">1:1</div>
+          </div>
+        </div>
+        <div class="control-block">
+          <div class="slider-row"><span>DURATION</span><strong id="duration_lbl">6.5s</strong></div>
+          <input type="range" id="duration" class="slider" min="3.0" max="12.0" step="0.5" value="6.5" oninput="updateLabel('duration','duration_lbl','s')">
+        </div>
+        <div class="toggle-row"><span>FIGHT HUD</span><label class="toggle-switch"><input type="checkbox" id="show_ui" checked onchange="schedulePreview()"><span class="slider-toggle"></span></label></div>
+      </section>
+
+      <section class="render-card">
+        <div class="render-label"><span class="status-led"></span> READY TO RENDER</div>
+        <div class="render-title">Create your fight.</div>
+        <div class="render-meta">Procedural choreography or timeline-controlled action.</div>
         <div class="progress-box" id="progressBox">
-          <div class="progress-text">
-            <span id="progressStatus">Rendering frames...</span>
-            <span id="progressPct">0%</span>
-          </div>
-          <div class="progress-bar-bg">
-            <div class="progress-bar-fill" id="progressBarFill"></div>
-          </div>
-          <div class="progress-text" style="font-size: 11px;">
-            <span id="progressFrames">Frame 0 / 0</span>
-            <span id="progressFps">0.0 fps</span>
-          </div>
+          <div class="progress-text"><span id="progressStatus">Rendering frames...</span><span id="progressPct">0%</span></div>
+          <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressBarFill"></div></div>
+          <div class="progress-text"><span id="progressFrames">Frame 0 / 0</span><span id="progressFps">0.0 fps</span></div>
         </div>
-
-        <button class="btn-render" id="btnRender" onclick="startRender()">
-          <span>⚔️ GENERATE FIGHT VIDEO</span>
-        </button>
-
-        <a class="btn-download" id="btnDownload" href="#" download>
-          <span>⬇️ DOWNLOAD FINISHED MP4</span>
-        </a>
-      </div>
-    </div>
-
-    <!-- RIGHT PANEL: FIGHTER B & ARENA CONFIG -->
-    <div class="panel panel-b">
-      <div class="panel-header">
-        <span class="panel-title">
-          <span>🥋 Fighter B</span>
-          <span class="badge-fighter-b">Challenger 2</span>
-        </span>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Fighter Name</label>
-        <input type="text" id="fb_name" class="form-input" value="Kensei" oninput="schedulePreview()">
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Character Design</label>
-        <div class="archetype-grid" id="fb_archetypes">
-          <div class="archetype-card" data-type="ninja" onclick="selectArchetype('b', 'ninja')">
-            <span class="archetype-icon">🥷</span>
-            <span class="archetype-name">Ninja</span>
-          </div>
-          <div class="archetype-card active" data-type="warrior" onclick="selectArchetype('b', 'warrior')">
-            <span class="archetype-icon">⚔️</span>
-            <span class="archetype-name">Warrior</span>
-          </div>
-          <div class="archetype-card" data-type="monk" onclick="selectArchetype('b', 'monk')">
-            <span class="archetype-icon">🥢</span>
-            <span class="archetype-name">Monk</span>
-          </div>
-          <div class="archetype-card" data-type="cyber" onclick="selectArchetype('b', 'cyber')">
-            <span class="archetype-icon">🤖</span>
-            <span class="archetype-name">Cyber</span>
-          </div>
-          <div class="archetype-card" data-type="brawler" onclick="selectArchetype('b', 'brawler')">
-            <span class="archetype-icon">🥊</span>
-            <span class="archetype-name">Brawler</span>
-          </div>
-          <div class="archetype-card" data-type="classic" onclick="selectArchetype('b', 'classic')">
-            <span class="archetype-icon">⚪</span>
-            <span class="archetype-name">Classic</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Equipped Weapon</label>
-        <div class="pills" id="fb_weapon">
-          <div class="pill-btn" data-val="none" onclick="selectWeapon('b', 'none')">Bare Hands</div>
-          <div class="pill-btn active" data-val="sword" onclick="selectWeapon('b', 'sword')">Katana</div>
-          <div class="pill-btn" data-val="staff" onclick="selectWeapon('b', 'staff')">Bo Staff</div>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Suit Color</label>
-        <div class="color-row">
-          <input type="color" id="fb_color" class="color-picker" value="#e6ebf5" oninput="schedulePreview()">
-          <div class="swatches">
-            <div class="swatch" style="background:#e6ebf5" onclick="setFighterColor('b', '#e6ebf5')"></div>
-            <div class="swatch" style="background:#2d3038" onclick="setFighterColor('b', '#2d3038')"></div>
-            <div class="swatch" style="background:#ffb700" onclick="setFighterColor('b', '#ffb700')"></div>
-            <div class="swatch" style="background:#00d2ff" onclick="setFighterColor('b', '#00d2ff')"></div>
-            <div class="swatch" style="background:#eb3c3c" onclick="setFighterColor('b', '#eb3c3c')"></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Headband / Ribbon Color</label>
-        <div class="color-row">
-          <input type="color" id="fb_headband" class="color-picker" value="#ebbe2d" oninput="schedulePreview()">
-          <div class="swatches">
-            <div class="swatch" style="background:#ebbe2d" onclick="setHeadbandColor('b', '#ebbe2d')"></div>
-            <div class="swatch" style="background:#eb2d2d" onclick="setHeadbandColor('b', '#eb2d2d')"></div>
-            <div class="swatch" style="background:#00e5ff" onclick="setHeadbandColor('b', '#00e5ff')"></div>
-            <div class="swatch" style="background:#ffffff" onclick="setHeadbandColor('b', '#ffffff')"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ARENA & FORMAT SETTINGS -->
-      <div class="panel-header" style="margin-top: 10px;">
-        <span class="panel-title">
-          <span>🏟️ Combat & Video Settings</span>
-        </span>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Combat Style & Physics</label>
-        <div class="pills" id="style_selector">
-          <div class="pill-btn active" data-val="arcade" onclick="selectStyle('arcade')">⚡ Arcade / Anime</div>
-          <div class="pill-btn" data-val="realistic" onclick="selectStyle('realistic')">🥊 Realistic MMA</div>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Background Environment</label>
-        <div class="pills" id="env_selector">
-          <div class="pill-btn active" data-val="dojo" onclick="selectEnv('dojo')">⛩️ Dojo</div>
-          <div class="pill-btn" data-val="cyberpunk" onclick="selectEnv('cyberpunk')">⚡ Cyber</div>
-          <div class="pill-btn" data-val="city" onclick="selectEnv('city')">🏢 City</div>
-          <div class="pill-btn" data-val="plain" onclick="selectEnv('plain')">⬛ Plain</div>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Aspect Ratio</label>
-        <div class="pills" id="format_selector">
-          <div class="pill-btn active" data-val="vertical" onclick="selectFormat('vertical')">📱 9:16 (Shorts)</div>
-          <div class="pill-btn" data-val="horizontal" onclick="selectFormat('horizontal')">🖥️ 16:9</div>
-          <div class="pill-btn" data-val="square" onclick="selectFormat('square')">⏹️ 1:1</div>
-        </div>
-      </div>
-
-      <div class="form-group" id="durationGroup">
-        <div class="slider-row">
-          <span>Fight Duration</span>
-          <span id="duration_lbl">6.5s</span>
-        </div>
-        <input type="range" id="duration" class="slider" min="3.0" max="12.0" step="0.5" value="6.5" oninput="updateLabel('duration', 'duration_lbl', 's')">
-      </div>
-
-      <div class="toggle-row">
-        <span>Fighting Game UI Bars</span>
-        <label class="toggle-switch">
-          <input type="checkbox" id="show_ui" checked onchange="schedulePreview()">
-          <span class="slider-toggle"></span>
-        </label>
-      </div>
-    </div>
+        <button class="btn-render" id="btnRender" onclick="startRender()">GENERATE FIGHT VIDEO</button>
+        <a class="btn-download" id="btnDownload" href="#" download>DOWNLOAD MP4</a>
+      </section>
+    </aside>
   </main>
-
-  <script>
+</body>
+<script>
     let state = {
       mode: "procedural", // "procedural" | "timeline"
       style: "arcade",    // "arcade" | "realistic"
@@ -1377,6 +1352,15 @@
       schedulePreview();
     }
 
+ 
+    function selectVisualStyle(style) {
+      state.visual_style = style;
+      document.querySelectorAll('#visual_style_selector .style-card').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-val') === style);
+      });
+      schedulePreview();
+    }
+
     function selectStyle(style) {
       state.style = style;
       document.querySelectorAll('#style_selector .pill-btn').forEach(btn => {
@@ -1566,6 +1550,7 @@
 
         // Apply Style, Environment & Format
         selectStyle(p.style || 'arcade');
+        selectVisualStyle(p.visual_style || 'ink_fight');
         selectEnv(p.environment || 'dojo');
         selectFormat(p.format || 'vertical');
         if (p.duration) {
