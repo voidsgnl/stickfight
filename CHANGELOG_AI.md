@@ -156,3 +156,5 @@ B = scene.add_fighter("B", x=730, y=1500, render_style="ink_fight")
 - Added a final DOMContentLoaded rebinding pass that restores the recovery handlers after the main script has loaded, preventing inline controls from becoming inert when the large editor script overrides globals.
 - Exposed the recovery handlers through an internal binding registry and retained the working fighter-preview fallback.
 - Validation: source structure was inspected; live browser clicking was not available in this session.
+
+- Added recovery-safe implementations for OPEN PRESET and LOAD PRESET, so those controls also work if the editor script fails before defining its original versions.
