@@ -85,7 +85,7 @@ class PunchAction(Action):
         super().on_start(scene)
         if self.defender:
             self.fighter.face_fighter(self.defender)
-        self.fighter.set_animation("punch", loop=False)
+        self.fighter.set_state("attack", clip_name="punch")
         self.hit_registered = False
         scene.audio.schedule_sound(scene.current_time + 0.12, "whoosh")
 
@@ -102,7 +102,7 @@ class PunchAction(Action):
                     scene.resolve_attack(self.fighter, self.defender, hitbox)
 
     def on_finish(self, scene: FightScene):
-        self.fighter.set_animation("idle")
+        self.fighter.set_state("idle")
 
 
 class KickAction(Action):
@@ -116,7 +116,7 @@ class KickAction(Action):
         super().on_start(scene)
         if self.defender:
             self.fighter.face_fighter(self.defender)
-        self.fighter.set_animation("kick", loop=False)
+        self.fighter.set_state("attack", clip_name="kick")
         self.hit_registered = False
         scene.audio.schedule_sound(scene.current_time + 0.18, "whoosh")
 
@@ -132,7 +132,7 @@ class KickAction(Action):
                     scene.resolve_attack(self.fighter, self.defender, hitbox)
 
     def on_finish(self, scene: FightScene):
-        self.fighter.set_animation("idle")
+        self.fighter.set_state("idle")
 
 
 class BlockAction(Action):
@@ -338,7 +338,7 @@ class UppercutAction(Action):
         super().on_start(scene)
         if self.defender:
             self.fighter.face_fighter(self.defender)
-        self.fighter.set_animation("uppercut", loop=False)
+        self.fighter.set_state("attack", clip_name="uppercut")
         self.hit_registered = False
         scene.audio.schedule_sound(scene.current_time + 0.15, "whoosh")
 
@@ -356,7 +356,7 @@ class UppercutAction(Action):
                 scene.effects.trigger_dust_puff(self.fighter.x, self.fighter.y, count=12)
 
     def on_finish(self, scene: FightScene):
-        self.fighter.set_animation("idle")
+        self.fighter.set_state("idle")
 
 
 class SweepAction(Action):
@@ -371,7 +371,7 @@ class SweepAction(Action):
         super().on_start(scene)
         if self.defender:
             self.fighter.face_fighter(self.defender)
-        self.fighter.set_animation("sweep", loop=False)
+        self.fighter.set_state("attack", clip_name="sweep")
         self.hit_registered = False
         scene.audio.schedule_sound(scene.current_time + 0.12, "whoosh")
         scene.effects.trigger_dust_puff(self.fighter.x + 30 * self.fighter.facing, self.fighter.y, count=10)
@@ -390,7 +390,7 @@ class SweepAction(Action):
                 scene.camera.shake(intensity=9.0, duration=0.2)
 
     def on_finish(self, scene: FightScene):
-        self.fighter.set_animation("idle")
+        self.fighter.set_state("idle")
 
 
 class SlashAction(Action):
@@ -405,7 +405,7 @@ class SlashAction(Action):
         super().on_start(scene)
         if self.defender:
             self.fighter.face_fighter(self.defender)
-        self.fighter.set_animation("slash", loop=False)
+        self.fighter.set_state("attack", clip_name="slash")
         self.hit_registered = False
         scene.audio.schedule_sound(scene.current_time + 0.14, "blade_slice")
 
@@ -443,7 +443,7 @@ class SlashAction(Action):
                     scene.resolve_attack(self.fighter, self.defender, hitbox)
 
     def on_finish(self, scene: FightScene):
-        self.fighter.set_animation("idle")
+        self.fighter.set_state("idle")
 
 
 class StaffStrikeAction(Action):
@@ -614,7 +614,7 @@ class JabAction(Action):
         if self.defender:
             self.fighter.face_fighter(self.defender)
         self.fighter.state = "attacking"
-        self.fighter.set_animation("jab", loop=False)
+        self.fighter.set_state("attack", clip_name="jab")
         self.hit_registered = False
         scene.audio.schedule_sound(scene.current_time + 0.08, "whoosh")
 
@@ -630,7 +630,7 @@ class JabAction(Action):
 
     def on_finish(self, scene: FightScene):
         self.fighter.state = "idle"
-        self.fighter.set_animation("idle")
+        self.fighter.set_state("idle")
 
 
 class CrossAction(Action):
@@ -646,7 +646,7 @@ class CrossAction(Action):
         if self.defender:
             self.fighter.face_fighter(self.defender)
         self.fighter.state = "attacking"
-        self.fighter.set_animation("cross", loop=False)
+        self.fighter.set_state("attack", clip_name="cross")
         self.hit_registered = False
         scene.audio.schedule_sound(scene.current_time + 0.12, "whoosh")
 
@@ -662,7 +662,7 @@ class CrossAction(Action):
 
     def on_finish(self, scene: FightScene):
         self.fighter.state = "idle"
-        self.fighter.set_animation("idle")
+        self.fighter.set_state("idle")
 
 
 class HookAction(Action):
@@ -678,7 +678,7 @@ class HookAction(Action):
         if self.defender:
             self.fighter.face_fighter(self.defender)
         self.fighter.state = "attacking"
-        self.fighter.set_animation("hook", loop=False)
+        self.fighter.set_state("attack", clip_name="hook")
         self.hit_registered = False
         scene.audio.schedule_sound(scene.current_time + 0.12, "whoosh")
 
@@ -694,7 +694,7 @@ class HookAction(Action):
 
     def on_finish(self, scene: FightScene):
         self.fighter.state = "idle"
-        self.fighter.set_animation("idle")
+        self.fighter.set_state("idle")
 
 
 class LowKickAction(Action):
@@ -745,7 +745,7 @@ class LowKickAction(Action):
 
     def on_finish(self, scene: FightScene):
         self.fighter.state = "idle"
-        self.fighter.set_animation("idle")
+        self.fighter.set_state("idle")
 
 
 class CheckKickAction(Action):
@@ -835,7 +835,7 @@ class ClinchKneeAction(Action):
 
     def on_finish(self, scene: FightScene):
         self.fighter.state = "idle"
-        self.fighter.set_animation("idle")
+        self.fighter.set_state("idle")
 
 
 class TakedownAction(Action):
@@ -856,7 +856,7 @@ class TakedownAction(Action):
         if self.defender:
             self.fighter.face_fighter(self.defender)
         self.fighter.state = "attacking"
-        self.fighter.set_animation("takedown", loop=False)
+        self.fighter.set_state("attack", clip_name="takedown")
         self.hit_registered = False
         scene.audio.schedule_sound(scene.current_time + 0.20, "whoosh")
 
@@ -889,7 +889,7 @@ class TakedownAction(Action):
 
     def on_finish(self, scene: FightScene):
         self.fighter.state = "idle"
-        self.fighter.set_animation("idle")
+        self.fighter.set_state("idle")
 
 
 class GroundPoundAction(Action):
@@ -929,7 +929,7 @@ class GroundPoundAction(Action):
 
     def on_finish(self, scene: FightScene):
         self.fighter.state = "idle"
-        self.fighter.set_animation("idle")
+        self.fighter.set_state("idle")
 
 
 class StaggerAction(Action):
