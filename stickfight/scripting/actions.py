@@ -1002,6 +1002,9 @@ class GroundReversalAction(Action):
         progress = max(0.0, min(1.0, local_t / max(1e-5, self.duration)))
         if not self.reversed and progress >= 0.48:
             self.reversed = True
+            self.fighter.clear_ground_control()
+            if self.attacker:
+                self.attacker.clear_ground_control()
             if self.attacker:
                 # Create separation and rotate control without teleporting.
                 self.attacker.facing = -self.fighter.facing
@@ -1046,7 +1049,7 @@ class GroundPoundAction(Action):
             self.hit_registered = True
             d = self.defender
             if d and d.state == "grounded":
-                self.fighter.enter_ground_control(d, mode="top")
+                self.fighter.enter_ground_control(d, mode="mount")
                 d.health = max(0.0, d.health - self.damage)
                 impact_x = (self.fighter.x + d.x) / 2.0
                 impact_y = d.y - 60.0
