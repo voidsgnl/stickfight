@@ -119,3 +119,5 @@
 
 - Added a physically driven ground sweep: the bottom fighter now chambers, drives the opponent through bounded physics velocity/impulse, and only then transfers the shared ground-control roles.
 - Corrected the grounded guard contact-IK regression test to validate actual pose/contact changes rather than an unrelated persistent IK target field.
+
+- Fixed a syntax error in `stickfight/engine/combat_timing.py`: the `crossed_impact()` docstring was missing its closing triple quote, preventing the GUI from importing the engine.
