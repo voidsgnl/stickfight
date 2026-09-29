@@ -331,9 +331,9 @@ class Fighter:
         # Apply this fighter's archetype rig scaling on top of the shared
         # canonical pose so every clip renders on the correct body type.
         self.current_pose = apply_proportions(pose, self.proportions)
-        self._apply_ik_target()
         self.root_dx = rdx
         self.root_dy = rdy
+        self._apply_ik_target()
 
     def set_ik_target(self, joint: str, target_world: Tuple[float, float], bend_sign: float = 1.0):
         """Set a world-space hand/foot target for the current pose."""
