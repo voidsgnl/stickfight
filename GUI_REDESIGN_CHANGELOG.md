@@ -116,3 +116,6 @@
 - Added dedicated grounded combat animation clips for frame, shrimp, sweep, and stand actions and wired them into guard interaction playback.
 
 - Added procedural guard contact IK: top hands track the opponent's head/hip frame points and bottom legs track the top fighter's hips.
+
+- Added a physically driven ground sweep: the bottom fighter now chambers, drives the opponent through bounded physics velocity/impulse, and only then transfers the shared ground-control roles.
+- Corrected the grounded guard contact-IK regression test to validate actual pose/contact changes rather than an unrelated persistent IK target field.
