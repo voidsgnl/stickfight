@@ -65,6 +65,14 @@ class AttackTiming:
         p = self.progress(elapsed, duration)
         return abs(p - self.impact) <= max(0.0, tolerance)
 
+    def crossed_impact(self, previous_elapsed: float, elapsed: float, duration: float) -> bool:
+        """Return True when playback crosses the authored impact marker.
+        if duration <= 0.0:
+            return False
+        previous = self.progress(previous_elapsed, duration)
+        current = self.progress(elapsed, duration)
+        return previous < self.impact <= current
+
 
 # One timing definition per attack clip. Values are normalized so the same
 # choreography remains correct when an action overrides its duration.
