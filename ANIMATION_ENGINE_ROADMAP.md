@@ -303,3 +303,5 @@ while the engine automatically handles:
 - MP4 encoding
 
 The creator controls the fight; the engine controls the frame-by-frame execution.
+
+- [x] Implement shared ground escape flow with hip-space creation, mount-to-guard transition, and optional release to stand.
