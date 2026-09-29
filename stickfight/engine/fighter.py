@@ -498,6 +498,8 @@ class Fighter:
         self._ground_control_target = defender
         self._ground_control_mode = mode
         self._ground_control_blend = 0.0
+        defender._grapple_attacker = self
+        defender._grapple_mode = "ground_control"
         self.state = "grounded"
         self.physics.vx = 0.0
         self.physics.vy = 0.0
