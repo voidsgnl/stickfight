@@ -1070,6 +1070,9 @@ class GroundGuardAction(Action):
             self.control = control
             self.opponent = control.attacker
         self.start_x = self.fighter.x
+        self.sweep_impulse_applied = False
+        self.sweep_drive_direction = 0.0
+        self.sweep_start_x = None
         self.fighter.state = "grounded"
         self.fighter.physics.vx = 0.0
         self.fighter.physics.vy = 0.0
@@ -1101,16 +1104,42 @@ class GroundGuardAction(Action):
             self.control.transition = min(1.0, progress)
             self.control.sync()
 
-        elif self.mode == "sweep" and not self.completed and progress >= 0.55:
-            self.completed = True
-            self.control.reverse(position="mount")
-            self.fighter.facing = -self.fighter.facing
-            self.fighter.state = "grounded"
-            self.opponent.state = "grounded"
-            self.fighter.physics.vx = self.opponent.physics.vx = 0.0
-            self.fighter.physics.vy = self.opponent.physics.vy = 0.0
-            self.fighter.set_state("grounded", blend=0.12)
-            self.opponent.set_state("grounded", blend=0.12)
+        elif self.mode == "sweep":
+            # A sweep is a short physical drive, not an instantaneous role swap.
+            # Chamber: 0-30%, drive: 30-70%, reversal/settle: 70-100%.
+            if progress < 0.30:
+                self.control.transition = min(1.0, progress / 0.30)
+                self.control.sync()
+            elif progress < 0.70:
+                drive = (progress - 0.30) / 0.40
+                ease = 1.0 - (1.0 - drive) ** 2
+                if self.sweep_drive_direction == 0.0:
+                    self.sweep_drive_direction = 1.0 if self.fighter.facing >= 0 else -1.0
+                    self.sweep_start_x = self.opponent.x
+                if not self.sweep_impulse_applied:
+                    self.sweep_impulse_applied = True
+                    # Give the top fighter a bounded horizontal impulse so the
+                    # physics body owns the displacement during the sweep.
+                    self.opponent.apply_impulse(self.sweep_drive_direction * 120.0, 0.0)
+                    self.fighter.apply_impulse(-self.sweep_drive_direction * 35.0, 0.0)
+                self.opponent.physics.vx = self.sweep_drive_direction * (150.0 * ease)
+                self.fighter.physics.vx = -self.sweep_drive_direction * (45.0 * ease)
+                self.control.transition = 1.0 - drive * 0.85
+                self.control.sync()
+            elif not self.completed:
+                self.completed = True
+                # Transfer the same shared relationship only after the physical
+                # sweep drive has completed.
+                self.control.reverse(position="mount")
+                self.fighter.facing = -self.fighter.facing
+                self.fighter.state = "grounded"
+                self.opponent.state = "grounded"
+                self.fighter.physics.vx = 0.0
+                self.opponent.physics.vx = 0.0
+                self.fighter.physics.vy = 0.0
+                self.opponent.physics.vy = 0.0
+                self.fighter.set_state("grounded", blend=0.12)
+                self.opponent.set_state("grounded", blend=0.12)
 
         elif self.mode == "stand" and progress >= 0.60:
             self.completed = True
