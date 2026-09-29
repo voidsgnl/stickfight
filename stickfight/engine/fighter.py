@@ -353,6 +353,7 @@ class Fighter:
         self._apply_grapple_deformation()
         self._apply_ground_control_deformation()
         self._apply_ground_foot_ik()
+        self._apply_ground_contact_ik()
         self._apply_ik_target()
         self._apply_weapon_ik()
 
@@ -611,6 +612,57 @@ class Fighter:
             self.current_pose = apply_two_bone_ik(
                 self.current_pose, hip, knee, foot, target, bend_sign=1.0
             )
+
+    def _apply_ground_contact_ik(self):
+        """Keep grounded guard hands and feet attached to the opponent."""
+        control = self._ground_control
+        if control is None or control.position != "guard":
+            return
+        if self._ground_control_target is None or self._ground_control_target.state not in {"grounded", "fallen"}:
+            return
+        opponent = self._ground_control_target
+        pelvis = opponent.get_hurtbox().pelvis_pos
+        head = opponent.get_hurtbox().head_pos
+        direction = 1.0 if opponent.x >= self.x else -1.0
+        bend = 1.0 if self.facing >= 0 else -1.0
+
+        # Top fighter: one hand frames the upper body, the other posts near the hip.
+        hand_targets = (
+            ("right_hand", (head[0] - direction * 12.0, head[1] + 26.0)),
+            ("left_hand", (pelvis[0] - direction * 18.0, pelvis[1] + 18.0)),
+        )
+        for joint, target_world in hand_targets:
+            px = self.x + self.root_dx * self.facing
+            py = self.y - 140.0 * self.scale + self.root_dy
+            tx = (target_world[0] - px) / max(1e-6, self.scale)
+            ty = (target_world[1] - py) / max(1e-6, self.scale)
+            if self.facing < 0:
+                tx = -tx
+            shoulder = joint.replace("_hand", "_shoulder")
+            elbow = joint.replace("_hand", "_elbow")
+            self.current_pose = apply_two_bone_ik(
+                self.current_pose, shoulder, elbow, joint, (tx, ty), bend
+            )
+
+        # Bottom fighter: feet/legs frame the top fighter's hips rather than
+        # remaining in a generic authored pose.
+        if self._grapple_attacker is not None:
+            top = self._grapple_attacker
+            top_pelvis = top.get_hurtbox().pelvis_pos
+            for hip, knee, foot, offset in (
+                ("left_hip", "left_knee", "left_foot", -34.0),
+                ("right_hip", "right_knee", "right_foot", 34.0),
+            ):
+                target_world = (top_pelvis[0] + direction * offset, top_pelvis[1] + 42.0)
+                px = self.x + self.root_dx * self.facing
+                py = self.y - 140.0 * self.scale + self.root_dy
+                tx = (target_world[0] - px) / max(1e-6, self.scale)
+                ty = (target_world[1] - py) / max(1e-6, self.scale)
+                if self.facing < 0:
+                    tx = -tx
+                self.current_pose = apply_two_bone_ik(
+                    self.current_pose, hip, knee, foot, (tx, ty), bend
+                )
 
     def _apply_ik_target(self):
         if self.ik_target is None:
