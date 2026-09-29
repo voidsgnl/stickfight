@@ -53,3 +53,17 @@ def test_takedown_attacker_follow_through_crouches_and_tracks_contact():
     assert attacker.current_pose.get("pelvis")[1] > 0.0
     assert "left_hand" in attacker.weapon_ik_targets
     assert attacker.ik_target is not None
+
+
+def test_takedown_enters_persistent_grounded_state_after_settlement():
+    attacker = Fighter("A", x=700, y=1500)
+    defender = Fighter("B", x=600, y=1500)
+
+    defender.apply_grapple_reaction(attacker, mode="takedown")
+    assert defender.animation_state.current == "fallen"
+
+    defender.enter_grounded_control()
+
+    assert defender.state == "grounded"
+    assert defender.animation_state.current == "grounded"
+    assert defender.physics.is_grounded is True
