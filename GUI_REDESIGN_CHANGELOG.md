@@ -52,6 +52,13 @@
 - Converted KnockbackAction from direct position teleporting to physics-driven velocity, allowing animation, momentum, gravity, and collision to remain coupled.
 - Added regression coverage for fighter physics synchronization and physics-driven knockback.
 
+## Completed
+- Added a reusable 2D two-bone IK solver that preserves authored limb lengths.
+- Integrated world-space procedural arm targeting into Fighter animation evaluation.
+- Punch, jab and hook attacks can aim the striking hand toward the opponent's head instead of relying only on fixed authored coordinates.
+- Procedural IK targets are cleared when attacks finish so idle/recovery poses remain authored.
+- Added IK regression tests for reach accuracy and attack targeting.
+
 ## Next
 - Add richer per-attack effect/audio profiles so each attack type can author its own impact presentation.
 - Add resize handles to timeline blocks for duration editing.
