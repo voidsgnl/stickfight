@@ -51,5 +51,5 @@ def test_takedown_attacker_follow_through_crouches_and_tracks_contact():
     attacker.update_animation(0.45)
 
     assert attacker.current_pose.get("pelvis")[1] > 0.0
-    assert "right_hand" in attacker.weapon_ik_targets
+    assert "left_hand" in attacker.weapon_ik_targets
     assert attacker.ik_target is not None
