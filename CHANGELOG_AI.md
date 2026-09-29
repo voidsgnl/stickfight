@@ -1,3 +1,91 @@
+## 2026-09-29 — Story-Mode Animation Direction Documented
+
+### Product direction
+- Expanded the project's target from standalone fight clips to **story-mode animation** inspired by the reference style shared by the user.
+- The long-term goal is to support narrative episodes made from multiple cinematic scenes, while retaining the existing fight engine as the combat subsystem.
+
+### Planned story capabilities
+- Episode/chapter structure containing multiple scenes.
+- Character continuity across scenes: identity, visual design, weapons, clothing, state, and damage/progression.
+- Dialogue, narration, subtitles, and timed pauses.
+- Cinematic actions such as entrances, exits, reactions, conversations, establishing shots, close-ups, and camera transitions.
+- Combat sequences that invoke the existing animation, physics, collision, timing, grappling, weapons, and choreography systems.
+- Environment/world context for locations such as rooms, streets, rooftops, and other story settings.
+- Audio layers including dialogue, footsteps, impacts, ambience, and music.
+- Scene transitions such as cuts and fades.
+- Script-driven story authoring so a creator can describe a scene using high-level commands instead of manually animating every frame.
+
+### Proposed architecture
+```
+Story Project
+    ↓
+Story / Episode Manager
+    ↓
+Scene System
+    ├── Dialogue / Narrative
+    ├── Cinematic Actions
+    ├── Camera Direction
+    └── Combat Sequence
+            ↓
+        Existing Animation / Physics / Combat Engine
+            ↓
+        Renderer + Effects + Audio
+            ↓
+        FFmpeg Video Export
+```
+
+### First story-mode milestone
+Build one complete **30–60 second vertical story scene** containing:
+1. Establishing camera shot.
+2. Character entrance/movement.
+3. Dialogue exchange.
+4. Camera close-up/reaction.
+5. Fight transition.
+6. Existing combat choreography and physics.
+7. Fight aftermath.
+8. Final dialogue or story beat.
+9. Scene transition.
+10. MP4 export.
+
+### Architecture constraint
+This is an expansion, not a rewrite. The existing skeleton, animation, physics, collision, combat timing, grappling, weapons, camera, effects, renderer, timeline, GUI, and FFmpeg pipeline remain the foundation. The story layer should orchestrate those systems rather than replace them.
+
+### Authoring direction
+A future story script should be able to express intent at a high level, for example:
+```python
+scene = StoryScene("warehouse")
+
+kai.enter(from_side="left")
+rex.enter(from_side="right")
+
+kai.say("You came back.")
+rex.say("I came to finish this.")
+
+scene.camera.closeup(kai)
+
+fight = scene.start_fight(kai, rex)
+fight.sequence([
+    "standoff",
+    "jab",
+    "block",
+    "cross",
+    "dodge",
+    "low_kick",
+    "counter",
+    "takedown",
+])
+
+rex.say("This isn't over.")
+scene.end()
+```
+
+The implementation should translate these high-level story actions into the existing timeline, animation, physics, camera, audio, effects, and rendering systems.
+
+### Status
+- This is the documented long-term product direction.
+- No story-engine implementation was claimed in this change.
+- The first implementation milestone is the single 30–60 second end-to-end story scene described above.
+
 ## 2026-09-29 — Restore Non-Responsive Studio Controls and Fighter Preview
 
 ### What I did
