@@ -17,6 +17,7 @@ from stickfight.engine.effects import EffectsManager
 from stickfight.engine.audio import AudioManager
 from stickfight.engine.renderer import Renderer, VideoExporter
 from stickfight.engine.collision import check_hit, Hitbox
+from stickfight.engine.combat_events import CombatImpactEvent
 from stickfight.engine.skeleton import BodyProportions
 from stickfight.scripting.actions import Action, HitAction, KnockbackAction, ParallelAction, CameraAction
 
@@ -94,6 +95,7 @@ class FightScene:
         fighter = Fighter(**kwargs)
         self.fighters.append(fighter)
         self._fighter_map[name] = fighter
+        fighter.combat_events.subscribe_impact(self._on_combat_impact)
         return fighter
 
     def fighter(self, name: str, **kwargs) -> Fighter:
@@ -148,8 +150,40 @@ class FightScene:
         self.at(start_time, action)
         return action
 
+    def _on_combat_impact(self, event: CombatImpactEvent):
+        """Drive audio, visual effects, camera response, and hit reaction from one impact event."""
+        defender = event.defender
+        is_heavy = event.damage >= 20.0
+        if event.blocked:
+            self.effects.trigger_hit_effect(event.x, event.y, is_blocked=True, is_heavy=False)
+            self.audio.schedule_sound(self.current_time, "block")
+            self.camera.shake(intensity=6.0, duration=0.15)
+            return
+
+        sound_name = "kick" if event.attack_type in ("kick", "low_kick") else "punch"
+        self.audio.schedule_sound(self.current_time, sound_name)
+        self.effects.trigger_hit_effect(event.x, event.y, is_blocked=False, is_heavy=is_heavy)
+        self.camera.shake(intensity=14.0 if is_heavy else 9.0, duration=0.25)
+
+        if defender is None:
+            return
+
+        attacker = event.attacker
+        defender.face_fighter(attacker)
+        hitbox = attacker.get_hitbox()
+        if hitbox is None:
+            return
+
+        if is_heavy:
+            defender.state = "knockback"
+            defender.set_animation("knockback", loop=False)
+            defender.apply_impulse(hitbox.knockback_x, hitbox.knockback_y)
+        else:
+            defender.state = "hit"
+            defender.set_animation("hit", loop=False)
+
     def resolve_attack(self, attacker: Fighter, defender: Fighter, hitbox: Hitbox):
-        """Evaluates collision and resolves damage, blocks, dodges, and reactions."""
+        """Evaluate collision and emit exactly one impact event when contact resolves."""
         hurtbox = defender.get_hurtbox()
 
         if not check_hit(hitbox, hurtbox):
@@ -159,39 +193,36 @@ class FightScene:
         impact_y = hitbox.y
 
         if defender.state == "dodging":
-            # Defender dodged cleanly!
             return
 
         if defender.state == "blocking":
-            # Deflected!
             reduced_damage = hitbox.damage * 0.2
             defender.health = max(0.0, defender.health - reduced_damage)
-            self.effects.trigger_hit_effect(impact_x, impact_y, is_blocked=True)
-            self.audio.schedule_sound(self.current_time, "block")
-            self.camera.shake(intensity=6.0, duration=0.15)
+            attacker.combat_events.emit_impact(
+                CombatImpactEvent(
+                    attacker=attacker,
+                    defender=defender,
+                    attack_type=hitbox.attack_type,
+                    x=impact_x,
+                    y=impact_y,
+                    damage=reduced_damage,
+                    blocked=True,
+                )
+            )
             return
 
-        # Direct hit!
-        is_heavy = hitbox.damage >= 20.0
         defender.health = max(0.0, defender.health - hitbox.damage)
-
-        # Trigger sound & visual impact
-        sound_name = "kick" if hitbox.attack_type == "kick" else "punch"
-        self.audio.schedule_sound(self.current_time, sound_name)
-        self.effects.trigger_hit_effect(impact_x, impact_y, is_blocked=False, is_heavy=is_heavy)
-        self.camera.shake(intensity=14.0 if is_heavy else 9.0, duration=0.25)
-
-        # Turn defender toward attacker on hit
-        defender.face_fighter(attacker)
-
-        # Hit reaction animation + physical impulse.
-        if is_heavy:
-            defender.state = "knockback"
-            defender.set_animation("knockback", loop=False)
-            defender.apply_impulse(hitbox.knockback_x, hitbox.knockback_y)
-        else:
-            defender.state = "hit"
-            defender.set_animation("hit", loop=False)
+        attacker.combat_events.emit_impact(
+            CombatImpactEvent(
+                attacker=attacker,
+                defender=defender,
+                attack_type=hitbox.attack_type,
+                x=impact_x,
+                y=impact_y,
+                damage=hitbox.damage,
+                blocked=False,
+            )
+        )
 
     def update(self, dt: float):
         """Simulates 1 tick of the scene, including fighter physics."""
