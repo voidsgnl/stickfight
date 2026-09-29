@@ -36,6 +36,11 @@
 - Fixed the choreography duration-control hook.
 - Added this changelog so the design work is recorded as requested.
 
+## Completed
+- Replaced tolerance-only impact detection with animation-time crossing detection, so larger frame steps cannot skip the authored impact marker.
+- Routed action impact checks through the same one-shot Fighter impact-consumption path used by the combat event architecture.
+- Added regression coverage for crossing the impact marker in a large frame step.
+
 ## Next
 - Add richer per-attack effect/audio profiles so each attack type can author its own impact presentation.
 - Add resize handles to timeline blocks for duration editing.
