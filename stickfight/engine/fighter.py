@@ -420,6 +420,8 @@ class Fighter:
             pelvis_drop, chest_lean, head_drop = 16.0, 14.0, 62.0
         else:
             pelvis_drop, chest_lean, head_drop = 24.0, 22.0, 76.0
+        if self._ground_control is not None:
+            blend = max(0.0, min(1.0, self._ground_control.transition))
         self.current_pose.set("pelvis", (direction * 12.0 * blend, pelvis_drop * blend))
         self.current_pose.set("chest", (direction * chest_lean * blend, -20.0 * blend))
         self.current_pose.set("neck", (direction * 30.0 * blend, -48.0 * blend))
@@ -500,11 +502,13 @@ class Fighter:
         """Place the attacker into persistent top control over a grounded defender."""
         if defender is None:
             return False
+        from stickfight.engine.ground_control import GroundControl
         self._ground_control_target = defender
         if mode not in {"mount", "guard"}:
             raise ValueError("ground control mode must be 'mount' or 'guard'")
         self._ground_control_mode = mode
         self._ground_control_blend = 0.0
+        self._ground_control = GroundControl(self, defender, position=mode, transition=0.0)
         defender._grapple_attacker = self
         defender._grapple_mode = "bottom_guard" if mode == "mount" else "bottom_mount"
         self.state = "grounded"
