@@ -1,3 +1,37 @@
+## 2026-09-29 — Tighten Studio Around Real Fight Actions
+
+### What I implemented
+- Added a dedicated `stickfight.studio.combat` registry for fight actions exposed by the Studio authoring layer.
+- Exposed real Fighter animation clips including jabs, crosses, hooks, punches, kicks, low kicks, check kicks, uppercuts, sweeps, blocks, dodges, slips, hit reactions, knockback, takedowns, ground work, and weapon attacks.
+- Added a Studio Combat Action Palette so the author can place a fight action at the current playhead on the selected fighter.
+- Studio preview requests now send the active authored combat action to `/api/studio/frame`.
+- The production Studio renderer resolves that action through the existing `Fighter.set_animation()` / animation library rather than drawing a separate browser-only pose.
+- Unknown action names safely resolve to `idle`, keeping the Studio boundary defensive.
+- Added tests for the fight-action registry and normalization.
+
+### Architecture
+The Studio remains an authoring layer. It does not duplicate combat physics, hitboxes, collision, impact timing, IK, or weapon mechanics.
+
+```
+Studio Combat Keyframe
+        ↓
+fight action registry
+        ↓
+existing Fighter animation clips
+        ↓
+existing skeleton / IK / physics / combat systems
+        ↓
+production Renderer
+```
+
+This keeps the editor tightly coupled to fight concepts while preserving the existing fight engine as the source of truth.
+
+### Status
+- Implemented on `story-animation-studio-foundation`.
+- Automated tests were added but have not been executed in this session.
+- Browser/runtime verification has not been executed in this session.
+- Next: connect authored combat events to real target relationships and combat timing/impact phases, then expose procedural combat actions alongside manual combat keyframes.
+
 ## 2026-09-29 — Fight-Coupled Studio Renderer Integration
 
 ### What I implemented
