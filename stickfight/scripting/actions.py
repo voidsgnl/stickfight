@@ -196,14 +196,19 @@ class KnockbackAction(Action):
         self.fighter.state = "knockback"
         self.start_x = self.fighter.x
         self.fighter.set_animation("knockback", loop=False)
+        direction = -self.fighter.facing
+        speed = self.distance / max(1e-5, self.duration)
+        self.fighter.physics.set_velocity(direction * speed, self.fighter.physics.vy)
 
     def update(self, scene: FightScene, local_t: float, dt: float):
         self.fighter.update_animation(dt)
         prog = max(0.0, min(1.0, local_t / max(1e-5, self.duration)))
-        # Quadratic decay slide backward
-        slide_prog = 1.0 - (1.0 - prog) ** 2
+        # Physics owns the actual displacement. Ease the scripted velocity
+        # toward rest instead of teleporting the fighter each frame.
         direction = -self.fighter.facing
-        self.fighter.x = self.start_x + direction * self.distance * slide_prog
+        remaining = max(0.0, 1.0 - prog)
+        target_speed = direction * (self.distance / max(1e-5, self.duration)) * remaining
+        self.fighter.physics.vx = target_speed
 
     def on_finish(self, scene: FightScene):
         self.fighter.state = "idle"
