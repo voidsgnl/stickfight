@@ -963,8 +963,9 @@ class GroundPoundAction(Action):
         if self.defender:
             self.fighter.face_fighter(self.defender)
         self.fighter.aim_attack_at(self.defender)
+        self.fighter.set_grapple_targets(self.defender, mode="ground_pound")
         self.fighter.state = "attacking"
-        self.fighter.set_animation("ground_pound", loop=False)
+        self.fighter.set_state("attack", clip_name="ground_pound")
         self.hit_registered = False
         scene.audio.schedule_sound(scene.current_time + 0.15, "whoosh")
 
@@ -973,7 +974,7 @@ class GroundPoundAction(Action):
         if not self.hit_registered and self._impact_event(scene):
             self.hit_registered = True
             d = self.defender
-            if d and d.state == "fallen":
+            if d and d.state == "grounded":
                 d.health = max(0.0, d.health - self.damage)
                 impact_x = (self.fighter.x + d.x) / 2.0
                 impact_y = d.y - 60.0
