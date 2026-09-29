@@ -1,6 +1,9 @@
 # GUI Redesign Change Log — 2026-09-29
 
 ## Completed
+- Added a one-shot `CombatEventBus` and `CombatImpactEvent` so the authored animation impact can drive downstream combat/effects/audio/camera systems.
+- Routed core strike actions through the animation impact marker instead of relying solely on hard-coded strike timestamps.
+- Added impact-event tests and documented the new event-driven combat path.
 - Added Phase 3 combat timing metadata with normalized anticipation, action, contact, follow-through, recovery, and impact markers.
 - Connected Fighter hitbox availability to the active/contact timing window and exposed attack phase/impact queries.
 - Added timing-window tests and extended hitbox coverage for jab, cross, hook, low kick, and clinch knee.
@@ -25,6 +28,9 @@
 - Added this changelog so the design work is recorded as requested.
 
 ## Next
+- Subscribe effects, camera shake, audio, and hit reactions to the combat impact event bus.
+- Route specialized action clips through the animation state machine instead of direct clip selection.
+- Add timing-marker visualization to the Studio timeline.
 - Connect the timing layer to explicit one-shot impact events so effects, camera shake, and audio consume the same authored impact marker.
 - Route specialized action clips through the animation state machine instead of direct clip selection.
 - Add timing-marker visualization to the Studio timeline.
