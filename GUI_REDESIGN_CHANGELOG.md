@@ -1,6 +1,10 @@
 # GUI Redesign Change Log — 2026-09-29
 
 ## Completed
+- Added Studio timeline combat timing visualization using the same normalized attack markers as the engine.
+- Attack blocks now show anticipation, active/dangerous window, impact, active end, and follow-through markers.
+- Impact marker tooltips show the calculated wall-clock impact time for the current action duration.
+- Timing markers scale automatically when an action block duration changes or the block is moved.
 - Specialized attack actions now enter the semantic attack state while selecting their authored clip.
 - Added regression coverage for specialized attack clip selection.
 - Wired `CombatImpactEvent` into `FightScene` as the single impact-response path.
@@ -33,15 +37,7 @@
 - Added this changelog so the design work is recorded as requested.
 
 ## Next
-- Route specialized action clips through the animation state machine instead of direct clip selection.
-- Add timing-marker visualization to the Studio timeline.
 - Add richer per-attack effect/audio profiles so each attack type can author its own impact presentation.
-- Subscribe effects, camera shake, audio, and hit reactions to the combat impact event bus.
-- Route specialized action clips through the animation state machine instead of direct clip selection.
-- Add timing-marker visualization to the Studio timeline.
-- Connect the timing layer to explicit one-shot impact events so effects, camera shake, and audio consume the same authored impact marker.
-- Route specialized action clips through the animation state machine instead of direct clip selection.
-- Add timing-marker visualization to the Studio timeline.
 - Add resize handles to timeline blocks for duration editing.
 - Add real camera/effects/audio event types and corresponding engine hooks.
 - Replace CSS character thumbnails with actual renderer thumbnails.
