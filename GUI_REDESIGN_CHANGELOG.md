@@ -72,6 +72,12 @@
 - Secondary grips now follow the primary attack target so weapon poses stay coherent against moving opponents.
 - Added regression tests for two-handed tracking and IK cleanup.
 
+## Completed
+- Added contact-aware clinch and takedown IK using live opponent pelvis positions.
+- Takedown distance correction is now bounded rather than an instantaneous position snap.
+- Defender orientation and fall response now react to the attacker's actual position.
+- Added regression tests for clinch hand contacts and takedown defender response.
+
 ## Next
 - Add richer per-attack effect/audio profiles so each attack type can author its own impact presentation.
 - Add resize handles to timeline blocks for duration editing.
