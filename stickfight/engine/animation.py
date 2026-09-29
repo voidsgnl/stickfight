@@ -529,6 +529,77 @@ def create_stagger_clip(duration: float = 0.50) -> AnimationClip:
     return AnimationClip(name="stagger", duration=duration, keyframes=keyframes, loop=False)
 
 
+def _ground_action_pose(kind: str) -> Pose:
+    """Build a grounded combat pose from the existing guard base."""
+    pose = make_grounded_guard_pose()
+    if kind == "frame":
+        pose.set("left_hand", (-34.0, 44.0))
+        pose.set("right_hand", (-8.0, 48.0))
+        pose.set("left_knee", (42.0, 34.0))
+        pose.set("right_knee", (58.0, 28.0))
+    elif kind == "shrimp":
+        pose.set("pelvis", (-18.0, 18.0))
+        pose.set("chest", (-12.0, -4.0))
+        pose.set("left_hand", (-48.0, 28.0))
+        pose.set("right_hand", (-34.0, 34.0))
+        pose.set("left_knee", (68.0, 8.0))
+        pose.set("right_knee", (42.0, 42.0))
+    elif kind == "sweep":
+        pose.set("pelvis", (8.0, 12.0))
+        pose.set("chest", (26.0, -8.0))
+        pose.set("left_hand", (-26.0, 30.0))
+        pose.set("right_hand", (18.0, 22.0))
+        pose.set("left_knee", (76.0, 0.0))
+        pose.set("right_knee", (82.0, 18.0))
+    elif kind == "stand":
+        pose = make_idle_pose()
+        pose.set("pelvis", (0.0, -8.0))
+        pose.set("chest", (0.0, -42.0))
+        pose.set("neck", (0.0, -84.0))
+        pose.set("head", (0.0, -120.0))
+    return pose
+
+
+def create_ground_frame_clip(duration: float = 0.60) -> AnimationClip:
+    base = _ground_action_pose("frame")
+    relax = make_grounded_guard_pose()
+    return AnimationClip(name="ground_frame", duration=duration, keyframes=[
+        Keyframe(time=0.0, pose=relax, root_dx=0.0, root_dy=0.0, easing=ease_out_quad),
+        Keyframe(time=0.45, pose=base, root_dx=0.0, root_dy=-2.0, easing=ease_in_out_quad),
+        Keyframe(time=1.0, pose=relax, root_dx=0.0, root_dy=0.0, easing=ease_in_out_quad),
+    ], loop=False)
+
+
+def create_ground_shrimp_clip(duration: float = 0.80) -> AnimationClip:
+    base = _ground_action_pose("shrimp")
+    return AnimationClip(name="ground_shrimp", duration=duration, keyframes=[
+        Keyframe(time=0.0, pose=make_grounded_guard_pose(), root_dx=0.0, root_dy=0.0, easing=ease_in_quad),
+        Keyframe(time=0.50, pose=base, root_dx=-28.0, root_dy=8.0, easing=ease_out_cubic),
+        Keyframe(time=1.0, pose=make_grounded_guard_pose(), root_dx=-45.0, root_dy=0.0, easing=ease_in_out_quad),
+    ], loop=False)
+
+
+def create_ground_sweep_clip(duration: float = 0.70) -> AnimationClip:
+    chamber = make_grounded_guard_pose()
+    sweep = _ground_action_pose("sweep")
+    return AnimationClip(name="ground_sweep", duration=duration, keyframes=[
+        Keyframe(time=0.0, pose=chamber, root_dx=0.0, root_dy=0.0, easing=ease_in_quad),
+        Keyframe(time=0.55, pose=sweep, root_dx=24.0, root_dy=-4.0, easing=ease_out_cubic),
+        Keyframe(time=1.0, pose=make_grounded_guard_pose(), root_dx=40.0, root_dy=0.0, easing=ease_out_quad),
+    ], loop=False)
+
+
+def create_ground_stand_clip(duration: float = 0.75) -> AnimationClip:
+    crouch = make_grounded_guard_pose()
+    rise = _ground_action_pose("stand")
+    return AnimationClip(name="ground_stand", duration=duration, keyframes=[
+        Keyframe(time=0.0, pose=crouch, root_dx=0.0, root_dy=0.0, easing=ease_in_quad),
+        Keyframe(time=0.62, pose=rise, root_dx=-18.0, root_dy=-20.0, easing=ease_out_cubic),
+        Keyframe(time=1.0, pose=make_idle_pose(), root_dx=-24.0, root_dy=-38.0, easing=ease_out_back),
+    ], loop=False)
+
+
+
 def create_grounded_guard_clip(duration: float = 1.0) -> AnimationClip:
     """On the back after a takedown: knees tucked, forearms framing shots."""
     guard = make_grounded_guard_pose()
