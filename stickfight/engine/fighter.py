@@ -18,6 +18,7 @@ from stickfight.engine.skeleton import (
     PROPORTIONS_MONK,
     PROPORTIONS_CYBORG,
 )
+from stickfight.engine.animation_player import AnimationPlayer
 from stickfight.engine.animation import (
     AnimationClip,
     create_idle_clip,
@@ -227,8 +228,11 @@ class Fighter:
             "grounded_guard": create_grounded_guard_clip(),
         }
 
-        self.active_clip: AnimationClip = self.clips["idle"]
-        self.clip_time: float = 0.0
+        # Runtime playback is separated from clip definitions so animation
+        # timing/blending can evolve without coupling it to Fighter physics.
+        self.animation_player = AnimationPlayer(self.clips, initial="idle")
+        self.active_clip: AnimationClip = self.animation_player.active_clip
+        self.clip_time: float = self.animation_player.clip_time
         self.current_pose: Pose = apply_proportions(make_idle_pose(), self.proportions)
         self.root_dx: float = 0.0
         self.root_dy: float = 0.0
@@ -262,18 +266,22 @@ class Fighter:
         """Equips weapon on fighter ('sword', 'staff', None)."""
         self.weapon = weapon_name
 
-    def set_animation(self, clip_name: str, loop: Optional[bool] = None):
-        """Switches active animation clip and resets time."""
-        if clip_name in self.clips:
-            self.active_clip = self.clips[clip_name]
-            if loop is not None:
-                self.active_clip.loop = loop
-            self.clip_time = 0.0
+    def set_animation(
+        self,
+        clip_name: str,
+        loop: Optional[bool] = None,
+        blend: float = 0.0,
+    ):
+        """Switch animation with an optional cross-fade in seconds."""
+        if self.animation_player.play(clip_name, loop=loop, blend=blend):
+            self.active_clip = self.animation_player.active_clip
+            self.clip_time = self.animation_player.clip_time
 
     def update_animation(self, dt: float):
-        """Advances active animation clip by dt seconds."""
-        self.clip_time += dt
-        pose, rdx, rdy = self.active_clip.evaluate(self.clip_time)
+        """Advance animation playback and apply the current rig proportions."""
+        pose, rdx, rdy = self.animation_player.update(dt)
+        self.active_clip = self.animation_player.active_clip
+        self.clip_time = self.animation_player.clip_time
         # Apply this fighter's archetype rig scaling on top of the shared
         # canonical pose so every clip renders on the correct body type.
         self.current_pose = apply_proportions(pose, self.proportions)
