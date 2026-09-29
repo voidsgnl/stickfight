@@ -181,6 +181,9 @@ Those markers will later drive hitboxes, effects, camera shake, and audio.
 - [x] Route action impact checks through a one-shot Fighter impact-consumption path.
 - [x] Add regression coverage for large frame steps crossing the impact marker.
 
+- [x] Add attack-specific impact profiles for sound, camera shake, effect weight, and knockback.
+- [x] Cover hand strikes, kicks, takedowns, ground pounds, and blade impacts with authored profiles.
+
 ## Phase 4 — Animation / Physics Integration
 
 The animation system must cooperate with physics instead of fighting it.
