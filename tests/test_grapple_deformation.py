@@ -67,3 +67,16 @@ def test_takedown_enters_persistent_grounded_state_after_settlement():
     assert defender.state == "grounded"
     assert defender.animation_state.current == "grounded"
     assert defender.physics.is_grounded is True
+
+
+def test_ground_pound_targets_grounded_opponent():
+    attacker = Fighter("A", x=500, y=1500)
+    defender = Fighter("B", x=560, y=1500)
+    defender.enter_grounded_control()
+
+    attacker.set_grapple_targets(defender, mode="ground_pound")
+
+    assert attacker.ik_target is not None
+    assert "left_hand" in attacker.weapon_ik_targets
+    assert attacker._grapple_target is defender
+    assert attacker._grapple_mode == "ground_pound"
