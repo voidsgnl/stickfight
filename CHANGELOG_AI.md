@@ -1,3 +1,20 @@
+## 2026-09-29 — Fix GUI Preview/Generate Request Blocking
+
+### What I did
+- Changed the Studio HTTP server from single-threaded `HTTPServer` to `ThreadingHTTPServer`.
+- This prevents a slow preview request from blocking the Generate button or `/api/status` polling.
+- Configured SDL's dummy video driver before importing Pygame so the web renderer consistently uses headless surfaces.
+- Added explicit `[GUI] POST ...` and render-job start/completion/failure logging so Generate activity is visible in the terminal.
+- Kept the fighter skeleton, animation, physics, renderer, choreography, and MP4 pipeline unchanged.
+
+### Diagnosis
+- The GUI was using a single-threaded HTTP server while preview generation and rendering can take noticeable time. That can make the browser appear unresponsive without a Python exception.
+- The `/api/preview` endpoint is responsible for the on-screen fighter snapshot, so it must not block the render/status path.
+
+### Validation
+- Repository source updated.
+- A real local browser run has not yet been executed here; the next run should confirm both fighters appear in the snapshot and Generate immediately starts progress polling.
+
 # AI Change Log
 
 ## 2026-09-29 — Optional Bold Seamless-Line Visual Style
