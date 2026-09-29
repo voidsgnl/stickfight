@@ -46,6 +46,12 @@
 - Impact profiles now control sound selection, pitch/gain, camera shake, heavy-impact treatment, and knockback scaling while preserving the shared CombatImpactEvent pipeline.
 - Added integration coverage proving different attack types produce different impact responses.
 
+## Completed
+- Integrated Fighter physics updates through a single physics-aware scene step and exposed airborne state from the physical body.
+- Added deterministic physics velocity support for scripted motion.
+- Converted KnockbackAction from direct position teleporting to physics-driven velocity, allowing animation, momentum, gravity, and collision to remain coupled.
+- Added regression coverage for fighter physics synchronization and physics-driven knockback.
+
 ## Next
 - Add richer per-attack effect/audio profiles so each attack type can author its own impact presentation.
 - Add resize handles to timeline blocks for duration editing.
