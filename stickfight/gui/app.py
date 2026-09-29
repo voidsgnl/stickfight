@@ -382,6 +382,7 @@ def build_custom_timeline_scene(config: Dict[str, Any], width: int, height: int,
         scale=float(fa_cfg.get("scale", 1.0)),
         design=fa_cfg.get("archetype", "ninja"),
     )
+    f1.render_style = config.get("visual_style", "ink_fight")
     if fa_cfg.get("weapon") and fa_cfg["weapon"] != "none":
         f1.equip(fa_cfg["weapon"])
 
@@ -396,6 +397,7 @@ def build_custom_timeline_scene(config: Dict[str, Any], width: int, height: int,
         scale=float(fb_cfg.get("scale", 1.0)),
         design=fb_cfg.get("archetype", "warrior"),
     )
+    f2.render_style = config.get("visual_style", "ink_fight")
     if fb_cfg.get("weapon") and fb_cfg["weapon"] != "none":
         f2.equip(fb_cfg["weapon"])
 
@@ -538,6 +540,7 @@ def create_preview_surface(config: Dict[str, Any]) -> pygame.Surface:
         design=fa_cfg.get("archetype", "ninja"),
         weapon=fa_cfg.get("weapon") if fa_cfg.get("weapon") != "none" else None,
     )
+    fa.render_style = config.get("visual_style", "ink_fight")
     fa.clip_time = 0.15
     fa.update_animation(0.0)
 
@@ -556,6 +559,7 @@ def create_preview_surface(config: Dict[str, Any]) -> pygame.Surface:
         design=fb_cfg.get("archetype", "warrior"),
         weapon=fb_cfg.get("weapon") if fb_cfg.get("weapon") != "none" else None,
     )
+    fb.render_style = config.get("visual_style", "ink_fight")
     fb.clip_time = 0.15
     fb.update_animation(0.0)
 
@@ -636,6 +640,7 @@ def execute_render_job(job_id: str, config: Dict[str, Any]):
                     f1.equip(None if fa_cfg["weapon"] == "none" else fa_cfg["weapon"])
                 if fa_cfg.get("scale"):
                     f1.scale = float(fa_cfg["scale"])
+                f1.render_style = config.get("visual_style", "ink_fight")
 
                 if fb_cfg.get("name"):
                     f2.name = fb_cfg["name"]
@@ -647,6 +652,7 @@ def execute_render_job(job_id: str, config: Dict[str, Any]):
                     f2.equip(None if fb_cfg["weapon"] == "none" else fb_cfg["weapon"])
                 if fb_cfg.get("scale"):
                     f2.scale = float(fb_cfg["scale"])
+                f2.render_style = config.get("visual_style", "ink_fight")
 
         start_t = time.time()
 
