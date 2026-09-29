@@ -1046,6 +1046,7 @@ class GroundPoundAction(Action):
             self.hit_registered = True
             d = self.defender
             if d and d.state == "grounded":
+                self.fighter.enter_ground_control(d, mode="top")
                 d.health = max(0.0, d.health - self.damage)
                 impact_x = (self.fighter.x + d.x) / 2.0
                 impact_y = d.y - 60.0
