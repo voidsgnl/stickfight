@@ -114,3 +114,5 @@
 - Added shared guard interaction actions for defensive framing, shrimp movement, sweeps/reversals, and stand-up release.
 
 - Added dedicated grounded combat animation clips for frame, shrimp, sweep, and stand actions and wired them into guard interaction playback.
+
+- Added procedural guard contact IK: top hands track the opponent's head/hip frame points and bottom legs track the top fighter's hips.
