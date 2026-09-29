@@ -2077,7 +2077,7 @@
     </div>
   </div>
   <div class="studio-body">
-    <aside class="asset-pane">
+    <aside class="asset-pane"><h3>Selected Character</h3><div id="studioInspector" style="display:grid;gap:7px;margin-bottom:14px"><select id="studioSelected"></select><label>X <input id="studioX" type="number" step="1"></label><label>Y <input id="studioY" type="number" step="1"></label><label>Rotation <input id="studioRotation" type="number" step="1"></label><label>Scale <input id="studioScale" type="number" step=".05" min=".05"></label></div>
       <h3>Characters / Assets</h3>
       <div id="studioAssets" class="asset-list"></div>
       <div style="display:grid;gap:7px;margin-top:10px">
@@ -2116,7 +2116,7 @@
       {id:"char-a",asset:"asset-a",name:"Fighter A",track:true},
       {id:"char-b",asset:"asset-b",name:"Fighter B",track:true}
     ],
-    tracks: [],
+    tracks: [], selected:"char-a", keyframes:{},
   };
   const $ = id => document.getElementById(id);
   const esc = v => String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -2140,7 +2140,7 @@
       const blocks=events.map(t=>{const left=t.start/S.frames*100, w=Math.max(.8,t.duration/S.frames*100); return '<div class="event" title="frame '+t.start+'" style="left:'+left+'%;width:'+w+'%">'+esc(t.name)+'</div>';}).join("");
       return '<div class="studio-track"><div class="track-label">'+esc(g.name)+'</div><div class="track-lane" data-track="'+esc(g.id)+'">'+blocks+'<div class="playhead" style="left:'+(S.cursor/S.frames*100)+'%"></div></div></div>';
     }).join("");
-    $("studioAssets").innerHTML=S.assets.map(a=>'<div class="asset-row"><span class="asset-dot"></span><div class="asset-meta"><div class="asset-name">'+esc(a.name)+'</div><div class="asset-style">'+esc(a.style)+'</div></div></div>').join("");
+    const sel=$("studioSelected"); sel.innerHTML=S.instances.map(i=>"<option value=\""+i.id+"\">"+esc(i.name)+"</option>").join(""); sel.value=S.selected; const si=S.instances.find(i=>i.id===S.selected)||S.instances[0]; if(si){$("studioX").value=si.x||0;$("studioY").value=si.y||0;$("studioRotation").value=si.rotation||0;$("studioScale").value=si.scale||1;} $("studioAssets").innerHTML=S.assets.map(a=>'<div class="asset-row"><span class="asset-dot"></span><div class="asset-meta"><div class="asset-name">'+esc(a.name)+'</div><div class="asset-style">'+esc(a.style)+'</div></div></div>').join("");
     $("studioTime").textContent=(S.cursor/S.fps).toFixed(2)+"s";
   }
   function addCharacter(){
@@ -2167,16 +2167,25 @@
     $("studioPlay").textContent=S.playing?"⏸ Pause":"▶ Play";
     if(S.playing){
       const start=performance.now()-S.cursor/S.fps*1000;
-      const tick=now=>{if(!S.playing)return;S.cursor=Math.min(S.frames,Math.floor((now-start)/1000*S.fps));render();if(S.cursor<S.frames)S.timer=requestAnimationFrame(tick);else{S.playing=false;$("studioPlay").textContent="▶ Play"}};S.timer=requestAnimationFrame(tick);
+      const tick=now=>{if(!S.playing)return;S.cursor=Math.min(S.frames,Math.floor((now-start)/1000*S.fps));applyFrame();render();if(S.cursor<S.frames)S.timer=requestAnimationFrame(tick);else{S.playing=false;$("studioPlay").textContent="▶ Play"}};S.timer=requestAnimationFrame(tick);
     }else cancelAnimationFrame(S.timer);
   }
+  function interpolateCharacter(id,frame){
+    const ks=(S.keyframes[id]||[]).slice().sort((a,b)=>a.frame-b.frame); if(!ks.length)return;
+    let a=ks[0],b=ks[ks.length-1]; for(let i=0;i<ks.length-1;i++){if(frame>=ks[i].frame&&frame<=ks[i+1].frame){a=ks[i];b=ks[i+1];break;}}
+    const t=a.frame===b.frame?0:Math.max(0,Math.min(1,(frame-a.frame)/(b.frame-a.frame))); const si=S.instances.find(i=>i.id===id); if(!si)return;
+    si.x=a.x+(b.x-a.x)*t; si.y=a.y+(b.y-a.y)*t; si.rotation=a.rotation+(b.rotation-a.rotation)*t; si.scale=a.scale+(b.scale-a.scale)*t;
+  }
+  function applyFrame(){ S.instances.forEach(i=>interpolateCharacter(i.id,S.cursor)); }
   $("studioAddCharacter").addEventListener("click",addCharacter);
+  $("studioSelected").addEventListener("change",e=>{S.selected=e.target.value;render()});
+  ["studioX","studioY","studioRotation","studioScale"].forEach(id=>$(id).addEventListener("change",e=>{const si=S.instances.find(i=>i.id===S.selected);if(!si)return;si[id==="studioX"?"x":id==="studioY"?"y":id==="studioRotation"?"rotation":"scale"]=Number(e.target.value)||0;render()}));
   $("studioAddKey").addEventListener("click",addKey);
   $("studioPlay").addEventListener("click",play);
   $("studioReset").addEventListener("click",()=>{S.cursor=0;S.playing=false;$("studioPlay").textContent="▶ Play";render()});
   $("studioFps").addEventListener("change",e=>{S.fps=Math.max(1,Number(e.target.value)||30);render()});
   $("studioFrames").addEventListener("change",e=>{S.frames=Math.max(1,Number(e.target.value)||180);render()});
-  document.addEventListener("click",e=>{const lane=e.target.closest("#studioRuler,.studio-track .track-lane");if(!lane)return;const rect=lane.getBoundingClientRect(),x=Math.max(0,Math.min(rect.width,e.clientX-rect.left));S.cursor=Math.round(x/rect.width*S.frames);render()});
+  document.addEventListener("click",e=>{const lane=e.target.closest("#studioRuler,.studio-track .track-lane");if(!lane)return;const rect=lane.getBoundingClientRect(),x=Math.max(0,Math.min(rect.width,e.clientX-rect.left));S.cursor=Math.round(x/rect.width*S.frames);applyFrame();render()});
   document.addEventListener("DOMContentLoaded",()=>setTimeout(render,80));
 })();
 </script>
