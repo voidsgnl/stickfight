@@ -248,3 +248,18 @@ def test_ground_escape_can_release_shared_control():
     assert top._ground_control is None
     assert bottom._grapple_attacker is None
     assert bottom._grapple_mode is None
+
+
+def test_ground_guard_sweep_transfers_shared_control():
+    top = Fighter("A", x=500, y=1500)
+    bottom = Fighter("B", x=560, y=1500)
+    bottom.enter_grounded_control()
+    top.enter_ground_control(bottom, mode="guard")
+    control = top._ground_control
+
+    control.reverse(position="mount")
+
+    assert control.attacker is bottom
+    assert control.defender is top
+    assert bottom._ground_control_mode == "mount"
+    assert top._grapple_attacker is bottom
