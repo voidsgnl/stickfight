@@ -67,6 +67,11 @@
 - Airborne fighters bypass foot planting, preserving jump/fall/knockback poses.
 - Added regression coverage for grounded and airborne foot behavior.
 
+## Completed
+- Added two-handed weapon contact IK for sword and staff attacks.
+- Secondary grips now follow the primary attack target so weapon poses stay coherent against moving opponents.
+- Added regression tests for two-handed tracking and IK cleanup.
+
 ## Next
 - Add richer per-attack effect/audio profiles so each attack type can author its own impact presentation.
 - Add resize handles to timeline blocks for duration editing.
