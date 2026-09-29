@@ -263,3 +263,9 @@ def test_ground_guard_sweep_transfers_shared_control():
     assert control.defender is top
     assert bottom._ground_control_mode == "mount"
     assert top._grapple_attacker is bottom
+
+
+def test_grounded_guard_action_clips_are_registered():
+    fighter = Fighter("A", x=500, y=1500)
+    for name in ("ground_frame", "ground_shrimp", "ground_sweep", "ground_stand"):
+        assert name in fighter.clips
