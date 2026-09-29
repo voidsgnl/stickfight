@@ -51,6 +51,7 @@ from stickfight.engine.animation import (
 )
 from stickfight.engine.collision import Hitbox, Hurtbox
 from stickfight.engine.combat_timing import ATTACK_TIMINGS, AttackTiming
+from stickfight.engine.combat_events import CombatEventBus, CombatImpactEvent
 from stickfight.engine.physics import PhysicsBody
 from stickfight.scripting.actions import (
     Action,
@@ -239,6 +240,8 @@ class Fighter:
         self.current_pose: Pose = apply_proportions(make_idle_pose(), self.proportions)
         self.root_dx: float = 0.0
         self.root_dy: float = 0.0
+        self.combat_events = CombatEventBus()
+        self._impact_event_key: Optional[tuple] = None
 
     def sync_from_physics(self):
         """Copies the simulated world position into the fighter."""
@@ -367,6 +370,35 @@ class Fighter:
         """Whether playback is at the authored impact marker."""
         timing = self.attack_timing
         return timing is not None and timing.is_impact_frame(self.clip_time, self.active_clip.duration, tolerance=tolerance)
+
+    def emit_impact(
+        self,
+        defender: Optional[Fighter] = None,
+        damage: float = 0.0,
+        blocked: bool = False,
+    ) -> bool:
+        """Emit the current animation's impact marker at most once per clip."""
+        if not self.is_attack_impact():
+            return False
+        key = (self.active_clip.name, self.animation_player.clip_time)
+        if self._impact_event_key is not None:
+            clip_name, previous_time = self._impact_event_key
+            if clip_name == key[0] and abs(previous_time - key[1]) < 0.05:
+                return False
+        joints = self.get_world_joints()
+        hand = joints.get("right_hand", (self.x, self.y - 120.0))
+        event = CombatImpactEvent(
+            attacker=self,
+            defender=defender,
+            attack_type=self.active_clip.name,
+            x=hand[0],
+            y=hand[1],
+            damage=damage,
+            blocked=blocked,
+        )
+        self.combat_events.emit_impact(event)
+        self._impact_event_key = key
+        return True
 
     def get_hitbox(self) -> Optional[Hitbox]:
         """Calculates a strike hitbox only during the active contact window."""
