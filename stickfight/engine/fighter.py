@@ -416,10 +416,16 @@ class Fighter:
         # Keep the attacker close to the defender while preserving a stable base.
         self.x += max(-2.0, min(2.0, (target.x - self.x) * 0.04))
         self.sync_to_physics()
-        if self._ground_control_mode == "guard":
-            pelvis_drop, chest_lean, head_drop = 16.0, 14.0, 62.0
+        target_values = (16.0, 14.0, 62.0) if self._ground_control_mode == "guard" else (24.0, 22.0, 76.0)
+        source_mode = self._ground_control.from_position if self._ground_control is not None else None
+        source_values = (16.0, 14.0, 62.0) if source_mode == "guard" else (24.0, 22.0, 76.0)
+        if self._ground_control is not None and self._ground_control.from_position is not None:
+            t = max(0.0, min(1.0, self._ground_control.transition))
+            pelvis_drop = source_values[0] + (target_values[0] - source_values[0]) * t
+            chest_lean = source_values[1] + (target_values[1] - source_values[1]) * t
+            head_drop = source_values[2] + (target_values[2] - source_values[2]) * t
         else:
-            pelvis_drop, chest_lean, head_drop = 24.0, 22.0, 76.0
+            pelvis_drop, chest_lean, head_drop = target_values
         if self._ground_control is not None:
             blend = max(0.0, min(1.0, self._ground_control.transition))
         self.current_pose.set("pelvis", (direction * 12.0 * blend, pelvis_drop * blend))
