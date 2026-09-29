@@ -250,6 +250,7 @@ class Fighter:
         self.weapon_ik_targets: Dict[str, Tuple[Tuple[float, float], float]] = {}
         self._grapple_attacker: Optional["Fighter"] = None
         self._grapple_mode: Optional[str] = None
+        self._grapple_target: Optional["Fighter"] = None
 
     def sync_from_physics(self):
         """Copies the simulated world position into the fighter."""
@@ -380,6 +381,8 @@ class Fighter:
             return
         target = other.get_hurtbox()
         self.weapon_ik_targets.clear()
+        self._grapple_target = other
+        self._grapple_mode = mode
         bend = 1.0 if self.facing >= 0 else -1.0
         if mode == "clinch":
             chest = target.pelvis_pos
@@ -399,7 +402,24 @@ class Fighter:
         progress = max(0.0, min(1.0, self.clip_time / duration))
         blend = progress * progress * (3.0 - 2.0 * progress)
         attacker = self._grapple_attacker
+        target = self._grapple_target
         direction = 1.0 if attacker.x >= self.x else -1.0
+        if target is not None and self._grapple_mode == "takedown":
+            target_pelvis = target.get_hurtbox().pelvis_pos
+            distance = target.x - self.x
+            close = max(0.0, min(1.0, 1.0 - abs(distance) / 180.0))
+            drive = close * blend
+            crouch = 18.0 * drive
+            self.current_pose.set("pelvis", (self.current_pose.get("pelvis")[0], crouch))
+            self.current_pose.set("chest", (self.current_pose.get("chest")[0] + direction * 8.0 * drive, -50.0 + crouch * 0.45))
+            for side, offset in (("left", -1.0), ("right", 1.0)):
+                knee = self.current_pose.get(side + "_knee")
+                self.current_pose.set(side + "_knee", (knee[0] + direction * 7.0 * drive * offset, knee[1] + 18.0 * drive))
+            grip = (target_pelvis[0] - self.facing * 18.0, target_pelvis[1] + 38.0)
+            bend = 1.0 if self.facing >= 0 else -1.0
+            self.ik_target = ("right_hand", grip, bend)
+            self.weapon_ik_targets["left_hand"] = ((grip[0], grip[1] + 28.0), bend)
+            return
         if self._grapple_mode == "takedown":
             lean = 24.0 * blend * direction
             drop = 24.0 * blend
@@ -442,6 +462,7 @@ class Fighter:
         """Stop procedural grappling deformation."""
         self._grapple_attacker = None
         self._grapple_mode = None
+        self._grapple_target = None
 
         """Orient and pose a defender in response to a close-range grapple."""
         dx = attacker.x - self.x
