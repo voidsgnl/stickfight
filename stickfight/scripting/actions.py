@@ -1028,16 +1028,26 @@ class GroundReversalAction(Action):
         progress = max(0.0, min(1.0, local_t / max(1e-5, self.duration)))
         if not self.reversed and progress >= 0.48:
             self.reversed = True
-            self.fighter.clear_ground_control()
-            if self.attacker:
+            control = getattr(self.attacker, "_ground_control", None) if self.attacker else None
+            if control is not None and control.defender is self.fighter:
+                control.reverse(position="mount")
+                self.fighter.facing = -self.fighter.facing
+                self.attacker.facing = -self.fighter.facing
+                self.fighter.state = "grounded"
+                self.attacker.state = "grounded"
+                self.fighter.physics.vx = 0.0
+                self.attacker.physics.vx = 0.0
+                self.fighter.physics.vy = 0.0
+                self.attacker.physics.vy = 0.0
+                self.fighter.set_state("grounded", blend=0.10)
+                self.attacker.set_state("grounded", blend=0.10)
+            elif self.attacker:
                 self.attacker.clear_ground_control()
-            if self.attacker:
-                # Create separation and rotate control without teleporting.
                 self.attacker.facing = -self.fighter.facing
                 self.attacker.physics.vx = 70.0 * self.fighter.facing
                 self.attacker.state = "fallen"
                 self.attacker.set_animation("fall", loop=False)
-            self.fighter.set_state("idle")
+            self.fighter.set_state("grounded" if control is not None else "idle")
 
     def on_finish(self, scene: FightScene):
         self.fighter.state = "idle"
