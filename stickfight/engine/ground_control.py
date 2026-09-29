@@ -44,6 +44,16 @@ class GroundControl:
             "bottom_guard" if self.position == "mount" else "bottom_mount"
         )
 
+    def reverse(self, position: str = "mount") -> None:
+        """Transfer top control from the current attacker to the defender."""
+        if position not in self.VALID_POSITIONS:
+            raise ValueError("position must be 'mount' or 'guard'")
+        self.attacker, self.defender = self.defender, self.attacker
+        self.from_position = None
+        self.position = position
+        self.transition = 0.0
+        self.sync()
+
     def release(self) -> None:
         self.attacker.clear_ground_control()
         self.defender.clear_grapple_reaction()
