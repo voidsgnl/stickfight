@@ -857,6 +857,7 @@ class ClinchKneeAction(Action):
         if self.defender:
             self.fighter.face_fighter(self.defender)
         self.fighter.aim_attack_at(self.defender)
+        self.fighter.set_grapple_targets(self.defender, mode="clinch")
         self.fighter.state = "attacking"
         self.fighter.set_animation("clinch_knee", loop=False)
         self.hit_registered = False
@@ -896,6 +897,7 @@ class TakedownAction(Action):
         if self.defender:
             self.fighter.face_fighter(self.defender)
         self.fighter.aim_attack_at(self.defender)
+        self.fighter.set_grapple_targets(self.defender, mode="takedown")
         self.fighter.state = "attacking"
         self.fighter.set_state("attack", clip_name="takedown")
         self.hit_registered = False
@@ -911,12 +913,16 @@ class TakedownAction(Action):
         d = self.defender
         if not d or d.state == "fallen":
             return
-        # Close the distance so the grappling sequence reads physically.
-        gap = (d.x - self.fighter.x) * 0.6
-        self.fighter.x += gap
+        # Close distance using a bounded drive rather than teleporting through
+        # the opponent; the hand IK targets are refreshed against the new pose.
+        gap = d.x - self.fighter.x
+        drive = max(-80.0, min(80.0, gap * 0.35))
+        self.fighter.x += drive
         self.fighter.sync_to_physics()
+        self.fighter.set_grapple_targets(d, mode="takedown")
 
         d.health = max(0.0, d.health - self.damage)
+        d.apply_grapple_reaction(self.fighter, mode="takedown")
         d.state = "fallen"
         d.set_animation("fall", loop=False)
         d.physics.vx = 0.0
