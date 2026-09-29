@@ -276,10 +276,44 @@ def test_ground_guard_contact_ik_updates_both_roles():
     bottom = Fighter("B", x=560, y=1500)
     bottom.enter_grounded_control()
     top.enter_ground_control(bottom, mode="guard")
+    before_top = top.get_world_joints().copy()
+    before_bottom = bottom.get_world_joints().copy()
+
     top.update_animation(0.1)
     bottom.update_animation(0.1)
 
-    assert top.ik_target is not None
-    assert top.ik_target[0] in {"right_hand", "left_hand"}
+    after_top = top.get_world_joints()
+    after_bottom = bottom.get_world_joints()
+    assert after_top["right_hand"] != before_top["right_hand"]
+    assert after_top["left_hand"] != before_top["left_hand"]
+    assert after_bottom["left_foot"] != before_bottom["left_foot"] or after_bottom["right_foot"] != before_bottom["right_foot"]
     assert bottom._grapple_attacker is top
     assert bottom._grapple_mode == "bottom_mount"
+
+
+def test_ground_guard_sweep_has_physical_drive_before_role_transfer():
+    from stickfight.scripting.actions import GroundGuardAction
+
+    top = Fighter("A", x=500, y=1500)
+    bottom = Fighter("B", x=560, y=1500)
+    bottom.enter_grounded_control()
+    top.enter_ground_control(bottom, mode="guard")
+
+    action = GroundGuardAction(bottom, mode="sweep", duration=0.60)
+    action.on_start(None)
+    start_x = top.x
+
+    action.update(None, 0.24, 0.24)
+    assert action.control.attacker is top
+    assert action.control.defender is bottom
+
+    action.update(None, 0.42, 0.18)
+    assert action.control.attacker is top
+    assert action.control.defender is bottom
+    assert top.physics.vx != 0.0
+    assert bottom.physics.vx != 0.0
+
+    action.update(None, 0.60, 0.18)
+    assert action.control.attacker is bottom
+    assert action.control.defender is top
+    assert top.x == start_x
