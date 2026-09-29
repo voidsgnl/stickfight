@@ -31,10 +31,8 @@ class AttackTiming:
         if any(not 0.0 <= value <= 1.0 for value in values):
             raise ValueError("Attack timing markers must be normalized to 0..1")
         if not (
-            self.anticipation_end
-            <= self.active_start
-            <= self.active_end
-            <= self.follow_through_end
+            self.anticipation_end <= self.active_start
+            <= self.active_end <= self.follow_through_end
         ):
             raise ValueError("Attack timing phases must be ordered")
 
@@ -61,12 +59,16 @@ class AttackTiming:
         p = self.progress(elapsed, duration)
         return self.active_start <= p <= self.active_end
 
-    def is_impact_frame(self, elapsed: float, duration: float, tolerance: float = 0.03) -> bool:
+    def is_impact_frame(
+        self, elapsed: float, duration: float, tolerance: float = 0.03
+    ) -> bool:
         p = self.progress(elapsed, duration)
         return abs(p - self.impact) <= max(0.0, tolerance)
 
-    def crossed_impact(self, previous_elapsed: float, elapsed: float, duration: float) -> bool:
-        """Return True when playback crosses the authored impact marker.
+    def crossed_impact(
+        self, previous_elapsed: float, elapsed: float, duration: float
+    ) -> bool:
+        """Return True when playback crosses the authored impact marker."""
         if duration <= 0.0:
             return False
         previous = self.progress(previous_elapsed, duration)
@@ -74,8 +76,6 @@ class AttackTiming:
         return previous < self.impact <= current
 
 
-# One timing definition per attack clip. Values are normalized so the same
-# choreography remains correct when an action overrides its duration.
 ATTACK_TIMINGS: Dict[str, AttackTiming] = {
     "punch": AttackTiming(0.20, 0.36, 0.62, 0.78, 0.40),
     "kick": AttackTiming(0.22, 0.42, 0.68, 0.82, 0.45),
