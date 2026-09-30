@@ -937,6 +937,13 @@ body>header,body>main{display:none!important}
 #storyStudio .fight-editor label{display:grid;gap:4px;font-size:8px;color:#777d84;text-transform:uppercase;letter-spacing:.5px}
 #storyStudio .fight-editor select,#storyStudio .fight-editor input{width:100%;background:#151719;border:1px solid #3b3e42;color:#dfe3e7;border-radius:3px;padding:6px;font-size:10px}
 #storyStudio .fight-editor .wide{grid-column:1 / -1}
+#storyStudio .fight-outcome{margin-top:6px}
+#storyStudio .fight-outcome strong{color:#ffcf72}
+#storyStudio .combat-block.defense{background:#3d5b78;border-color:#6f9ac7}
+#storyStudio .combat-block.outcome-hit{box-shadow:inset 0 -2px #ff4b4b}
+#storyStudio .combat-block.outcome-blocked{box-shadow:inset 0 -2px #7bb7ff}
+#storyStudio .combat-block.outcome-dodged{box-shadow:inset 0 -2px #a9e88a}
+#storyStudio .combat-block.outcome-countered{box-shadow:inset 0 -2px #d9a7ff}
 #storyStudio .fight-actions{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:6px}
 #storyStudio .fight-actions button{background:#1d1f21;border:1px solid #41454a;color:#cfd3d8;border-radius:3px;padding:6px;font-size:9px;cursor:pointer}
 #storyStudio .fight-actions button:hover{border-color:#ffad33;color:#fff}
@@ -2251,14 +2258,16 @@ body>header,body>main{display:none!important}
   <div class="prop-section"><h4>Transform</h4><div class="prop-grid"><div class="prop-card"><span>X</span><strong id="studioPropX">0</strong></div><div class="prop-card"><span>Y</span><strong id="studioPropY">0</strong></div><div class="prop-card"><span>ROTATION</span><strong id="studioPropRot">0°</strong></div><div class="prop-card"><span>SCALE</span><strong id="studioPropScale">100%</strong></div></div></div><div class="prop-section pose-editor"><h4>Pose</h4><label class="pose-label">JOINT<select id="studioPoseJoint"><option>head</option><option>neck</option><option>chest</option><option>left_shoulder</option><option>left_elbow</option><option>left_hand</option><option>right_shoulder</option><option>right_elbow</option><option>right_hand</option><option>left_hip</option><option>left_knee</option><option>left_foot</option><option>right_hip</option><option>right_knee</option><option>right_foot</option></select></label><div class="pose-grid"><label>DX<input id="studioPoseX" type="number" step="1" value="0"></label><label>DY<input id="studioPoseY" type="number" step="1" value="0"></label></div><div class="pose-actions"><button type="button" id="studioPoseReset">Reset Joint</button><button type="button" id="studioPoseKey">◆ Pose Key</button></div></div>
   <div class="prop-section fight-editor"><h4>Fight Choreography</h4>
 <div class="fight-editor-grid">
-<label>ATTACKER<select id="fightAttacker"></select></label>
-<label>TARGET<select id="fightTarget"></select></label>
+<label>EVENT TYPE<select id="fightEventType"><option value="attack">Attack</option><option value="defense">Defense</option></select></label>
+<label>ACTOR<select id="fightAttacker"></select></label>
+<label>THREAT / TARGET<select id="fightTarget"></select></label>
 <label>ACTION<select id="fightActionSelect"></select></label>
 <label>START FRAME<input id="fightStart" type="number" min="0" step="1"></label>
 <label>DURATION<input id="fightDuration" type="number" min="1" step="1" value="14"></label>
 <label>PHASE<select id="fightPhase"><option value="auto">Auto timing</option><option value="anticipation">Anticipation</option><option value="contact">Contact</option><option value="impact">Impact</option><option value="recovery">Recovery</option></select></label>
 </div>
 <div class="prop-card" style="margin-top:6px"><span>SELECTED EVENT</span><strong id="fightEventStatus">No combat event</strong></div>
+<div class="prop-card fight-outcome"><span>RUNTIME OUTCOME</span><strong id="fightOutcome">pending</strong></div>
 <div class="fight-actions"><button type="button" id="fightAddEvent">＋ Add / Update</button><button type="button" id="fightDeleteEvent">Delete Event</button></div></div>
 <div class="prop-section"><h4>Animation</h4><div class="prop-grid"><div class="prop-card"><span>FRAME</span><strong id="studioPropFrame">0</strong></div><div class="prop-card"><span>FPS</span><strong id="studioPropFps">30</strong></div></div></div>
   <div class="prop-section"><h4>Fight System</h4><div class="prop-card"><span>ACTION</span><strong id="studioPropAction">Idle / Guard</strong></div></div>
@@ -2330,15 +2339,26 @@ body>header,body>main{display:none!important}
     const box=$("studioFightActions");if(!box)return;
     box.innerHTML=STUDIO_FIGHT_ACTIONS.map(x=>'<button type="button" class="fight-action-btn" data-action="'+x[0]+'">'+esc(x[1])+'</button>').join("");
   }
+  function fightEventType(){return $("fightEventType")?.value||"attack"}
+  function syncFightActionOptions(){
+    const type=fightEventType(), act=$("fightActionSelect"); if(!act)return;
+    const options=type==="defense"
+      ? [["block","Block"],["dodge","Dodge"],["counter","Counter"]]
+      : STUDIO_FIGHT_ACTIONS.filter(x=>!["block","dodge","counter"].includes(x[0]));
+    const current=act.value;
+    act.innerHTML=options.map(x=>'<option value="'+x[0]+'">'+esc(x[1])+'</option>').join("");
+    if(options.some(x=>x[0]===current)) act.value=current;
+  }
   function fightTiming(action){
     const map={jab:[.36,.45],cross:[.45,.45],hook:[.45,.45],punch:[.40,.45],kick:[.45,.45],low_kick:[.48,.45],uppercut:[.45,.45],sweep:[.46,.45],slash:[.44,.45],clinch_knee:[.50,.45],takedown:[.64,.70],ground_pound:[.58,.60]};
     const t=map[action]; return t||[.5,.45];
   }
   function addCombatAction(action){
-    const attacker=S.selected||"char-a",start=Math.round(S.cursor),timing=fightTiming(action),duration=Math.max(1,Math.round(S.fps*timing[1]));
-    const target=S.instances.find(i=>i.id!==attacker)?.id||"";
-    const event={id:"combat-"+Date.now(),attacker_id:attacker,target_id:target,action,start_frame:start,end_frame:Math.min(S.frames,start+duration),phase:"auto"};
-    S.combatEvents=S.combatEvents.filter(e=>!(e.attacker_id===attacker&&e.start_frame===start));
+    const type=["block","dodge","counter"].includes(action)?"defense":"attack";
+    const actor=S.selected||"char-a",start=Math.round(S.cursor),timing=fightTiming(action),duration=Math.max(1,Math.round(S.fps*timing[1]));
+    const target=S.instances.find(i=>i.id!==actor)?.id||"";
+    const event={id:"combat-"+Date.now(),type,attacker_id:actor,target_id:target,action,start_frame:start,end_frame:Math.min(S.frames,start+duration),phase:"auto",outcome:"pending"};
+    S.combatEvents=S.combatEvents.filter(e=>!(e.attacker_id===actor&&e.start_frame===start&&e.type===type));
     S.combatEvents.push(event);S.selectedCombat=event.id;render();
   }
   function selectedCombatEvent(){return S.combatEvents.find(e=>e.id===S.selectedCombat)||null}
@@ -2347,14 +2367,15 @@ body>header,body>main{display:none!important}
     if(!a||!t||!act)return;
     const opts=S.instances.map(i=>'<option value="'+i.id+'">'+esc(i.name)+'</option>').join("");
     a.innerHTML=opts;t.innerHTML='<option value="">None</option>'+opts;
-    act.innerHTML=STUDIO_FIGHT_ACTIONS.map(x=>'<option value="'+x[0]+'">'+esc(x[1])+'</option>').join("");
-    const base=e||{attacker_id:S.selected||"char-a",target_id:S.instances.find(i=>i.id!==(S.selected||"char-a"))?.id||"",action:"jab",start_frame:Math.round(S.cursor),end_frame:Math.min(S.frames,Math.round(S.cursor)+Math.round(S.fps*.45)),phase:"auto"};
-    a.value=base.attacker_id||S.selected;t.value=base.target_id||"";act.value=base.action||"jab";
+    const base=e||{type:"attack",attacker_id:S.selected||"char-a",target_id:S.instances.find(i=>i.id!==(S.selected||"char-a"))?.id||"",action:"jab",start_frame:Math.round(S.cursor),end_frame:Math.min(S.frames,Math.round(S.cursor)+Math.round(S.fps*.45)),phase:"auto",outcome:"pending"};
+    $("fightEventType").value=base.type||"attack"; syncFightActionOptions();
+    a.value=base.attacker_id||S.selected;t.value=base.target_id||"";act.value=base.action||($("fightEventType").value==="defense"?"block":"jab");
     $("fightStart").value=base.start_frame;$("fightDuration").value=Math.max(1,(base.end_frame||base.start_frame+1)-base.start_frame);$("fightPhase").value=base.phase||"auto";
-    $("fightEventStatus").textContent=e?(base.action.replace(/_/g," ")+" · F"+base.start_frame+"–F"+base.end_frame):"New combat event";
+    $("fightEventStatus").textContent=e?((base.type==="defense"?"DEFENSE · ":"ATTACK · ")+base.action.replace(/_/g," ")+" · F"+base.start_frame+"–F"+base.end_frame):"New combat event";
+    $("fightOutcome").textContent=e?(base.outcome||"pending"):"pending";
   }
   function upsertCombatEvent(){
-    const attacker=$("fightAttacker").value,target=$("fightTarget").value,action=$("fightActionSelect").value,start=Math.max(0,Math.min(S.frames-1,Number($("fightStart").value)||0)),duration=Math.max(1,Number($("fightDuration").value)||1),event={id:S.selectedCombat||"combat-"+Date.now(),attacker_id:attacker,target_id:target,action,start_frame:start,end_frame:Math.min(S.frames,start+duration),phase:$("fightPhase").value||"auto"};
+    const type=fightEventType(),attacker=$("fightAttacker").value,target=$("fightTarget").value,action=$("fightActionSelect").value,start=Math.max(0,Math.min(S.frames-1,Number($("fightStart").value)||0)),duration=Math.max(1,Number($("fightDuration").value)||1),event={id:S.selectedCombat||"combat-"+Date.now(),type,attacker_id:attacker,target_id:target,action,start_frame:start,end_frame:Math.min(S.frames,start+duration),phase:$("fightPhase").value||"auto",outcome:"pending"};
     const at=S.combatEvents.findIndex(e=>e.id===event.id); if(at>=0)S.combatEvents[at]=event;else S.combatEvents.push(event);S.selectedCombat=event.id;S.selected=attacker;render();
   }
   function deleteCombatEvent(){if(!S.selectedCombat)return;S.combatEvents=S.combatEvents.filter(e=>e.id!==S.selectedCombat);S.selectedCombat=null;render()}
@@ -2368,14 +2389,14 @@ body>header,body>main{display:none!important}
     $("studioTracks").innerHTML=groups.map(g=>{
       const events=g.kind==="event"?S.tracks.filter(t=>t.event.actor==="scene"):S.tracks.filter(t=>t.event.actor===(g.id==="char-a"?"A":"B"));
       const blocks=events.map(t=>{const left=t.start/S.frames*100,w=Math.max(.8,t.duration/S.frames*100);return '<div class="event" title="frame '+t.start+'" style="left:'+left+'%;width:'+w+'%">'+esc(t.name)+'</div>';}).join("");
-      const combatBlocks=g.kind==="character"?S.combatEvents.filter(e=>e.attacker_id===g.id).map(e=>{const left=e.start_frame/S.frames*100,w=Math.max(.8,(e.end_frame-e.start_frame)/S.frames*100),impact=left+w*.4,sel=e.id===S.selectedCombat?' active':'';return '<div class="combat-block'+sel+'" data-combat-id="'+e.id+'" title="'+esc(e.action)+' → '+esc(S.instances.find(i=>i.id===e.target_id)?.name||"none")+'" style="left:'+left+'%;width:'+w+'%">'+esc(e.action.replace(/_/g," "))+'<i class="combat-impact" style="left:'+(Math.max(0,Math.min(100,(impact-left)/Math.max(.1,w)) ))+'%"></i></div>';}).join(""):"";
+      const combatBlocks=g.kind==="character"?S.combatEvents.filter(e=>e.attacker_id===g.id).map(e=>{const left=e.start_frame/S.frames*100,w=Math.max(.8,(e.end_frame-e.start_frame)/S.frames*100),impact=left+w*.4,sel=e.id===S.selectedCombat?' active':'',kind=e.type==="defense"?' defense':'',outcome=e.outcome&&e.outcome!=="pending"?' outcome-'+e.outcome:'';return '<div class="combat-block'+sel+kind+outcome+'" data-combat-id="'+e.id+'" title="'+esc((e.type==="defense"?"DEFENSE: ":"ATTACK: ")+e.action)+' → '+esc(S.instances.find(i=>i.id===e.target_id)?.name||"none")+'" style="left:'+left+'%;width:'+w+'%">'+esc(e.action.replace(/_/g," "))+'<i class="combat-impact" style="left:'+(Math.max(0,Math.min(100,(impact-left)/Math.max(.1,w)) ))+'%"></i></div>';}).join(""):"";
       const keys=(S.keyframes[g.id]||[]).map(k=>'<div class="key" title="Keyframe '+k.frame+'" data-frame="'+k.frame+'" style="left:'+(k.frame/S.frames*100)+'%"></div>').join("");
       return '<div class="studio-track"><div class="track-label">'+esc(g.name)+'</div><div class="track-lane" data-track="'+esc(g.id)+'">'+blocks+combatBlocks+keys+'<div class="playhead" style="left:'+(S.cursor/S.frames*100)+'%"></div></div></div>';
     }).join("");
     const sel=$("studioSelected"); sel.innerHTML=S.instances.map(i=>"<option value=\""+i.id+"\">"+esc(i.name)+"</option>").join(""); sel.value=S.selected; const si=S.instances.find(i=>i.id===S.selected)||S.instances[0]; if(si){si.pose=si.pose||{};$("studioX").value=si.x||0;$("studioY").value=si.y||0;$("studioRotation").value=si.rotation||0;$("studioScale").value=si.scale||1;} $("studioAssets").innerHTML=S.assets.map(a=>'<div class="asset-row"><span class="asset-dot"></span><div class="asset-meta"><div class="asset-name">'+esc(a.name)+'</div><div class="asset-style">'+esc(a.style)+'</div></div></div>').join("");
-    $("studioTime").textContent=(S.cursor/S.fps).toFixed(2)+"s"; const ps=S.instances.find(i=>i.id===S.selected)||S.instances[0]; const pa=S.combatEvents.filter(e=>(e.attacker_id===S.selected||e.target_id===S.selected)&&S.cursor>=e.start_frame&&S.cursor<=e.end_frame).sort((a,b)=>b.start_frame-a.start_frame)[0]; if(ps){if($("studioPropName"))$("studioPropName").textContent=ps.name;if($("studioPropX"))$("studioPropX").textContent=Math.round(ps.x||0);if($("studioPropY"))$("studioPropY").textContent=Math.round(ps.y||0);if($("studioPropRot"))$("studioPropRot").textContent=Math.round(ps.rotation||0)+"°";if($("studioPropScale"))$("studioPropScale").textContent=Math.round((ps.scale||1)*100)+"%";} syncPoseEditor(); if($("studioPropFrame"))$("studioPropFrame").textContent=Math.round(S.cursor);if($("studioPropFps"))$("studioPropFps").textContent=S.fps;if($("studioPropAction"))$("studioPropAction").textContent=pa?pa.action.replace(/_/g," "):"Idle / Guard";renderStudioStage();
+    $("studioTime").textContent=(S.cursor/S.fps).toFixed(2)+"s"; const ps=S.instances.find(i=>i.id===S.selected)||S.instances[0]; const pa=S.combatEvents.filter(e=>(e.attacker_id===S.selected||e.target_id===S.selected)&&S.cursor>=e.start_frame&&S.cursor<=e.end_frame).sort((a,b)=>b.start_frame-a.start_frame)[0]; if(ps){if($("studioPropName"))$("studioPropName").textContent=ps.name;if($("studioPropX"))$("studioPropX").textContent=Math.round(ps.x||0);if($("studioPropY"))$("studioPropY").textContent=Math.round(ps.y||0);if($("studioPropRot"))$("studioPropRot").textContent=Math.round(ps.rotation||0)+"°";if($("studioPropScale"))$("studioPropScale").textContent=Math.round((ps.scale||1)*100)+"%";} syncPoseEditor(); if($("studioPropFrame"))$("studioPropFrame").textContent=Math.round(S.cursor);if($("studioPropFps"))$("studioPropFps").textContent=S.fps;if($("studioPropAction"))$("studioPropAction").textContent=pa?((pa.type==="defense"?"DEFENSE · ":"ATTACK · ")+pa.action.replace(/_/g," ")+(pa.outcome&&pa.outcome!=="pending"?" · "+pa.outcome:"")):"Idle / Guard";if($("fightOutcome")&&selectedCombatEvent())$("fightOutcome").textContent=selectedCombatEvent().outcome||"pending";renderStudioStage();
   }
-  function bindFightEditor(){const tabs=$("studioWorkspaceTabs");if(tabs&&!tabs.dataset.fightBound){tabs.dataset.fightBound="1";}$("fightAddEvent")?.addEventListener("click",upsertCombatEvent);$("fightDeleteEvent")?.addEventListener("click",deleteCombatEvent);$("fightAttacker")?.addEventListener("change",()=>{S.selected=$("fightAttacker").value;render()});} 
+  function bindFightEditor(){const tabs=$("studioWorkspaceTabs");if(tabs&&!tabs.dataset.fightBound){tabs.dataset.fightBound="1";}$("fightAddEvent")?.addEventListener("click",upsertCombatEvent);$("fightDeleteEvent")?.addEventListener("click",deleteCombatEvent);$("fightAttacker")?.addEventListener("change",()=>{S.selected=$("fightAttacker").value;render()});$("fightEventType")?.addEventListener("change",()=>{syncFightActionOptions();render()});}
   function addCharacter(){
     const name=($("studioCharName").value||"Character "+(S.instances.length+1)).trim();
     const style=$("studioCharStyle").value;
