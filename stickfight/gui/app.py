@@ -599,28 +599,45 @@ def _apply_studio_pose_overrides(fighter: Fighter, pose_overrides: Any) -> None:
 
 
 def _resolve_studio_combat_actions(config: Dict[str, Any], frame: int) -> Dict[str, Dict[str, Any]]:
-    """Resolve authored Fight workspace events into per-character animation state."""
+    """Resolve authored attack/defense events into per-character animation state."""
     resolved: Dict[str, Dict[str, Any]] = {}
     for event in config.get("combat_events", []):
         if not isinstance(event, dict):
             continue
-        attacker = str(event.get("attacker_id", ""))
+        actor = str(event.get("attacker_id", ""))
         target = str(event.get("target_id", ""))
         action = normalize_action(event.get("action", "idle"))
+        event_type = str(event.get("type", "attack")).lower()
         try:
             start = int(event.get("start_frame", 0))
             end = max(start + 1, int(event.get("end_frame", start + 1)))
         except (TypeError, ValueError):
             continue
-        if frame < start or frame > end or not attacker:
+        if frame < start or frame > end or not actor:
             continue
         elapsed = frame - start
         duration = max(1, end - start)
+        if event_type == "defense":
+            resolved.setdefault(actor, {}).update({
+                "defense": action,
+                "defense_target_id": target,
+                "defense_start_frame": start,
+            })
+            continue
         timing = ATTACK_TIMINGS.get(action)
         phase = timing.phase(elapsed, duration) if timing else str(event.get("phase", "action"))
-        resolved[attacker] = {"action": action, "phase": phase, "target_id": target, "start_frame": start}
+        resolved.setdefault(actor, {}).update({
+            "action": action,
+            "phase": phase,
+            "target_id": target,
+            "start_frame": start,
+        })
         if target and timing and timing.is_impact_frame(elapsed, duration, tolerance=0.055):
-            resolved[target] = {"action": "hit", "phase": "impact", "source_id": attacker}
+            resolved.setdefault(target, {}).update({
+                "action": "hit",
+                "phase": "impact",
+                "source_id": actor,
+            })
     return resolved
 
 
@@ -686,12 +703,12 @@ def create_studio_frame_surface(config: Dict[str, Any]) -> pygame.Surface:
         _apply_studio_pose_overrides(fighter, char.get("pose", {}))
         fighters.append(fighter)
 
-    # Resolve authored impacts through the existing production hitbox/hurtbox and
-    # physics APIs. The frame renderer is deterministic: each preview frame is
-    # rebuilt from the authored timeline, so the same impact is never double-counted.
+    # Resolve authored attack outcomes through the production hitbox/hurtbox and
+    # physics APIs. Defense events are authored on the same timeline and take
+    # precedence over a normal hit when their windows overlap the attack.
     by_id = {str(c.get("id", "")): fighter for c, fighter in zip(chars, fighters)}
     for event in config.get("combat_events", []):
-        if not isinstance(event, dict):
+        if not isinstance(event, dict) or str(event.get("type", "attack")).lower() == "defense":
             continue
         attacker = by_id.get(str(event.get("attacker_id", "")))
         defender = by_id.get(str(event.get("target_id", "")))
@@ -711,16 +728,57 @@ def create_studio_frame_surface(config: Dict[str, Any]) -> pygame.Surface:
         if timing is None or not timing.is_active(elapsed, duration):
             continue
         hitbox = attacker.get_hitbox()
-        if hitbox is None or not check_hit(hitbox, defender.get_hurtbox()):
+        if hitbox is None:
             continue
-        # Apply the engine's authored hitbox damage and knockback once per
-        # deterministic preview frame. Health is preview state; the persistent
-        # project model remains the Studio timeline.
+
+        defenses = [
+            d for d in config.get("combat_events", [])
+            if isinstance(d, dict)
+            and str(d.get("type", "attack")).lower() == "defense"
+            and str(d.get("attacker_id", "")) == str(defender.name if False else event.get("target_id", ""))
+            and str(d.get("target_id", "")) in ("", str(event.get("attacker_id", "")))
+        ]
+        active_defense = None
+        for defense in defenses:
+            try:
+                d_start = int(defense.get("start_frame", 0))
+                d_end = max(d_start + 1, int(defense.get("end_frame", d_start + 1)))
+            except (TypeError, ValueError):
+                continue
+            if d_start <= frame <= d_end:
+                active_defense = defense
+                break
+
+        defense_action = normalize_action(active_defense.get("action", "")) if active_defense else ""
+        if defense_action == "dodge":
+            defender.set_animation("dodge", loop=False)
+            event["outcome"] = "dodged"
+            continue
+
+        if not check_hit(hitbox, defender.get_hurtbox()):
+            event["outcome"] = "miss"
+            continue
+
+        if defense_action == "block":
+            defender.set_animation("block", loop=False)
+            defender.update_animation(0.0)
+            event["outcome"] = "blocked"
+            continue
+
+        if defense_action == "counter":
+            defender.set_animation("counter", loop=False)
+            attacker.set_animation("knockback", loop=False)
+            attacker.apply_impulse(-hitbox.knockback_x * 0.85, hitbox.knockback_y)
+            event["outcome"] = "countered"
+            continue
+
         defender.health = max(0.0, defender.health - hitbox.damage)
         defender.set_animation("knockback" if abs(hitbox.knockback_x) >= 120 else "hit", loop=False)
         defender.apply_impulse(hitbox.knockback_x, hitbox.knockback_y)
+        event["outcome"] = "hit"
         post_impact_frames = max(0, frame - int(start + timing.impact * duration))
         defender.update_physics(min(0.25, post_impact_frames / max(1, int(config.get("fps", 30)))))
+
 
     for fighter in fighters:
         renderer.draw_fighter(surface, fighter, camera)
