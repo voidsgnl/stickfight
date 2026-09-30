@@ -453,3 +453,16 @@ B = scene.add_fighter("B", x=730, y=1500, render_style="ink_fight")
 - Source-level integration was completed on `story-animation-studio-foundation`.
 - The next local verification should edit a joint, create pose keys at two frames, scrub between them, and confirm the production-rendered character interpolates the pose.
 - Automated tests and browser verification were not run as part of this implementation.
+## 2026-10-01 — Fight Workspace Choreography Integration
+- Replaced the Fight workspace's single-action behavior with an authored combat-event editor.
+- Added attacker, target, action, start frame, duration, and timing-phase controls in the Properties panel.
+- Combat events are now stored with explicit attacker/target relationships and rendered as dedicated combat blocks on the timeline.
+- Added impact markers to combat blocks and selection/edit/delete behavior for authored events.
+- The Studio frame request now sends the authored combat-event list to the production backend.
+- The backend resolves existing `ATTACK_TIMINGS` metadata for authored attacks and, at the existing impact marker, switches the selected target to the real production `hit` reaction clip.
+- Existing Fighter animation clips and the production renderer remain the execution layer; no separate Studio combat engine was introduced.
+
+### Validation
+- Source-level integration completed on `story-animation-studio-foundation`.
+- Automated tests and live browser verification were not run in this implementation pass.
+- Next local check: launch `python3 gui.py`, select Fight, add an attacker/target action, scrub across its impact marker, and confirm the attacker and target render through the production fight renderer.
