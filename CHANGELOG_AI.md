@@ -509,3 +509,10 @@ B = scene.add_fighter("B", x=730, y=1500, render_style="ink_fight")
 - Automated tests and live browser verification were not run in this pass.
 
 - Corrected Counter defense to use the existing production Block stance plus attacker knockback because the current animation library does not define a standalone `counter` clip.
+
+
+## 2026-10-01 — Studio UI Interaction Fix
+- Fixed malformed literal `\\n` escape sequences in the Studio JavaScript initialization that could invalidate the entire script.
+- This prevented event listeners from being registered, making workspace, pose, timeline, and Fight controls appear unresponsive.
+- Normalized those sequences into actual JavaScript newlines without changing the Studio state model.
+- Local browser verification is still required.
