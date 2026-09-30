@@ -2197,6 +2197,24 @@ body>header,body>main{display:none!important}
   #storyStudio .fight-action-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:5px; max-height:230px; overflow:auto; padding-right:2px; }
   #storyStudio .fight-action-btn { border:1px solid #27303a; background:#11161c; color:#c7d0da; border-radius:5px; padding:6px 7px; font-size:9px; font-weight:800; cursor:pointer; text-align:left; }
   #storyStudio .fight-action-btn:hover { border-color:#00d2ff; color:#fff; background:rgba(0,210,255,.08); }
+  #storyStudio .fight-action-btn:active { transform:translateY(1px); }
+  #storyStudio .studio-quick-hint { margin:0 0 8px; padding:7px 8px; border-left:2px solid #00d2ff; background:rgba(0,210,255,.06); color:#9da7b2; font-size:9px; line-height:1.45; }
+  #storyStudio .fight-editor-details { margin-top:8px; border-top:1px solid rgba(255,255,255,.07); padding-top:7px; }
+  #storyStudio .fight-editor-details summary { cursor:pointer; color:#8f99a4; font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:.6px; }
+  #storyStudio .fight-editor-details[open] summary { color:#00d2ff; margin-bottom:7px; }
+  #storyStudio .combat-block { cursor:pointer; user-select:none; }
+  #storyStudio .combat-block.active { outline:1px solid #fff; box-shadow:0 0 0 2px rgba(0,210,255,.28); z-index:6; }
+  #storyStudio .combat-block.defense { background:linear-gradient(90deg,#6f63d8,#8e7cff); }
+  #storyStudio .combat-block.outcome-hit { box-shadow:inset 0 -2px 0 #53e38a; }
+  #storyStudio .combat-block.outcome-blocked,
+  #storyStudio .combat-block.outcome-dodged,
+  #storyStudio .combat-block.outcome-miss { box-shadow:inset 0 -2px 0 #9da7b2; }
+  #storyStudio .combat-block.outcome-countered { box-shadow:inset 0 -2px 0 #ffb700; }
+  #storyStudio .combat-impact { pointer-events:none; }
+  #storyStudio .fight-actions { display:flex; gap:6px; }
+  #storyStudio .fight-actions button { flex:1; }
+  #storyStudio .combat-empty { padding:12px; color:#737d88; font-size:10px; border:1px dashed #303842; border-radius:5px; text-align:center; }
+  #storyStudio .combat-empty strong { display:block; color:#b9c2cc; margin-bottom:3px; }
   #storyStudio .combat-event { background:linear-gradient(90deg,#ff3366,#ffb700); color:#fff; }
   @media (max-width:850px){ #storyStudio .studio-body{grid-template-columns:1fr}.asset-pane{border-right:0!important;border-bottom:1px solid rgba(255,255,255,.07)} }
 </style>
@@ -2264,6 +2282,8 @@ body>header,body>main{display:none!important}
   <div class="prop-section"><h4>Selection</h4><div class="prop-card"><span>OBJECT</span><strong id="studioPropName">Fighter A</strong></div></div>
   <div class="prop-section"><h4>Transform</h4><div class="prop-grid"><div class="prop-card"><span>X</span><strong id="studioPropX">0</strong></div><div class="prop-card"><span>Y</span><strong id="studioPropY">0</strong></div><div class="prop-card"><span>ROTATION</span><strong id="studioPropRot">0°</strong></div><div class="prop-card"><span>SCALE</span><strong id="studioPropScale">100%</strong></div></div></div><div class="prop-section pose-editor"><h4>Pose</h4><label class="pose-label">JOINT<select id="studioPoseJoint"><option>head</option><option>neck</option><option>chest</option><option>left_shoulder</option><option>left_elbow</option><option>left_hand</option><option>right_shoulder</option><option>right_elbow</option><option>right_hand</option><option>left_hip</option><option>left_knee</option><option>left_foot</option><option>right_hip</option><option>right_knee</option><option>right_foot</option></select></label><div class="pose-grid"><label>DX<input id="studioPoseX" type="number" step="1" value="0"></label><label>DY<input id="studioPoseY" type="number" step="1" value="0"></label></div><div class="pose-actions"><button type="button" id="studioPoseReset">Reset Joint</button><button type="button" id="studioPoseKey">◆ Pose Key</button></div></div>
   <div class="prop-section fight-editor"><h4>Fight Choreography</h4>
+<div class="studio-quick-hint"><strong>Quick workflow:</strong> select a fighter → click an action in the left palette → scrub or play. Use Advanced timing only when you need exact frame control.</div>
+<details class="fight-editor-details"><summary>Advanced event timing &amp; targeting</summary>
 <div class="fight-editor-grid">
 <label>EVENT TYPE<select id="fightEventType"><option value="attack">Attack</option><option value="defense">Defense</option></select></label>
 <label>ACTOR<select id="fightAttacker"></select></label>
@@ -2275,7 +2295,7 @@ body>header,body>main{display:none!important}
 </div>
 <div class="prop-card" style="margin-top:6px"><span>SELECTED EVENT</span><strong id="fightEventStatus">No combat event</strong></div>
 <div class="prop-card fight-outcome"><span>RUNTIME OUTCOME</span><strong id="fightOutcome">pending</strong></div>
-<div class="fight-actions"><button type="button" id="fightAddEvent">＋ Add / Update</button><button type="button" id="fightDeleteEvent">Delete Event</button></div></div>
+<div class="fight-actions"><button type="button" id="fightAddEvent">＋ Add / Update</button><button type="button" id="fightDeleteEvent">Delete Event</button></div></details></div>
 <div class="prop-section"><h4>Animation</h4><div class="prop-grid"><div class="prop-card"><span>FRAME</span><strong id="studioPropFrame">0</strong></div><div class="prop-card"><span>FPS</span><strong id="studioPropFps">30</strong></div></div></div>
   <div class="prop-section"><h4>Fight System</h4><div class="prop-card"><span>ACTION</span><strong id="studioPropAction">Idle / Guard</strong></div></div>
   <div class="prop-section"><h4>Layers</h4><div class="prop-card"><span>SCENE</span><strong>Characters · Camera · FX · Audio</strong></div></div><div class="audio-placeholder prop-section"><h4>Audio workspace</h4><div class="prop-card"><span>TRACKS</span><strong>Dialogue · Foley · Music · Ambience</strong></div><div class="prop-card" style="margin-top:6px"><span>STATUS</span><strong>Audio authoring foundation</strong></div></div>
@@ -2399,6 +2419,15 @@ body>header,body>main{display:none!important}
     const at=S.combatEvents.findIndex(e=>e.id===event.id); if(at>=0)S.combatEvents[at]=event;else S.combatEvents.push(event);S.selectedCombat=event.id;S.selected=attacker;render();
   }
   function deleteCombatEvent(){if(!S.selectedCombat)return;S.combatEvents=S.combatEvents.filter(e=>e.id!==S.selectedCombat);S.selectedCombat=null;render()}
+  function selectCombatEvent(id){S.selectedCombat=id;const e=selectedCombatEvent();if(e)S.selected=e.attacker_id;populateFightEditor();render()}
+  function moveCombatEvent(event,index,lane){
+    const e=S.combatEvents[index]; if(!e)return;
+    event.preventDefault(); event.stopPropagation();
+    const rect=lane.getBoundingClientRect(), original=e.start_frame, duration=Math.max(1,e.end_frame-e.start_frame);
+    const move=ev=>{const ratio=Math.max(0,Math.min(1,(ev.clientX-rect.left)/rect.width));const start=Math.max(0,Math.min(S.frames-duration,Math.round(ratio*S.frames)));e.start_frame=start;e.end_frame=start+duration;S.cursor=start;render();};
+    const up=()=>{document.removeEventListener("pointermove",move);document.removeEventListener("pointerup",up);renderStudioStage();};
+    document.addEventListener("pointermove",move);document.addEventListener("pointerup",up);
+  }
 
   function render(){
     syncLegacy();
@@ -2463,7 +2492,8 @@ body>header,body>main{display:none!important}
   $("studioReset").addEventListener("click",()=>{S.cursor=0;S.playing=false;$("studioPlay").textContent="▶ Play";render()});
   $("studioFps").addEventListener("change",e=>{S.fps=Math.max(1,Number(e.target.value)||30);render()});
   $("studioFrames").addEventListener("change",e=>{S.frames=Math.max(1,Number(e.target.value)||180);render()});
-  document.addEventListener("click",e=>{const lane=e.target.closest("#studioRuler,.studio-track .track-lane");if(!lane)return;const rect=lane.getBoundingClientRect(),x=Math.max(0,Math.min(rect.width,e.clientX-rect.left));S.cursor=Math.round(x/rect.width*S.frames);applyFrame();render()});
+  document.addEventListener("click",e=>{const combat=e.target.closest(".combat-block");if(combat){e.stopPropagation();selectCombatEvent(combat.dataset.combatId);return;}const lane=e.target.closest("#studioRuler,.studio-track .track-lane");if(!lane)return;const rect=lane.getBoundingClientRect(),x=Math.max(0,Math.min(rect.width,e.clientX-rect.left));S.cursor=Math.round(x/rect.width*S.frames);applyFrame();render()});
+  document.addEventListener("pointerdown",e=>{const combat=e.target.closest(".combat-block");if(!combat||e.button!==0)return;const lane=combat.closest(".track-lane");const eventId=combat.dataset.combatId;const index=S.combatEvents.findIndex(x=>x.id===eventId);if(index<0)return;selectCombatEvent(eventId);moveCombatEvent(e,index,lane);});
   const WORKSPACES={
     animation:{label:"ANIMATION",hint:"Keyframes, posing, transforms and timing"},
     fight:{label:"FIGHT",hint:"Combat choreography, actions, timing and impact"},
