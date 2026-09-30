@@ -478,3 +478,21 @@ B = scene.add_fighter("B", x=730, y=1500, render_style="ink_fight")
 - Source-level integration completed on `story-animation-studio-foundation`.
 - Automated tests and live browser verification were not run in this pass.
 - Next local verification: place two fighters within striking distance, author a jab/cross/kick, scrub through the active/impact window, and confirm collision-driven reaction and displacement.
+
+
+## 2026-10-01 — Fight Defense and Combat Outcomes
+- Added explicit Attack vs Defense event types to the Fight workspace.
+- Defense authoring supports Block, Dodge, and Counter events with actor/threat relationships on the same timeline as attacks.
+- Defense events render as distinct timeline blocks and expose a runtime-outcome field for the selected event.
+- The production frame resolver now evaluates defense windows before applying a normal hit:
+  - Dodge produces a miss/dodged outcome and preserves the attacker's action without damage.
+  - Block produces a blocked outcome and suppresses normal damage/knockback.
+  - Counter produces a countered outcome and drives the attacker into the existing knockback response.
+  - No collision produces an explicit miss outcome.
+  - Otherwise the existing hitbox damage and knockback path remains the normal hit outcome.
+- Existing Fighter clips, hitboxes, hurtboxes, physics, and renderer remain the execution layer.
+
+### Validation
+- Source-level integration completed on `story-animation-studio-foundation`.
+- Automated tests and live browser verification were not run in this pass.
+- Next local verification: author a jab/cross against Block, Dodge, and Counter defense events, then scrub through their overlapping frames and verify the rendered reactions and timeline outcomes.
