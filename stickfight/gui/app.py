@@ -21,6 +21,7 @@ from stickfight import FightScene, Fighter
 from stickfight.scripting.generator import generate_fight
 from stickfight.engine.camera import Camera
 from stickfight.engine.renderer import Renderer
+from stickfight.engine.combat_timing import ATTACK_TIMINGS
 from stickfight.studio.combat import normalize_action
 
 
@@ -596,6 +597,32 @@ def _apply_studio_pose_overrides(fighter: Fighter, pose_overrides: Any) -> None:
         fighter.current_pose.set(joint, base_x + dx, base_y + dy)
 
 
+def _resolve_studio_combat_actions(config: Dict[str, Any], frame: int) -> Dict[str, Dict[str, Any]]:
+    """Resolve authored Fight workspace events into per-character animation state."""
+    resolved: Dict[str, Dict[str, Any]] = {}
+    for event in config.get("combat_events", []):
+        if not isinstance(event, dict):
+            continue
+        attacker = str(event.get("attacker_id", ""))
+        target = str(event.get("target_id", ""))
+        action = normalize_action(event.get("action", "idle"))
+        try:
+            start = int(event.get("start_frame", 0))
+            end = max(start + 1, int(event.get("end_frame", start + 1)))
+        except (TypeError, ValueError):
+            continue
+        if frame < start or frame > end or not attacker:
+            continue
+        elapsed = frame - start
+        duration = max(1, end - start)
+        timing = ATTACK_TIMINGS.get(action)
+        phase = timing.phase(elapsed, duration) if timing else str(event.get("phase", "action"))
+        resolved[attacker] = {"action": action, "phase": phase, "target_id": target}
+        if target and timing and timing.is_impact_frame(elapsed, duration, tolerance=0.055):
+            resolved[target] = {"action": "hit", "phase": "impact", "source_id": attacker}
+    return resolved
+
+
 def create_studio_frame_surface(config: Dict[str, Any]) -> pygame.Surface:
     """Render a Studio frame through the production Fight renderer.
 
@@ -618,6 +645,7 @@ def create_studio_frame_surface(config: Dict[str, Any]) -> pygame.Surface:
     renderer.draw_background(surface, env, camera, ground_y=gy)
 
     chars = config.get("characters", [])
+    combat_states = _resolve_studio_combat_actions(config, int(config.get("frame", 0)))
     if not chars:
         chars = [
             {"id": "char-a", "name": "Fighter A", "x": w * 0.35, "y": gy,
@@ -647,7 +675,8 @@ def create_studio_frame_surface(config: Dict[str, Any]) -> pygame.Surface:
 
         # Fight action is authored by Studio, but executed by the real Fighter
         # animation library. Unknown actions safely resolve to idle.
-        action = normalize_action(char.get("action", "idle"))
+        authored = combat_states.get(str(char.get("id", "")), {})
+        action = normalize_action(authored.get("action", char.get("action", "idle")))
         fighter.set_animation(action, loop=False if action != "idle" else True)
         fighter.update_animation(0.0)
         # Manual Studio pose edits layer on top of the real production clip.
