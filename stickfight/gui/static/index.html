@@ -2310,16 +2310,28 @@ body>header,body>main{display:none!important}
       const a=S.assets.find(x=>x.id===i.asset)||{};
       const active=S.combatEvents.filter(e=>(e.attacker_id===i.id||e.target_id===i.id)&&frame>=e.start_frame&&frame<=e.end_frame)
         .sort((x,y)=>y.start_frame-x.start_frame);
-      const attack=active.find(e=>e.attacker_id===i.id), reaction=active.find(e=>e.target_id===i.id&&e.attacker_id!==i.id);
+      const attack=active.find(e=>e.type!=="defense"&&e.attacker_id===i.id), defense=active.find(e=>e.type==="defense"&&e.attacker_id===i.id);
       return {id:i.id,name:i.name,x:Number(i.x)||0,y:Number(i.y)||0,rotation:Number(i.rotation)||0,scale:Number(i.scale)||1,
         facing:idx%2===0?1:-1,archetype:a.archetype||"classic",style:a.style||"classic",color:a.color||"#2d3038",
-        headband_color:a.headband_color||null,weapon:a.weapon||"none",action:attack?attack.action:(reaction?"hit":"idle"),pose:i.pose||{},
-        combat_phase:attack?attack.phase:"",combat_target_id:attack?attack.target_id:""};
+        headband_color:a.headband_color||null,weapon:a.weapon||"none",action:attack?attack.action:(defense?defense.action:"idle"),pose:i.pose||{},
+        combat_phase:attack?attack.phase:"",combat_target_id:attack?attack.target_id:defense?defense.target_id:""};
     });
     try{
       const res=await fetch("/api/studio/frame",{method:"POST",headers:{"Content-Type":"application/json"},
         body:JSON.stringify({characters:chars,environment:"dojo",frame,combat_events:S.combatEvents})});
       if(!res.ok)return;
+      const outcomeHeader=res.headers.get("X-Studio-Outcomes");
+      if(outcomeHeader){
+        try{
+          const outcomes=JSON.parse(outcomeHeader);
+          Object.entries(outcomes).forEach(([id,outcome])=>{
+            const event=S.combatEvents.find(e=>e.id===id);
+            if(event)event.outcome=outcome;
+          });
+          const selected=selectedCombatEvent();
+          if(selected&&$("fightOutcome"))$("fightOutcome").textContent=selected.outcome||"pending";
+        }catch(e){console.warn("Studio combat outcome metadata unavailable",e);}
+      }
       const blob=await res.blob(); if(request!==studioFrameRequest)return;
       const url=URL.createObjectURL(blob); stage.innerHTML='<img class="studio-real-frame" alt="Fight animation frame">';
       stage.querySelector("img").src=url; setTimeout(()=>URL.revokeObjectURL(url),1500);
