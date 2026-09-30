@@ -931,7 +931,7 @@ body>header,body>main{display:none!important}
 #storyStudio .prop-card{background:#1d1f21;border:1px solid #393c40;border-radius:3px;padding:7px}
 #storyStudio .prop-card span{display:block;font-size:8px;color:#777d84;margin-bottom:3px}
 #storyStudio .prop-card strong{font-size:11px;color:#e5e8eb}\n#storyStudio .pose-label{display:grid;gap:4px;font-size:8px;color:#777d84;text-transform:uppercase;letter-spacing:.6px}\n#storyStudio .pose-label select,#storyStudio .pose-grid input{width:100%;background:#151719;border:1px solid #3b3e42;color:#dfe3e7;border-radius:3px;padding:6px;font-size:10px}\n#storyStudio .pose-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:6px}\n#storyStudio .pose-grid label{display:grid;gap:4px;font-size:8px;color:#777d84}\n#storyStudio .pose-actions{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:6px}\n#storyStudio .pose-actions button{background:#1d1f21;border:1px solid #41454a;color:#cfd3d8;border-radius:3px;padding:6px;font-size:9px;cursor:pointer}\n#storyStudio .pose-actions button:hover{border-color:#ffad33;color:#fff}
-#storyStudio .fight-editor{display:none}.#storyStudio .fight-editor{display:none}
+
 #storyStudio.workspace-fight .fight-editor{display:block}
 #storyStudio .fight-editor-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
 #storyStudio .fight-editor label{display:grid;gap:4px;font-size:8px;color:#777d84;text-transform:uppercase;letter-spacing:.5px}
@@ -2309,7 +2309,7 @@ body>header,body>main{display:none!important}
     });
     try{
       const res=await fetch("/api/studio/frame",{method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({characters:chars,environment:"dojo",frame})});
+        body:JSON.stringify({characters:chars,environment:"dojo",frame,combat_events:S.combatEvents})});
       if(!res.ok)return;
       const blob=await res.blob(); if(request!==studioFrameRequest)return;
       const url=URL.createObjectURL(blob); stage.innerHTML='<img class="studio-real-frame" alt="Fight animation frame">';
