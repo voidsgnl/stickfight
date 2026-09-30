@@ -2493,7 +2493,7 @@ body>header,body>main{display:none!important}
   $("studioFps").addEventListener("change",e=>{S.fps=Math.max(1,Number(e.target.value)||30);render()});
   $("studioFrames").addEventListener("change",e=>{S.frames=Math.max(1,Number(e.target.value)||180);render()});
   document.addEventListener("click",e=>{const combat=e.target.closest(".combat-block");if(combat){e.stopPropagation();selectCombatEvent(combat.dataset.combatId);return;}const lane=e.target.closest("#studioRuler,.studio-track .track-lane");if(!lane)return;const rect=lane.getBoundingClientRect(),x=Math.max(0,Math.min(rect.width,e.clientX-rect.left));S.cursor=Math.round(x/rect.width*S.frames);applyFrame();render()});
-  document.addEventListener("pointerdown",e=>{const combat=e.target.closest(".combat-block");if(!combat||e.button!==0)return;const lane=combat.closest(".track-lane");const eventId=combat.dataset.combatId;const index=S.combatEvents.findIndex(x=>x.id===eventId);if(index<0)return;selectCombatEvent(eventId);moveCombatEvent(e,index,lane);});
+  document.addEventListener("pointerdown",e=>{const combat=e.target.closest(".combat-block");if(!combat||e.button!==0)return;const lane=combat.closest(".track-lane");const eventId=combat.dataset.combatId;const index=S.combatEvents.findIndex(x=>x.id===eventId);if(index<0)return;const selected=S.combatEvents[index];S.selectedCombat=selected.id;S.selected=selected.attacker_id;populateFightEditor();moveCombatEvent(e,index,lane);});
   const WORKSPACES={
     animation:{label:"ANIMATION",hint:"Keyframes, posing, transforms and timing"},
     fight:{label:"FIGHT",hint:"Combat choreography, actions, timing and impact"},
