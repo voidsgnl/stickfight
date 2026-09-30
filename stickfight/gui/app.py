@@ -749,7 +749,7 @@ def create_studio_frame_surface(config: Dict[str, Any]) -> pygame.Surface:
                 active_defense = defense
                 break
 
-        defense_action = normalize_action(active_defense.get("action", "")) if active_defense else ""
+        defense_action = str(active_defense.get("action", "")).strip().lower() if active_defense else ""
         if defense_action == "dodge":
             defender.set_animation("dodge", loop=False)
             event["outcome"] = "dodged"
@@ -766,7 +766,10 @@ def create_studio_frame_surface(config: Dict[str, Any]) -> pygame.Surface:
             continue
 
         if defense_action == "counter":
-            defender.set_animation("counter", loop=False)
+            # The production engine has no standalone counter clip; use its
+            # existing block stance while the counter outcome drives the
+            # attacker's real knockback response.
+            defender.set_animation("block", loop=False)
             attacker.set_animation("knockback", loop=False)
             attacker.apply_impulse(-hitbox.knockback_x * 0.85, hitbox.knockback_y)
             event["outcome"] = "countered"
