@@ -22,6 +22,7 @@ from stickfight.scripting.generator import generate_fight
 from stickfight.engine.camera import Camera
 from stickfight.engine.renderer import Renderer
 from stickfight.engine.combat_timing import ATTACK_TIMINGS
+from stickfight.engine.collision import check_hit
 from stickfight.studio.combat import normalize_action
 
 
@@ -678,10 +679,48 @@ def create_studio_frame_surface(config: Dict[str, Any]) -> pygame.Surface:
         authored = combat_states.get(str(char.get("id", "")), {})
         action = normalize_action(authored.get("action", char.get("action", "idle")))
         fighter.set_animation(action, loop=False if action != "idle" else True)
-        fighter.update_animation(0.0)
+        authored_state = combat_states.get(str(char.get("id", "")), {})
+        elapsed_frames = max(0, int(config.get("frame", 0)) - int(authored_state.get("start_frame", config.get("frame", 0))))
+        fighter.update_animation(elapsed_frames / 30.0 if action != "idle" else 0.0)
         # Manual Studio pose edits layer on top of the real production clip.
         _apply_studio_pose_overrides(fighter, char.get("pose", {}))
         fighters.append(fighter)
+
+    # Resolve authored impacts through the existing production hitbox/hurtbox and
+    # physics APIs. The frame renderer is deterministic: each preview frame is
+    # rebuilt from the authored timeline, so the same impact is never double-counted.
+    by_id = {str(c.get("id", "")): fighter for c, fighter in zip(chars, fighters)}
+    for event in config.get("combat_events", []):
+        if not isinstance(event, dict):
+            continue
+        attacker = by_id.get(str(event.get("attacker_id", "")))
+        defender = by_id.get(str(event.get("target_id", "")))
+        if attacker is None or defender is None:
+            continue
+        try:
+            start = int(event.get("start_frame", 0))
+            end = max(start + 1, int(event.get("end_frame", start + 1)))
+            frame = int(config.get("frame", 0))
+        except (TypeError, ValueError):
+            continue
+        if frame < start or frame > end:
+            continue
+        timing = ATTACK_TIMINGS.get(attacker.active_clip.name)
+        elapsed = max(0, frame - start)
+        duration = max(1, end - start)
+        if timing is None or not timing.is_active(elapsed, duration):
+            continue
+        hitbox = attacker.get_hitbox()
+        if hitbox is None or not check_hit(hitbox, defender.get_hurtbox()):
+            continue
+        # Apply the engine's authored hitbox damage and knockback once per
+        # deterministic preview frame. Health is preview state; the persistent
+        # project model remains the Studio timeline.
+        defender.health = max(0.0, defender.health - hitbox.damage)
+        defender.set_animation("knockback" if abs(hitbox.knockback_x) >= 120 else "hit", loop=False)
+        defender.apply_impulse(hitbox.knockback_x, hitbox.knockback_y)
+        post_impact_frames = max(0, frame - int(start + timing.impact * duration))
+        defender.update_physics(min(0.25, post_impact_frames / 30.0))
 
     for fighter in fighters:
         renderer.draw_fighter(surface, fighter, camera)
