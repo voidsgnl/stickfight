@@ -618,7 +618,7 @@ def _resolve_studio_combat_actions(config: Dict[str, Any], frame: int) -> Dict[s
         duration = max(1, end - start)
         timing = ATTACK_TIMINGS.get(action)
         phase = timing.phase(elapsed, duration) if timing else str(event.get("phase", "action"))
-        resolved[attacker] = {"action": action, "phase": phase, "target_id": target}
+        resolved[attacker] = {"action": action, "phase": phase, "target_id": target, "start_frame": start}
         if target and timing and timing.is_impact_frame(elapsed, duration, tolerance=0.055):
             resolved[target] = {"action": "hit", "phase": "impact", "source_id": attacker}
     return resolved
@@ -681,7 +681,7 @@ def create_studio_frame_surface(config: Dict[str, Any]) -> pygame.Surface:
         fighter.set_animation(action, loop=False if action != "idle" else True)
         authored_state = combat_states.get(str(char.get("id", "")), {})
         elapsed_frames = max(0, int(config.get("frame", 0)) - int(authored_state.get("start_frame", config.get("frame", 0))))
-        fighter.update_animation(elapsed_frames / 30.0 if action != "idle" else 0.0)
+        fighter.update_animation(elapsed_frames / max(1, int(config.get("fps", 30))) if action != "idle" else 0.0)
         # Manual Studio pose edits layer on top of the real production clip.
         _apply_studio_pose_overrides(fighter, char.get("pose", {}))
         fighters.append(fighter)
@@ -720,7 +720,7 @@ def create_studio_frame_surface(config: Dict[str, Any]) -> pygame.Surface:
         defender.set_animation("knockback" if abs(hitbox.knockback_x) >= 120 else "hit", loop=False)
         defender.apply_impulse(hitbox.knockback_x, hitbox.knockback_y)
         post_impact_frames = max(0, frame - int(start + timing.impact * duration))
-        defender.update_physics(min(0.25, post_impact_frames / 30.0))
+        defender.update_physics(min(0.25, post_impact_frames / max(1, int(config.get("fps", 30)))))
 
     for fighter in fighters:
         renderer.draw_fighter(surface, fighter, camera)
