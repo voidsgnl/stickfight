@@ -496,3 +496,14 @@ B = scene.add_fighter("B", x=730, y=1500, render_style="ink_fight")
 - Source-level integration completed on `story-animation-studio-foundation`.
 - Automated tests and live browser verification were not run in this pass.
 - Next local verification: author a jab/cross against Block, Dodge, and Counter defense events, then scrub through their overlapping frames and verify the rendered reactions and timeline outcomes.
+
+
+## 2026-10-01 — Studio Combat Outcome Preview Feedback
+- The Studio frame API now returns per-event outcome metadata alongside the rendered PNG.
+- The Fight workspace consumes that metadata so the selected event can show resolved `hit`, `miss`, `blocked`, `dodged`, or `countered` outcomes while scrubbing.
+- Target `hit` reactions are no longer inferred solely from the attack impact marker; they are applied only after actual hitbox/hurtbox collision and defense resolution.
+- Defense events remain additive and continue to use the production Fighter clips and physics.
+
+### Validation
+- Source-level integration completed on `story-animation-studio-foundation`.
+- Automated tests and live browser verification were not run in this pass.
