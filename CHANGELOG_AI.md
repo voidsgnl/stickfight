@@ -516,3 +516,15 @@ B = scene.add_fighter("B", x=730, y=1500, render_style="ink_fight")
 - This prevented event listeners from being registered, making workspace, pose, timeline, and Fight controls appear unresponsive.
 - Normalized those sequences into actual JavaScript newlines without changing the Studio state model.
 - Local browser verification is still required.
+
+
+## 2026-10-01 — Simplify Studio Fight Authoring
+- Changed the Fight workspace guidance from a form-first workflow to a direct animation-editor workflow: select fighter, click an action, then scrub/play.
+- Moved detailed attacker/target/frame/phase controls behind an Advanced timing section so first-time authoring does not require filling a configuration form.
+- Made authored combat timeline blocks selectable so clicking an action opens its event in the inspector.
+- Added direct timeline dragging for combat blocks, allowing an authored action to be moved to a new start frame without editing numeric fields.
+- Added clearer selected/outcome styling while preserving the existing combat event model and production fight renderer.
+
+### Validation
+- Source updated on `story-animation-studio-foundation`.
+- Browser verification is still required to confirm click/drag interaction against the local GUI server.
