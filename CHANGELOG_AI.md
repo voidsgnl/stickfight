@@ -466,3 +466,15 @@ B = scene.add_fighter("B", x=730, y=1500, render_style="ink_fight")
 - Source-level integration completed on `story-animation-studio-foundation`.
 - Automated tests and live browser verification were not run in this implementation pass.
 - Next local check: launch `python3 gui.py`, select Fight, add an attacker/target action, scrub across its impact marker, and confirm the attacker and target render through the production fight renderer.
+## 2026-10-01 — Studio Combat Impact Resolution
+- Extended the Fight workspace from animation-state switching into collision-aware impact resolution.
+- Authored attacks now use the existing production `ATTACK_TIMINGS`, `Hitbox`, `Hurtbox`, and `PhysicsBody` systems during Studio frame rendering.
+- Attackers advance to the authored timeline position instead of always rendering at clip time zero.
+- When an authored attack enters its active contact window and the production hitbox intersects the selected target's hurtbox, the target receives the existing hitbox damage value and knockback impulse.
+- The target uses the existing `hit` or `knockback` production animation based on the authored impulse.
+- The implementation remains deterministic per preview frame; persistent project state is still the Studio timeline rather than transient preview health.
+
+### Validation
+- Source-level integration completed on `story-animation-studio-foundation`.
+- Automated tests and live browser verification were not run in this pass.
+- Next local verification: place two fighters within striking distance, author a jab/cross/kick, scrub through the active/impact window, and confirm collision-driven reaction and displacement.
