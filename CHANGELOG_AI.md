@@ -507,3 +507,5 @@ B = scene.add_fighter("B", x=730, y=1500, render_style="ink_fight")
 ### Validation
 - Source-level integration completed on `story-animation-studio-foundation`.
 - Automated tests and live browser verification were not run in this pass.
+
+- Corrected Counter defense to use the existing production Block stance plus attacker knockback because the current animation library does not define a standalone `counter` clip.
