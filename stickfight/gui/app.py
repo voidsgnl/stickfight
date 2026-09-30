@@ -982,6 +982,297 @@ class StudioRequestHandler(SimpleHTTPRequestHandler):
                 png_bytes = buf.getvalue()
                 self.send_response(200)
                 self.send_header("Content-Type", "image/png")
+                outcomes = {
+                    str(event.get("id")): str(event.get("outcome"))
+                    for event in payload.get("combat_events", [])
+                    if isinstance(event, dict) and event.get("id") and event.get("outcome")
+                }
+                if outcomes:
+                    self.send_header("X-Studio-Outcomes", json.dumps(outcomes, separators=(",", ":")))
+                self.send_header("Content-Length", str(len(png_bytes)))
+                self.send_header("Cache-Control", "no-cache, no-store")
+                self.end_headers()
+                self.wfile.write(png_bytes)
+            except Exception as e:
+                self.send_response(500)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode("utf-8"))
+            return
+
+        if url_path == "/api/preview":
+            try:
+                surface = create_preview_surface(payload)
+                buf = io.BytesIO()
+                pygame.image.save(surface, buf, "PNG")
+                png_bytes = buf.getvalue()
+
+                self.send_response(200)
+                self.send_header("Content-Type", "image/png")
+                self.send_header("Content-Length", str(len(png_bytes)))
+                self.send_header("Cache-Control", "no-cache, no-store")
+                self.end_headers()
+                self.wfile.write(png_bytes)
+            except Exception as e:
+                self.send_response(500)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode("utf-8"))
+            return
+
+        elif url_path == "/api/render":
+            global active_job
+            with job_lock:
+                if active_job["status"] == "rendering":
+                    self.send_response(409)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"error": "A render job is already in progress."}).encode("utf-8"))
+                    return
+
+                job_id = str(uuid.uuid4())[:8]
+                active_job = {
+                    "id": job_id,
+                    "status": "rendering",
+                    "progress": 0.0,
+                    "frame": 0,
+                    "total_frames": 0,
+                    "fps": 0.0,
+                    "video_url": None,
+                    "error": None,
+                }
+
+            thread = threading.Thread(target=execute_render_job, args=(job_id, payload), daemon=True)
+            thread.start()
+
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({"status": "started", "job_id": job_id}).encode("utf-8"))
+            return
+
+        self.send_error(404, "Not Found")
+
+
+def run_server(host: str = "127.0.0.1", port: int = 5000):
+    # Keep preview, render, and status requests independent.
+    server = ThreadingHTTPServer((host, port), StudioRequestHandler)
+    print(f"🎬 Stick Fight Studio GUI listening at http://{host}:{port}")
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        print("\n🛑 Shutting down Studio GUI server.")
+    finally:
+        server.server_close()
+    for fighter in fighters:
+        renderer.draw_fighter(surface, fighter, camera)
+    return surface
+
+
+def execute_render_job(job_id: str, config: Dict[str, Any]):
+    """Background worker that synthesizes and renders the complete stick fight video."""
+    global active_job
+
+    try:
+        duration = float(config.get("duration", 5.0))
+        fmt = config.get("format", "vertical")
+        if fmt == "horizontal":
+            width, height = 1920, 1080
+            ground_y = 850.0
+        elif fmt == "square":
+            width, height = 1080, 1080
+            ground_y = 850.0
+        else:
+            width, height = 1080, 1920
+            ground_y = 1500.0
+
+        fps = int(config.get("fps", 30))
+        env = config.get("environment", "dojo")
+        seed = config.get("seed")
+        if seed is None or str(seed).strip() == "":
+            seed = random.randint(1000, 999999)
+        else:
+            seed = int(seed)
+
+        timestamp = int(time.time())
+        video_filename = f"fight_studio_{timestamp}.mp4"
+        output_file = os.path.join(OUTPUT_DIR, "videos", video_filename)
+
+        # Build scene with custom fighter parameters
+        fa_cfg = config.get("fighter_a", {})
+        fb_cfg = config.get("fighter_b", {})
+
+        arch_a = fa_cfg.get("archetype", "ninja")
+        arch_b = fb_cfg.get("archetype", "warrior")
+
+        mode = config.get("mode", "procedural")
+        style = config.get("style", "arcade")
+        if mode == "timeline" and config.get("timeline"):
+            scene = build_custom_timeline_scene(config, width, height, fps, ground_y)
+        else:
+            scene = generate_fight(
+                duration=duration,
+                fighter_a_type=arch_a,
+                fighter_b_type=arch_b,
+                environment=env,
+                seed=seed,
+                width=width,
+                height=height,
+                fps=fps,
+                ground_y=ground_y,
+                style=style,
+            )
+
+            # Apply custom names and styling override to fighters
+            if len(scene.fighters) >= 2:
+                f1, f2 = scene.fighters[0], scene.fighters[1]
+                if fa_cfg.get("name"):
+                    f1.name = fa_cfg["name"]
+                if fa_cfg.get("color"):
+                    f1.color = hex_to_rgb(fa_cfg["color"], f1.color)
+                if "headband_color" in fa_cfg and fa_cfg["headband_color"]:
+                    f1.headband_color = hex_to_rgb(fa_cfg["headband_color"])
+                if fa_cfg.get("weapon"):
+                    f1.equip(None if fa_cfg["weapon"] == "none" else fa_cfg["weapon"])
+                if fa_cfg.get("scale"):
+                    f1.scale = float(fa_cfg["scale"])
+                f1.render_style = config.get("visual_style", "ink_fight")
+
+                if fb_cfg.get("name"):
+                    f2.name = fb_cfg["name"]
+                if fb_cfg.get("color"):
+                    f2.color = hex_to_rgb(fb_cfg["color"], f2.color)
+                if "headband_color" in fb_cfg and fb_cfg["headband_color"]:
+                    f2.headband_color = hex_to_rgb(fb_cfg["headband_color"])
+                if fb_cfg.get("weapon"):
+                    f2.equip(None if fb_cfg["weapon"] == "none" else fb_cfg["weapon"])
+                if fb_cfg.get("scale"):
+                    f2.scale = float(fb_cfg["scale"])
+                f2.render_style = config.get("visual_style", "ink_fight")
+
+        start_t = time.time()
+
+        def on_progress(frame: int, total: int, pct: float):
+            with job_lock:
+                elapsed = max(0.01, time.time() - start_t)
+                active_job["frame"] = frame
+                active_job["total_frames"] = total
+                active_job["progress"] = pct
+                active_job["fps"] = frame / elapsed
+
+        print(f"[GUI] render job {job_id} started: {duration:.2f}s -> {output_file}", flush=True)
+        scene.render(output_path=output_file, duration=duration, progress_callback=on_progress)
+        print(f"[GUI] render job {job_id} completed", flush=True)
+
+        with job_lock:
+            active_job["status"] = "done"
+            active_job["progress"] = 1.0
+            active_job["video_url"] = f"/output/videos/{video_filename}"
+            active_job["output_path"] = output_file
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        print(f"[GUI] render job {job_id} failed: {e}", flush=True)
+        with job_lock:
+            active_job["status"] = "error"
+            active_job["error"] = str(e)
+
+
+class StudioRequestHandler(SimpleHTTPRequestHandler):
+    def log_message(self, format: str, *args: Any):
+        # Quieter log output for API polling
+        if "/api/status" in args[0]:
+            return
+        super().log_message(format, *args)
+
+    def do_GET(self):
+        url_path = self.path.split("?")[0]
+
+        if url_path == "/" or url_path == "/index.html":
+            index_path = os.path.join(STATIC_DIR, "index.html")
+            if os.path.exists(index_path):
+                self.send_response(200)
+                self.send_header("Content-Type", "text/html; charset=utf-8")
+                self.end_headers()
+                with open(index_path, "rb") as f:
+                    self.wfile.write(f.read())
+            else:
+                self.send_error(404, "index.html not found")
+            return
+
+        elif url_path == "/api/presets":
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps(PRESETS).encode("utf-8"))
+            return
+
+        elif url_path == "/api/status":
+            with job_lock:
+                resp = json.dumps(active_job).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(resp)
+            return
+
+        elif url_path.startswith("/output/videos/"):
+            filename = os.path.basename(url_path)
+            file_path = os.path.join(OUTPUT_DIR, "videos", filename)
+            if os.path.exists(file_path):
+                self.send_response(200)
+                self.send_header("Content-Type", "video/mp4")
+                self.send_header("Content-Length", str(os.path.getsize(file_path)))
+                self.send_header("Accept-Ranges", "bytes")
+                self.end_headers()
+                with open(file_path, "rb") as f:
+                    self.wfile.write(f.read())
+            else:
+                self.send_error(404, f"Video not found: {filename}")
+            return
+
+        elif url_path.startswith("/output/"):
+            filename = os.path.basename(url_path)
+            file_path = os.path.join(OUTPUT_DIR, filename)
+            if os.path.exists(file_path):
+                mime = "image/png" if filename.endswith(".png") else "application/octet-stream"
+                self.send_response(200)
+                self.send_header("Content-Type", mime)
+                self.end_headers()
+                with open(file_path, "rb") as f:
+                    self.wfile.write(f.read())
+            else:
+                self.send_error(404, f"File not found: {filename}")
+            return
+
+        self.send_error(404, "Not Found")
+
+    def do_POST(self):
+        url_path = self.path.split("?")[0]
+        print(f"[GUI] POST {url_path}", flush=True)
+        content_len = int(self.headers.get("Content-Length", 0))
+        body = self.rfile.read(content_len).decode("utf-8") if content_len > 0 else "{}"
+        try:
+            payload = json.loads(body)
+        except Exception:
+            payload = {}
+
+        if url_path == "/api/studio/frame":
+            try:
+                surface = create_studio_frame_surface(payload)
+                buf = io.BytesIO()
+                pygame.image.save(surface, buf, "PNG")
+                png_bytes = buf.getvalue()
+                self.send_response(200)
+                self.send_header("Content-Type", "image/png")
+                outcomes = {
+                    str(event.get("id")): str(event.get("outcome"))
+                    for event in payload.get("combat_events", [])
+                    if isinstance(event, dict) and event.get("id") and event.get("outcome")
+                }
+                if outcomes:
+                    self.send_header("X-Studio-Outcomes", json.dumps(outcomes, separators=(",", ":")))
                 self.send_header("Content-Length", str(len(png_bytes)))
                 self.send_header("Cache-Control", "no-cache, no-store")
                 self.end_headers()
