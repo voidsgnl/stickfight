@@ -930,7 +930,14 @@ body>header,body>main{display:none!important}
 #storyStudio .prop-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
 #storyStudio .prop-card{background:#1d1f21;border:1px solid #393c40;border-radius:3px;padding:7px}
 #storyStudio .prop-card span{display:block;font-size:8px;color:#777d84;margin-bottom:3px}
-#storyStudio .prop-card strong{font-size:11px;color:#e5e8eb}\n#storyStudio .pose-label{display:grid;gap:4px;font-size:8px;color:#777d84;text-transform:uppercase;letter-spacing:.6px}\n#storyStudio .pose-label select,#storyStudio .pose-grid input{width:100%;background:#151719;border:1px solid #3b3e42;color:#dfe3e7;border-radius:3px;padding:6px;font-size:10px}\n#storyStudio .pose-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:6px}\n#storyStudio .pose-grid label{display:grid;gap:4px;font-size:8px;color:#777d84}\n#storyStudio .pose-actions{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:6px}\n#storyStudio .pose-actions button{background:#1d1f21;border:1px solid #41454a;color:#cfd3d8;border-radius:3px;padding:6px;font-size:9px;cursor:pointer}\n#storyStudio .pose-actions button:hover{border-color:#ffad33;color:#fff}
+#storyStudio .prop-card strong{font-size:11px;color:#e5e8eb}
+#storyStudio .pose-label{display:grid;gap:4px;font-size:8px;color:#777d84;text-transform:uppercase;letter-spacing:.6px}
+#storyStudio .pose-label select,#storyStudio .pose-grid input{width:100%;background:#151719;border:1px solid #3b3e42;color:#dfe3e7;border-radius:3px;padding:6px;font-size:10px}
+#storyStudio .pose-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:6px}
+#storyStudio .pose-grid label{display:grid;gap:4px;font-size:8px;color:#777d84}
+#storyStudio .pose-actions{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:6px}
+#storyStudio .pose-actions button{background:#1d1f21;border:1px solid #41454a;color:#cfd3d8;border-radius:3px;padding:6px;font-size:9px;cursor:pointer}
+#storyStudio .pose-actions button:hover{border-color:#ffad33;color:#fff}
 
 #storyStudio.workspace-fight .fight-editor{display:block}
 #storyStudio .fight-editor-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
@@ -2280,7 +2287,8 @@ body>header,body>main{display:none!important}
 <script>
 (function(){
   const S = window.__storyStudio = {
-    fps:30, frames:180, cursor:0, playing:false, timer:null,\n    selectedCombat:null,
+    fps:30, frames:180, cursor:0, playing:false, timer:null,
+    selectedCombat:null,
     assets: [
       {id:"asset-a",name:"Fighter A",style:"classic",archetype:"ninja",color:"#e63946",weapon:"none"},
       {id:"asset-b",name:"Fighter B",style:"classic",archetype:"warrior",color:"#e6ebf5",weapon:"none"}
@@ -2445,7 +2453,11 @@ body>header,body>main{display:none!important}
   $("studioFightActions").addEventListener("click",e=>{const btn=e.target.closest("[data-action]");if(btn)addCombatAction(btn.dataset.action);});
   $("studioAddCharacter").addEventListener("click",addCharacter);
   $("studioSelected").addEventListener("change",e=>{S.selected=e.target.value;render()});
-  ["studioX","studioY","studioRotation","studioScale"].forEach(id=>$(id).addEventListener("change",e=>{const si=S.instances.find(i=>i.id===S.selected);if(!si)return;si[id==="studioX"?"x":id==="studioY"?"y":id==="studioRotation"?"rotation":"scale"]=Number(e.target.value)||0;render()}));\n  function syncPoseEditor(){const si=S.instances.find(i=>i.id===S.selected);if(!si)return;si.pose=si.pose||{};const j=$("studioPoseJoint").value,p=si.pose[j]||{x:0,y:0};$("studioPoseX").value=Math.round(p.x||0);$("studioPoseY").value=Math.round(p.y||0);}\n  function updateSelectedPose(){const si=S.instances.find(i=>i.id===S.selected);if(!si)return;si.pose=si.pose||{};const j=$("studioPoseJoint").value;si.pose[j]={x:Number($("studioPoseX").value)||0,y:Number($("studioPoseY").value)||0};render();}\n  $("studioPoseJoint").addEventListener("change",syncPoseEditor); $("studioPoseX").addEventListener("change",updateSelectedPose); $("studioPoseY").addEventListener("change",updateSelectedPose);\n  $("studioPoseReset").addEventListener("click",()=>{$("studioPoseX").value=0;$("studioPoseY").value=0;updateSelectedPose()}); $("studioPoseKey").addEventListener("click",addKey);
+  ["studioX","studioY","studioRotation","studioScale"].forEach(id=>$(id).addEventListener("change",e=>{const si=S.instances.find(i=>i.id===S.selected);if(!si)return;si[id==="studioX"?"x":id==="studioY"?"y":id==="studioRotation"?"rotation":"scale"]=Number(e.target.value)||0;render()}));
+  function syncPoseEditor(){const si=S.instances.find(i=>i.id===S.selected);if(!si)return;si.pose=si.pose||{};const j=$("studioPoseJoint").value,p=si.pose[j]||{x:0,y:0};$("studioPoseX").value=Math.round(p.x||0);$("studioPoseY").value=Math.round(p.y||0);}
+  function updateSelectedPose(){const si=S.instances.find(i=>i.id===S.selected);if(!si)return;si.pose=si.pose||{};const j=$("studioPoseJoint").value;si.pose[j]={x:Number($("studioPoseX").value)||0,y:Number($("studioPoseY").value)||0};render();}
+  $("studioPoseJoint").addEventListener("change",syncPoseEditor); $("studioPoseX").addEventListener("change",updateSelectedPose); $("studioPoseY").addEventListener("change",updateSelectedPose);
+  $("studioPoseReset").addEventListener("click",()=>{$("studioPoseX").value=0;$("studioPoseY").value=0;updateSelectedPose()}); $("studioPoseKey").addEventListener("click",addKey);
   $("studioAddKey").addEventListener("click",addKey);
   $("studioPlay").addEventListener("click",play);
   $("studioReset").addEventListener("click",()=>{S.cursor=0;S.playing=false;$("studioPlay").textContent="▶ Play";render()});
