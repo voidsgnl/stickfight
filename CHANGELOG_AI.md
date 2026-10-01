@@ -535,3 +535,9 @@ B = scene.add_fighter("B", x=730, y=1500, render_style="ink_fight")
 - Added an idempotent initialization guard to prevent duplicate event binding.
 - This specifically targets the reported unresponsive-button behavior without changing the fight engine or authoring data model.
 - Browser interaction was not executed in this change; local verification is still required.
+
+
+## 2026-10-01 — Restore visible default Studio fighters
+- Fixed the Studio character instances so the initial Fighter A and Fighter B are positioned on the 540×960 production stage at ground level instead of defaulting to x/y = 0.
+- Added explicit default transform, visibility, and pose state to the initial fighters.
+- This preserves authored movement/keyframes while ensuring the production `/api/studio/frame` preview receives visible characters immediately.
