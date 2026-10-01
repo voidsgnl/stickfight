@@ -2514,7 +2514,21 @@ body>header,body>main{display:none!important}
   document.addEventListener("click",e=>{
     const tab=e.target.closest("#studioWorkspaceTabs .workspace-tab"); if(tab)setWorkspace(tab.dataset.workspace);
   });
-    document.addEventListener("DOMContentLoaded",()=>setTimeout(()=>{renderFightActionPalette();populateFightEditor();bindFightEditor();render();},80));
+  let studioInitialized = false;
+  function initStudio(){
+    if(studioInitialized) return;
+    if(!$("storyStudio") || !$("studioFightActions")) return;
+    studioInitialized = true;
+    renderFightActionPalette();
+    populateFightEditor();
+    bindFightEditor();
+    render();
+  }
+  if(document.readyState === "loading"){
+    document.addEventListener("DOMContentLoaded",()=>setTimeout(initStudio,80),{once:true});
+  } else {
+    setTimeout(initStudio,80);
+  }
 })();
 </script>
 </body>
