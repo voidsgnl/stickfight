@@ -528,3 +528,10 @@ B = scene.add_fighter("B", x=730, y=1500, render_style="ink_fight")
 ### Validation
 - Source updated on `story-animation-studio-foundation`.
 - Browser verification is still required to confirm click/drag interaction against the local GUI server.
+
+
+## 2026-10-01 — Harden Studio initialization
+- Fixed Studio startup so its action palette, Fight editor, and initial render are initialized whether the Studio markup is loaded before or after DOMContentLoaded.
+- Added an idempotent initialization guard to prevent duplicate event binding.
+- This specifically targets the reported unresponsive-button behavior without changing the fight engine or authoring data model.
+- Browser interaction was not executed in this change; local verification is still required.
