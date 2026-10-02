@@ -989,7 +989,7 @@ body>header,body>main{display:none!important}
     <div class="studio-brand">
       <div class="brand-mark">⚔</div>
       <div>
-        <div class="brand-title">STICK FIGHT <span>STUDIO</span></div>
+        <div class="brand-title" aria-label="STICK FIGHT STUDIO">STICK FIGHT <span>STUDIO</span></div>
         <div class="brand-subtitle">2D FIGHT ANIMATION WORKSPACE</div>
       </div>
     </div>
@@ -2242,7 +2242,6 @@ body>header,body>main{display:none!important}
   <div class="adobe-menu-item">File</div><div class="adobe-menu-item">Edit</div><div class="adobe-menu-item">View</div>
   <div class="adobe-menu-item">Insert</div><div class="adobe-menu-item">Modify</div><div class="adobe-menu-item">Window</div><div class="adobe-menu-item">Help</div>
   <div class="spacer"></div><div class="adobe-doc">Episode 01 / Scene 03</div>
-  <button class="header-btn accent" type="button">EXPORT</button>
 </div>
 <div class="adobe-toolbar">
   <div class="tool-group"><button type="button" class="tool-btn active" title="Selection">↖</button><button type="button" class="tool-btn" title="Transform">⌗</button><button type="button" class="tool-btn" title="Pan">✋</button><button type="button" class="tool-btn" title="Zoom">⌕</button></div>
@@ -2257,8 +2256,6 @@ body>header,body>main{display:none!important}
     <h2>Fight Animation Studio — Combat Authoring</h2>
     <div class="studio-actions">
       <button type="button" id="studioAddCharacter">＋ Fighter</button>
-      <button type="button" id="studioAddKey">◆ Combat Keyframe</button>
-      <button type="button" id="studioPlay">▶ Play Fight</button>
       <button type="button" id="studioReset">↺ Reset</button>
     </div>
   </div>
@@ -2347,7 +2344,7 @@ body>header,body>main{display:none!important}
       {id:"char-a",asset:"asset-a",name:"Fighter A",track:true,x:190,y:750,rotation:0,scale:1,visible:true,pose:{}},
       {id:"char-b",asset:"asset-b",name:"Fighter B",track:true,x:350,y:750,rotation:0,scale:1,visible:true,pose:{}}
     ],
-    tracks: [], selected:"char-a", keyframes:{}, combatEvents:[], pose:{},
+    tracks: [], selected:"char-a", keyframes:{}, combatEvents:[], pose:{}, shortcutsBound:false,
   };
   const $ = id => document.getElementById(id);
   const esc = v => String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -2511,11 +2508,12 @@ body>header,body>main{display:none!important}
     render();
   }
   function play(){
-    S.playing=!S.playing;
-    const headerPlay=$("studioHeaderPlay"); if(headerPlay) headerPlay.textContent=S.playing?"⏸ PAUSE":"▶ PLAY";
+  S.playing=!S.playing;
+  const playButton=$("studioPlay") || $("studioHeaderPlay");
+  if(playButton) playButton.textContent=S.playing?"⏸ Pause":"▶ Play";
     if(S.playing){
       const start=performance.now()-S.cursor/S.fps*1000;
-      const tick=now=>{if(!S.playing)return;S.cursor=Math.min(S.frames,Math.floor((now-start)/1000*S.fps));applyFrame();render();if(S.cursor<S.frames)S.timer=requestAnimationFrame(tick);else{S.playing=false;$("studioPlay").textContent="▶ Play"}};S.timer=requestAnimationFrame(tick);
+      const tick=now=>{if(!S.playing)return;S.cursor=Math.min(S.frames,Math.floor((now-start)/1000*S.fps));applyFrame();render();if(S.cursor<S.frames)S.timer=requestAnimationFrame(tick);else{S.playing=false;if($("studioPlay"))$("studioPlay").textContent="▶ Play"}};S.timer=requestAnimationFrame(tick);
     }else cancelAnimationFrame(S.timer);
   }
   function interpolateCharacter(id,frame){
@@ -2535,9 +2533,9 @@ body>header,body>main{display:none!important}
   function updateSelectedPose(){const si=S.instances.find(i=>i.id===S.selected);if(!si)return;si.pose=si.pose||{};const j=$("studioPoseJoint").value;si.pose[j]={x:Number($("studioPoseX").value)||0,y:Number($("studioPoseY").value)||0};render();}
   $("studioPoseJoint").addEventListener("change",syncPoseEditor); $("studioPoseX").addEventListener("change",updateSelectedPose); $("studioPoseY").addEventListener("change",updateSelectedPose);
   $("studioPoseReset").addEventListener("click",()=>{$("studioPoseX").value=0;$("studioPoseY").value=0;updateSelectedPose()}); $("studioPoseKey").addEventListener("click",addKey);
-  $("studioAddKey").addEventListener("click",addKey);
-  $("studioPlay").addEventListener("click",play);
-  $("studioReset").addEventListener("click",()=>{S.cursor=0;S.playing=false;$("studioPlay").textContent="▶ Play";render()});
+  $("studioAddKey")?.addEventListener("click",addKey);
+  $("studioPlay")?.addEventListener("click",play);
+  $("studioReset").addEventListener("click",()=>{S.cursor=0;S.playing=false;if($("studioPlay"))$("studioPlay").textContent="▶ Play";render()});
   $("studioFps").addEventListener("change",e=>{S.fps=Math.max(1,Number(e.target.value)||30);render()});
   $("studioFrames").addEventListener("change",e=>{S.frames=Math.max(1,Number(e.target.value)||180);render()});
   document.addEventListener("click",e=>{const combat=e.target.closest(".combat-block");if(combat){e.stopPropagation();selectCombatEvent(combat.dataset.combatId);return;}const lane=e.target.closest("#studioRuler,.studio-track .track-lane");if(!lane)return;const rect=lane.getBoundingClientRect(),x=Math.max(0,Math.min(rect.width,e.clientX-rect.left));S.cursor=Math.round(x/rect.width*S.frames);applyFrame();render()});
@@ -2569,6 +2567,24 @@ body>header,body>main{display:none!important}
     applyFrame();
     render();
   }
+  function bindClickOnce(id,handler){
+    const el=$(id);
+    if(!el || el.dataset.bound==="1") return;
+    el.dataset.bound="1";
+    el.addEventListener("click",handler);
+  }
+  function bindStudioShortcuts(){
+    if(S.shortcutsBound) return;
+    S.shortcutsBound=true;
+    document.addEventListener("keydown",e=>{
+      const tag=(e.target?.tagName||"").toLowerCase();
+      if(e.target?.isContentEditable || tag==="input" || tag==="textarea" || tag==="select") return;
+      if(e.code==="Space"){ e.preventDefault(); play(); return; }
+      if(e.code==="ArrowLeft"){ e.preventDefault(); stepStudio(-1); return; }
+      if(e.code==="ArrowRight"){ e.preventDefault(); stepStudio(1); return; }
+      if(e.key && e.key.toLowerCase()==="k"){ e.preventDefault(); addKey(); }
+    });
+  }
   function bindCoreStudioControls(){
     const toolMap={"Selection":"selection","Transform":"transform","Pan":"pan","Zoom":"zoom","Bone / Pose":"pose","Keyframe":"keyframe","Camera":"camera","Text / Dialogue":"text"};
     document.querySelectorAll("#storyStudio .tool-btn[title]").forEach(btn=>{
@@ -2588,6 +2604,7 @@ body>header,body>main{display:none!important}
       btn.dataset.bound="1";
       btn.addEventListener("click",()=>setStudioZoom(btn.textContent.trim()==="+"?.1:-.1));
     });
+<<<<<<< HEAD
     $("studioPrevFrame")?.addEventListener("click",()=>stepStudio(-1));
     $("studioNextFrame")?.addEventListener("click",()=>stepStudio(1));
     $("studioStop")?.addEventListener("click",()=>{S.playing=false;if(S.timer)cancelAnimationFrame(S.timer);S.cursor=0;applyFrame();render();});
@@ -2598,9 +2615,22 @@ body>header,body>main{display:none!important}
     if(transport[0]) transport[0].addEventListener("click",()=>stepStudio(-1));
     if(transport[1]) transport[1].addEventListener("click",()=>play());
     if(transport[2]) transport[2].addEventListener("click",()=>stepStudio(1));
+=======
+    bindClickOnce("studioPrevFrame",()=>stepStudio(-1));
+    bindClickOnce("studioNextFrame",()=>stepStudio(1));
+    bindClickOnce("studioPlayTransport",()=>play());
+    bindClickOnce("studioStop",()=>{S.playing=false;if(S.timer)cancelAnimationFrame(S.timer);S.cursor=0;applyFrame();render();});
+    bindClickOnce("studioExport",()=>startRender());
+    const transport=$("studioTransportTrack");
+    if(transport && transport.dataset.bound!=="1"){
+      transport.dataset.bound="1";
+      transport.addEventListener("pointerdown",e=>{const r=transport.getBoundingClientRect();S.playing=false;if(S.timer)cancelAnimationFrame(S.timer);S.cursor=Math.round(Math.max(0,Math.min(1,(e.clientX-r.left)/r.width))*S.frames);applyFrame();render();});
+    }
+>>>>>>> origin/main
     const undo=toolButtons.find(b=>b.title==="Undo"), redo=toolButtons.find(b=>b.title==="Redo");
     if(undo) undo.addEventListener("click",()=>{if(S.undoStack?.length){S.redoStack=S.redoStack||[];S.redoStack.push(S.undoStack.pop());render();}});
     if(redo) redo.addEventListener("click",()=>{if(S.redoStack?.length){S.undoStack=S.undoStack||[];S.undoStack.push(S.redoStack.pop());render();}});
+    bindStudioShortcuts();
   }
 
   const WORKSPACES={
