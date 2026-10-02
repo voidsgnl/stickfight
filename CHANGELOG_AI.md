@@ -541,3 +541,9 @@ B = scene.add_fighter("B", x=730, y=1500, render_style="ink_fight")
 - Fixed the Studio character instances so the initial Fighter A and Fighter B are positioned on the 540×960 production stage at ground level instead of defaulting to x/y = 0.
 - Added explicit default transform, visibility, and pose state to the initial fighters.
 - This preserves authored movement/keyframes while ensuring the production `/api/studio/frame` preview receives visible characters immediately.
+
+## 2026-10-02 — Fix Studio Production Frame Stage Rendering
+- Corrected the Studio stage CSS so the production frame container remains a real 9:16 stage instead of being forced into an absolute full-panel overlay.
+- Hardened production-frame image insertion to keep the current object URL alive until the next frame replaces it, avoiding premature blob URL revocation.
+- Added image decode/error state so frame-display failures are observable without changing the production renderer.
+- Kept /api/studio/frame and the existing Python/Pygame production renderer as the source of truth.
