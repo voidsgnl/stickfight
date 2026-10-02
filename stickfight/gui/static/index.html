@@ -987,14 +987,14 @@ body>header,body>main{display:none!important}
       </div>
     </div>
     <nav class="studio-nav" aria-label="Studio navigation">
-      <button class="nav-btn active">PROJECT</button>
-      <button class="nav-btn">EDIT</button>
-      <button class="nav-btn">VIEW</button>
-      <button class="nav-btn">RENDER</button>
+      <button type="button" class="nav-btn active">PROJECT</button>
+      <button type="button" class="nav-btn">EDIT</button>
+      <button type="button" class="nav-btn">VIEW</button>
+      <button type="button" class="nav-btn">RENDER</button>
     </nav>
     <div class="header-actions">
-      <button class="header-btn" onclick="loadPreset('ninja_vs_samurai')">OPEN PRESET</button>
-      <button class="header-btn accent" onclick="randomizeAll()">RANDOM FIGHT</button>
+      <button type="button" class="header-btn" onclick="loadPreset('ninja_vs_samurai')">OPEN PRESET</button>
+      <button type="button" class="header-btn accent" onclick="randomizeAll()">RANDOM FIGHT</button>
     </div>
   </header>
 
@@ -1060,12 +1060,12 @@ body>header,body>main{display:none!important}
       <section class="inspector-section visual-section">
         <div class="section-heading compact"><div><span class="eyebrow">ART DIRECTION</span><h2>Visual Style</h2></div></div>
         <div class="style-grid" id="visual_style_selector">
-          <button class="style-card active" data-val="ink_fight" onclick="selectVisualStyle('ink_fight')"><span class="style-sample ink-sample"></span><b>Ink Fight</b><small>Black ink / comic</small></button>
-          <button class="style-card" data-val="bold" onclick="selectVisualStyle('bold')"><span class="style-sample bold-sample"></span><b>Bold</b><small>Heavy line</small></button>
-          <button class="style-card" data-val="classic" onclick="selectVisualStyle('classic')"><span class="style-sample classic-sample"></span><b>Classic</b><small>Clean skeleton</small></button>
-          <button class="style-card" data-val="silhouette" onclick="selectVisualStyle('silhouette')"><span class="style-sample silhouette-sample"></span><b>Silhouette</b><small>Solid shadow</small></button>
-          <button class="style-card" data-val="segmented" onclick="selectVisualStyle('segmented')"><span class="style-sample segmented-sample"></span><b>Segmented</b><small>Defined joints</small></button>
-          <button class="style-card" data-val="tech" onclick="selectVisualStyle('tech')"><span class="style-sample tech-sample"></span><b>Tech</b><small>Cybernetic</small></button>
+          <button type="button" class="style-card active" data-val="ink_fight" onclick="selectVisualStyle('ink_fight')"><span class="style-sample ink-sample"></span><b>Ink Fight</b><small>Black ink / comic</small></button>
+          <button type="button" class="style-card" data-val="bold" onclick="selectVisualStyle('bold')"><span class="style-sample bold-sample"></span><b>Bold</b><small>Heavy line</small></button>
+          <button type="button" class="style-card" data-val="classic" onclick="selectVisualStyle('classic')"><span class="style-sample classic-sample"></span><b>Classic</b><small>Clean skeleton</small></button>
+          <button type="button" class="style-card" data-val="silhouette" onclick="selectVisualStyle('silhouette')"><span class="style-sample silhouette-sample"></span><b>Silhouette</b><small>Solid shadow</small></button>
+          <button type="button" class="style-card" data-val="segmented" onclick="selectVisualStyle('segmented')"><span class="style-sample segmented-sample"></span><b>Segmented</b><small>Defined joints</small></button>
+          <button type="button" class="style-card" data-val="tech" onclick="selectVisualStyle('tech')"><span class="style-sample tech-sample"></span><b>Tech</b><small>Cybernetic</small></button>
         </div>
       </section>
     </aside>
@@ -1073,9 +1073,9 @@ body>header,body>main{display:none!important}
     <section class="canvas-column">
       <div class="workspace-toolbar">
         <div class="toolbar-group">
-          <button class="toolbar-icon" title="Play/Pause">▶</button>
-          <button class="toolbar-icon" title="Step Back">‹</button>
-          <button class="toolbar-icon" title="Step Forward">›</button>
+          <button type="button" class="toolbar-icon" title="Play/Pause">▶</button>
+          <button type="button" class="toolbar-icon" title="Step Back">‹</button>
+          <button type="button" class="toolbar-icon" title="Step Forward">›</button>
         </div>
         <div class="viewport-meta">
           <span class="live-indicator"><i></i> LIVE</span>
@@ -1086,21 +1086,21 @@ body>header,body>main{display:none!important}
         <div class="toolbar-group">
           <span class="resolution-chip">9:16</span>
           <span class="resolution-chip">1080×1920</span>
-          <button class="toolbar-icon">⛶</button>
+          <button type="button" class="toolbar-icon">⛶</button>
         </div>
       </div>
 
       <div class="viewport-shell">
         <div class="viewport-grid"></div>
         <div class="preview-badge live-dot" id="previewBadge">LIVE SNAPSHOT</div>
-        <img id="previewImg" alt="Fight Preview" src=""><div id="studioStage" aria-label="Fight animation viewport"></div>
+        <img id="previewImg" alt="Fight Preview" src="">
         <video id="videoPlayer" controls loop playsinline></video>
       </div>
 
       <div class="transport-bar">
-        <button class="transport-btn">⏮</button>
-        <button class="transport-btn primary">▶</button>
-        <button class="transport-btn">⏭</button>
+        <button type="button" class="transport-btn">⏮</button>
+        <button type="button" class="transport-btn primary">▶</button>
+        <button type="button" class="transport-btn">⏭</button>
         <div class="scrub-track"><span class="scrub-fill"></span><span class="scrub-handle"></span></div>
         <span class="timecode">00:00.00</span>
       </div>
@@ -1108,12 +1108,12 @@ body>header,body>main{display:none!important}
       <div class="timeline-editor">
         <div class="timeline-head">
           <div class="timeline-tabs">
-            <button class="timeline-tab active" id="tabProcedural" onclick="switchChoreographyMode('procedural')">PROCEDURAL</button>
-            <button class="timeline-tab" id="tabTimeline" onclick="switchChoreographyMode('timeline')">CHOREOGRAPHY</button>
+            <button type="button" class="timeline-tab active" id="tabProcedural" onclick="switchChoreographyMode('procedural')">PROCEDURAL</button>
+            <button type="button" class="timeline-tab" id="tabTimeline" onclick="switchChoreographyMode('timeline')">CHOREOGRAPHY</button>
           </div>
           <div class="timeline-actions">
-            <button class="small-action" onclick="loadPresetTimeline()">LOAD PRESET</button>
-            <button class="small-action danger" onclick="clearTimeline()">CLEAR</button>
+            <button type="button" class="small-action" onclick="loadPresetTimeline()">LOAD PRESET</button>
+            <button type="button" class="small-action danger" onclick="clearTimeline()">CLEAR</button>
           </div>
         </div>
 
@@ -1150,7 +1150,7 @@ body>header,body>main{display:none!important}
               </optgroup>
             </select>
             <input type="number" id="add_dur" class="form-input" placeholder="DURATION" value="0.4" step="0.05" min="0.1">
-            <button class="add-btn-icon" onclick="addCustomAction()" title="Add action">+</button>
+            <button type="button" class="add-btn-icon" onclick="addCustomAction()" title="Add action">+</button>
           </div>
         </div>
       </div>
@@ -1249,7 +1249,7 @@ body>header,body>main{display:none!important}
           <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressBarFill"></div></div>
           <div class="progress-text"><span id="progressFrames">Frame 0 / 0</span><span id="progressFps">0.0 fps</span></div>
         </div>
-        <button class="btn-render" id="btnRender" onclick="startRender()">GENERATE FIGHT VIDEO</button>
+        <button type="button" class="btn-render" id="btnRender" onclick="startRender()">GENERATE FIGHT VIDEO</button>
         <a class="btn-download" id="btnDownload" href="#" download>DOWNLOAD MP4</a>
       </section>
     </aside>
@@ -2228,12 +2228,12 @@ body>header,body>main{display:none!important}
   <button class="header-btn accent" type="button">EXPORT</button>
 </div>
 <div class="adobe-toolbar">
-  <div class="tool-group"><button class="tool-btn active" title="Selection">↖</button><button class="tool-btn" title="Transform">⌗</button><button class="tool-btn" title="Pan">✋</button><button class="tool-btn" title="Zoom">⌕</button></div>
-  <div class="tool-group"><button class="tool-btn" title="Bone / Pose">♙</button><button class="tool-btn" title="Keyframe">◆</button><button class="tool-btn" title="Camera">▣</button><button class="tool-btn" title="Text / Dialogue">T</button></div>
-  <div class="tool-group"><button class="tool-btn" title="Undo">↶</button><button class="tool-btn" title="Redo">↷</button></div>
+  <div class="tool-group"><button type="button" class="tool-btn active" title="Selection">↖</button><button type="button" class="tool-btn" title="Transform">⌗</button><button type="button" class="tool-btn" title="Pan">✋</button><button type="button" class="tool-btn" title="Zoom">⌕</button></div>
+  <div class="tool-group"><button type="button" class="tool-btn" title="Bone / Pose">♙</button><button type="button" class="tool-btn" title="Keyframe">◆</button><button type="button" class="tool-btn" title="Camera">▣</button><button type="button" class="tool-btn" title="Text / Dialogue">T</button></div>
+  <div class="tool-group"><button type="button" class="tool-btn" title="Undo">↶</button><button type="button" class="tool-btn" title="Redo">↷</button></div>
   <span class="tool-label">WORKSPACE</span>
   <div class="workspace-tabs" id="studioWorkspaceTabs" role="tablist" aria-label="Studio workspace"><button type="button" class="workspace-tab active" data-workspace="animation" role="tab" aria-selected="true">Animation</button><button type="button" class="workspace-tab" data-workspace="fight" role="tab" aria-selected="false">Fight</button><button type="button" class="workspace-tab" data-workspace="story" role="tab" aria-selected="false">Story</button><button type="button" class="workspace-tab" data-workspace="audio" role="tab" aria-selected="false">Audio</button></div>
-  <div class="spacer"></div><span class="tool-label">100%</span><button class="tool-btn">−</button><button class="tool-btn">+</button>
+  <div class="spacer"></div><span class="tool-label">100%</span><button type="button" class="tool-btn">−</button><button type="button" class="tool-btn">+</button>
 </div>
   <div class="studio-workspace-mode" id="studioWorkspaceMode" aria-live="polite"><strong>ANIMATION</strong><span id="studioWorkspaceHint">Keyframes, posing, transforms and timing</span></div>
   <div class="studio-head">
@@ -2332,7 +2332,7 @@ body>header,body>main{display:none!important}
   }
   let studioFrameRequest=0;
   async function renderStudioStage(){
-    const stage=$("studioStage"); if(!stage)return;
+    const stage=document.querySelector("#storyStudio #studioStage"); if(!stage)return;
     const request=++studioFrameRequest, frame=Math.round(S.cursor);
     const chars=S.instances.filter(i=>i.visible!==false).map((i,idx)=>{
       const a=S.assets.find(x=>x.id===i.asset)||{};
@@ -2504,6 +2504,63 @@ body>header,body>main{display:none!important}
   $("studioFrames").addEventListener("change",e=>{S.frames=Math.max(1,Number(e.target.value)||180);render()});
   document.addEventListener("click",e=>{const combat=e.target.closest(".combat-block");if(combat){e.stopPropagation();selectCombatEvent(combat.dataset.combatId);return;}const lane=e.target.closest("#studioRuler,.studio-track .track-lane");if(!lane)return;const rect=lane.getBoundingClientRect(),x=Math.max(0,Math.min(rect.width,e.clientX-rect.left));S.cursor=Math.round(x/rect.width*S.frames);applyFrame();render()});
   document.addEventListener("pointerdown",e=>{const combat=e.target.closest(".combat-block");if(!combat||e.button!==0)return;const lane=combat.closest(".track-lane");const eventId=combat.dataset.combatId;const index=S.combatEvents.findIndex(x=>x.id===eventId);if(index<0)return;const selected=S.combatEvents[index];S.selectedCombat=selected.id;S.selected=selected.attacker_id;populateFightEditor();moveCombatEvent(e,index,lane);});
+  // Core Studio toolbar + transport controls. These controls operate on the same Studio state/render path.
+  S.activeTool = S.activeTool || "selection";
+  S.viewZoom = S.viewZoom || 1;
+  function setStudioTool(tool){
+    S.activeTool = tool;
+    document.querySelectorAll("#storyStudio .tool-btn[title]").forEach(btn=>{
+      btn.classList.toggle("active", (btn.title||"").toLowerCase().replace(/[^a-z]/g,"").startsWith(tool));
+    });
+    const hint=$("studioWorkspaceHint");
+    if(hint && tool==="pose") hint.textContent="Pose tool selected — choose a joint in Properties";
+    render();
+  }
+  function setStudioZoom(delta){
+    S.viewZoom=Math.max(.25,Math.min(3,S.viewZoom+delta));
+    const stage=document.querySelector("#storyStudio #studioStage");
+    const img=stage?.querySelector(".studio-real-frame");
+    if(img) img.style.transform="scale("+S.viewZoom+")";
+    const labels=document.querySelectorAll("#storyStudio .tool-label");
+    if(labels.length) labels[labels.length-1].textContent=Math.round(S.viewZoom*100)+"%";
+  }
+  function stepStudio(delta){
+    S.playing=false;
+    if(S.timer) cancelAnimationFrame(S.timer);
+    S.cursor=Math.max(0,Math.min(S.frames,S.cursor+delta));
+    applyFrame();
+    render();
+  }
+  function bindCoreStudioControls(){
+    const toolMap={"Selection":"selection","Transform":"transform","Pan":"pan","Zoom":"zoom","Bone / Pose":"pose","Keyframe":"keyframe","Camera":"camera","Text / Dialogue":"text"};
+    document.querySelectorAll("#storyStudio .tool-btn[title]").forEach(btn=>{
+      if(btn.dataset.bound==="1") return;
+      btn.dataset.bound="1";
+      btn.addEventListener("click",()=>{
+        const tool=toolMap[btn.title];
+        if(tool==="keyframe"){addKey();return;}
+        if(tool) setStudioTool(tool);
+        if(tool==="zoom") setStudioZoom(.1);
+      });
+    });
+    const toolButtons=[...document.querySelectorAll("#storyStudio .tool-btn")];
+    const zoomButtons=toolButtons.filter(b=>!b.title && (b.textContent.trim()==="+"||b.textContent.trim()==="−"));
+    zoomButtons.forEach(btn=>{
+      if(btn.dataset.bound==="1")return;
+      btn.dataset.bound="1";
+      btn.addEventListener("click",()=>setStudioZoom(btn.textContent.trim()==="+"?.1:-.1));
+    });
+    const transport=[...document.querySelectorAll("#storyStudio .transport-btn")];
+    if(transport[0]) transport[0].addEventListener("click",()=>stepStudio(-1));
+    if(transport[1]) transport[1].addEventListener("click",()=>play());
+    if(transport[2]) transport[2].addEventListener("click",()=>stepStudio(1));
+    const exportBtn=document.querySelector("#storyStudio .adobe-menubar .header-btn");
+    if(exportBtn) exportBtn.addEventListener("click",()=>window.startRender?.());
+    const undo=toolButtons.find(b=>b.title==="Undo"), redo=toolButtons.find(b=>b.title==="Redo");
+    if(undo) undo.addEventListener("click",()=>{if(S.undoStack?.length){S.redoStack=S.redoStack||[];S.redoStack.push(S.undoStack.pop());render();}});
+    if(redo) redo.addEventListener("click",()=>{if(S.redoStack?.length){S.undoStack=S.undoStack||[];S.undoStack.push(S.redoStack.pop());render();}});
+  }
+
   const WORKSPACES={
     animation:{label:"ANIMATION",hint:"Keyframes, posing, transforms and timing"},
     fight:{label:"FIGHT",hint:"Combat choreography, actions, timing and impact"},
@@ -2532,6 +2589,7 @@ body>header,body>main{display:none!important}
     renderFightActionPalette();
     populateFightEditor();
     bindFightEditor();
+    bindCoreStudioControls();
     render();
   }
   if(document.readyState === "loading"){
