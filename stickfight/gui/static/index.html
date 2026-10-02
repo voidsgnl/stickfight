@@ -2486,7 +2486,7 @@ body>header,body>main{display:none!important}
     $("studioTime").textContent=(S.cursor/S.fps).toFixed(2)+"s";
     if($("studioTransportTime"))$("studioTransportTime").textContent="F"+Math.round(S.cursor)+" · "+(S.cursor/S.fps).toFixed(2)+"s";
     if($("studioTransportFill"))$("studioTransportFill").style.width=(S.frames?S.cursor/S.frames*100:0)+"%";
-    if($("studioPlayTransport"))$("studioPlayTransport").textContent=S.playing?"⏸":"▶"; const ps=S.instances.find(i=>i.id===S.selected)||S.instances[0]; const pa=S.combatEvents.filter(e=>(e.attacker_id===S.selected||e.target_id===S.selected)&&S.cursor>=e.start_frame&&S.cursor<=e.end_frame).sort((a,b)=>b.start_frame-a.start_frame)[0]; if(ps){if($("studioPropName"))$("studioPropName").textContent=ps.name;if($("studioPropX"))$("studioPropX").textContent=Math.round(ps.x||0);if($("studioPropY"))$("studioPropY").textContent=Math.round(ps.y||0);if($("studioPropRot"))$("studioPropRot").textContent=Math.round(ps.rotation||0)+"°";if($("studioPropScale"))$("studioPropScale").textContent=Math.round((ps.scale||1)*100)+"%";} syncPoseEditor(); if($("studioPropFrame"))$("studioPropFrame").textContent=Math.round(S.cursor);if($("studioPropFps"))$("studioPropFps").textContent=S.fps;if($("studioPropAction"))$("studioPropAction").textContent=pa?((pa.type==="defense"?"DEFENSE · ":"ATTACK · ")+pa.action.replace(/_/g," ")+(pa.outcome&&pa.outcome!=="pending"?" · "+pa.outcome:"")):"Idle / Guard";if($("fightOutcome")&&selectedCombatEvent())$("fightOutcome").textContent=selectedCombatEvent().outcome||"pending";renderStudioStage();
+    if($("studioPlayTransport"))$("studioPlayTransport").textContent=S.playing?"⏸":"▶"; if($("studioHeaderPlay"))$("studioHeaderPlay").textContent=S.playing?"⏸ PAUSE":"▶ PLAY"; const ps=S.instances.find(i=>i.id===S.selected)||S.instances[0]; const pa=S.combatEvents.filter(e=>(e.attacker_id===S.selected||e.target_id===S.selected)&&S.cursor>=e.start_frame&&S.cursor<=e.end_frame).sort((a,b)=>b.start_frame-a.start_frame)[0]; if(ps){if($("studioPropName"))$("studioPropName").textContent=ps.name;if($("studioPropX"))$("studioPropX").textContent=Math.round(ps.x||0);if($("studioPropY"))$("studioPropY").textContent=Math.round(ps.y||0);if($("studioPropRot"))$("studioPropRot").textContent=Math.round(ps.rotation||0)+"°";if($("studioPropScale"))$("studioPropScale").textContent=Math.round((ps.scale||1)*100)+"%";} syncPoseEditor(); if($("studioPropFrame"))$("studioPropFrame").textContent=Math.round(S.cursor);if($("studioPropFps"))$("studioPropFps").textContent=S.fps;if($("studioPropAction"))$("studioPropAction").textContent=pa?((pa.type==="defense"?"DEFENSE · ":"ATTACK · ")+pa.action.replace(/_/g," ")+(pa.outcome&&pa.outcome!=="pending"?" · "+pa.outcome:"")):"Idle / Guard";if($("fightOutcome")&&selectedCombatEvent())$("fightOutcome").textContent=selectedCombatEvent().outcome||"pending";renderStudioStage();
   }
   function bindFightEditor(){const tabs=$("studioWorkspaceTabs");if(tabs&&!tabs.dataset.fightBound){tabs.dataset.fightBound="1";}$("fightAddEvent")?.addEventListener("click",upsertCombatEvent);$("fightDeleteEvent")?.addEventListener("click",deleteCombatEvent);$("fightAttacker")?.addEventListener("change",()=>{S.selected=$("fightAttacker").value;render()});$("fightEventType")?.addEventListener("change",()=>{syncFightActionOptions();render()});}
   function addCharacter(){
@@ -2509,7 +2509,7 @@ body>header,body>main{display:none!important}
   }
   function play(){
   S.playing=!S.playing;
-  const playButton=$("studioPlay") || $("studioHeaderPlay");
+  const playButton=$("studioHeaderPlay") || $("studioPlayTransport") || $("studioPlay");
   if(playButton) playButton.textContent=S.playing?"⏸ Pause":"▶ Play";
     if(S.playing){
       const start=performance.now()-S.cursor/S.fps*1000;
@@ -2535,7 +2535,7 @@ body>header,body>main{display:none!important}
   $("studioPoseReset").addEventListener("click",()=>{$("studioPoseX").value=0;$("studioPoseY").value=0;updateSelectedPose()}); $("studioPoseKey").addEventListener("click",addKey);
   $("studioAddKey")?.addEventListener("click",addKey);
   $("studioPlay")?.addEventListener("click",play);
-  $("studioReset").addEventListener("click",()=>{S.cursor=0;S.playing=false;if($("studioPlay"))$("studioPlay").textContent="▶ Play";render()});
+  $("studioReset").addEventListener("click",()=>{S.cursor=0;S.playing=false;if($("studioHeaderPlay"))$("studioHeaderPlay").textContent="▶ PLAY";if($("studioPlayTransport"))$("studioPlayTransport").textContent="▶";if($("studioPlay"))$("studioPlay").textContent="▶ Play";render()});
   $("studioFps").addEventListener("change",e=>{S.fps=Math.max(1,Number(e.target.value)||30);render()});
   $("studioFrames").addEventListener("change",e=>{S.frames=Math.max(1,Number(e.target.value)||180);render()});
   document.addEventListener("click",e=>{const combat=e.target.closest(".combat-block");if(combat){e.stopPropagation();selectCombatEvent(combat.dataset.combatId);return;}const lane=e.target.closest("#studioRuler,.studio-track .track-lane");if(!lane)return;const rect=lane.getBoundingClientRect(),x=Math.max(0,Math.min(rect.width,e.clientX-rect.left));S.cursor=Math.round(x/rect.width*S.frames);applyFrame();render()});
@@ -2604,29 +2604,16 @@ body>header,body>main{display:none!important}
       btn.dataset.bound="1";
       btn.addEventListener("click",()=>setStudioZoom(btn.textContent.trim()==="+"?.1:-.1));
     });
-<<<<<<< HEAD
-    $("studioPrevFrame")?.addEventListener("click",()=>stepStudio(-1));
-    $("studioNextFrame")?.addEventListener("click",()=>stepStudio(1));
-    $("studioStop")?.addEventListener("click",()=>{S.playing=false;if(S.timer)cancelAnimationFrame(S.timer);S.cursor=0;applyFrame();render();});
-    $("studioHeaderPlay")?.addEventListener("click",()=>play());
-    $("studioHeaderExport")?.addEventListener("click",()=>startRender());
-    $("studioTransportTrack")?.addEventListener("pointerdown",e=>{const r=$("studioTransportTrack").getBoundingClientRect();S.playing=false;if(S.timer)cancelAnimationFrame(S.timer);S.cursor=Math.round(Math.max(0,Math.min(1,(e.clientX-r.left)/r.width))*S.frames);applyFrame();render();});
-    const transport=[...document.querySelectorAll("#storyStudio .transport-btn")];
-    if(transport[0]) transport[0].addEventListener("click",()=>stepStudio(-1));
-    if(transport[1]) transport[1].addEventListener("click",()=>play());
-    if(transport[2]) transport[2].addEventListener("click",()=>stepStudio(1));
-=======
     bindClickOnce("studioPrevFrame",()=>stepStudio(-1));
     bindClickOnce("studioNextFrame",()=>stepStudio(1));
-    bindClickOnce("studioPlayTransport",()=>play());
     bindClickOnce("studioStop",()=>{S.playing=false;if(S.timer)cancelAnimationFrame(S.timer);S.cursor=0;applyFrame();render();});
-    bindClickOnce("studioExport",()=>startRender());
+    bindClickOnce("studioHeaderPlay",()=>play());
+    bindClickOnce("studioHeaderExport",()=>startRender());
     const transport=$("studioTransportTrack");
     if(transport && transport.dataset.bound!=="1"){
       transport.dataset.bound="1";
       transport.addEventListener("pointerdown",e=>{const r=transport.getBoundingClientRect();S.playing=false;if(S.timer)cancelAnimationFrame(S.timer);S.cursor=Math.round(Math.max(0,Math.min(1,(e.clientX-r.left)/r.width))*S.frames);applyFrame();render();});
     }
->>>>>>> origin/main
     const undo=toolButtons.find(b=>b.title==="Undo"), redo=toolButtons.find(b=>b.title==="Redo");
     if(undo) undo.addEventListener("click",()=>{if(S.undoStack?.length){S.redoStack=S.redoStack||[];S.redoStack.push(S.undoStack.pop());render();}});
     if(redo) redo.addEventListener("click",()=>{if(S.redoStack?.length){S.undoStack=S.undoStack||[];S.undoStack.push(S.redoStack.pop());render();}});
