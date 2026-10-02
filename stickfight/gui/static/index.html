@@ -982,7 +982,7 @@ body>header,body>main{display:none!important}
     <div class="studio-brand">
       <div class="brand-mark">⚔</div>
       <div>
-        <div class="brand-title">STICK FIGHT <span>STUDIO</span></div>
+        <div class="brand-title" aria-label="STICK FIGHT STUDIO">STICK FIGHT <span>STUDIO</span></div>
         <div class="brand-subtitle">2D FIGHT ANIMATION WORKSPACE</div>
       </div>
     </div>
@@ -2236,7 +2236,6 @@ body>header,body>main{display:none!important}
   <div class="adobe-menu-item">File</div><div class="adobe-menu-item">Edit</div><div class="adobe-menu-item">View</div>
   <div class="adobe-menu-item">Insert</div><div class="adobe-menu-item">Modify</div><div class="adobe-menu-item">Window</div><div class="adobe-menu-item">Help</div>
   <div class="spacer"></div><div class="adobe-doc">Episode 01 / Scene 03</div>
-  <button class="header-btn accent" type="button">EXPORT</button>
 </div>
 <div class="adobe-toolbar">
   <div class="tool-group"><button type="button" class="tool-btn active" title="Selection">↖</button><button type="button" class="tool-btn" title="Transform">⌗</button><button type="button" class="tool-btn" title="Pan">✋</button><button type="button" class="tool-btn" title="Zoom">⌕</button></div>
@@ -2583,12 +2582,6 @@ body>header,body>main{display:none!important}
     $("studioStop")?.addEventListener("click",()=>{S.playing=false;if(S.timer)cancelAnimationFrame(S.timer);S.cursor=0;applyFrame();render();});
     $("studioExport")?.addEventListener("click",()=>startRender());
     $("studioTransportTrack")?.addEventListener("pointerdown",e=>{const r=$("studioTransportTrack").getBoundingClientRect();S.playing=false;if(S.timer)cancelAnimationFrame(S.timer);S.cursor=Math.round(Math.max(0,Math.min(1,(e.clientX-r.left)/r.width))*S.frames);applyFrame();render();});
-    const transport=[...document.querySelectorAll("#storyStudio .transport-btn")];
-    if(transport[0]) transport[0].addEventListener("click",()=>stepStudio(-1));
-    if(transport[1]) transport[1].addEventListener("click",()=>play());
-    if(transport[2]) transport[2].addEventListener("click",()=>stepStudio(1));
-    const exportBtn=document.querySelector("#storyStudio .adobe-menubar .header-btn");
-    if(exportBtn) exportBtn.addEventListener("click",()=>window.startRender?.());
     const undo=toolButtons.find(b=>b.title==="Undo"), redo=toolButtons.find(b=>b.title==="Redo");
     if(undo) undo.addEventListener("click",()=>{if(S.undoStack?.length){S.redoStack=S.redoStack||[];S.redoStack.push(S.undoStack.pop());render();}});
     if(redo) redo.addEventListener("click",()=>{if(S.redoStack?.length){S.undoStack=S.undoStack||[];S.undoStack.push(S.redoStack.pop());render();}});
