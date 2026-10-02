@@ -1,3 +1,9 @@
+## 2026-10-02 — Consolidate Studio playback and export controls
+- Removed the duplicate in-editor Export MP4 control from the stage transport.
+- Moved the primary Play/Pause control into the top-right Studio header beside Export MP4.
+- Removed duplicate Play controls from the canvas/transport UI so the header is the primary playback entry point.
+- Kept frame stepping, Stop, time display, and timeline scrubbing in the transport area.
+
 ## 2026-09-30 — Functional Studio Workspaces and Keyframe Timeline Markers
 
 ### What I implemented
