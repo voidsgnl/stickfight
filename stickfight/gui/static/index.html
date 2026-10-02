@@ -994,7 +994,9 @@ body>header,body>main{display:none!important}
     </nav>
     <div class="header-actions">
       <button type="button" class="header-btn" onclick="loadPreset('ninja_vs_samurai')">OPEN PRESET</button>
-      <button type="button" class="header-btn accent" onclick="randomizeAll()">RANDOM FIGHT</button>
+      <button type="button" class="header-btn" onclick="randomizeAll()">RANDOM FIGHT</button>
+      <button type="button" id="studioHeaderPlay" class="header-btn" title="Play / Pause">▶ PLAY</button>
+      <button type="button" id="studioHeaderExport" class="header-btn accent" title="Export MP4">EXPORT MP4</button>
     </div>
   </header>
 
@@ -1073,7 +1075,6 @@ body>header,body>main{display:none!important}
     <section class="canvas-column">
       <div class="workspace-toolbar">
         <div class="toolbar-group">
-          <button type="button" class="toolbar-icon" title="Play/Pause">▶</button>
           <button type="button" class="toolbar-icon" title="Step Back">‹</button>
           <button type="button" class="toolbar-icon" title="Step Forward">›</button>
         </div>
@@ -2285,12 +2286,10 @@ body>header,body>main{display:none!important}
   <div id="studioStage"><span style="font-size:10px;color:#697078">Rendering production frame…</span></div>
 </div><div class="studio-transport">
   <button type="button" id="studioPrevFrame" class="transport-btn" title="Previous frame">⏮</button>
-  <button type="button" id="studioPlayTransport" class="transport-btn primary" title="Play / Pause">▶</button>
   <button type="button" id="studioNextFrame" class="transport-btn" title="Next frame">⏭</button>
   <button type="button" id="studioStop" class="transport-btn" title="Stop">■</button>
   <span id="studioTransportTime">F0 · 0.00s</span>
   <div id="studioTransportTrack" class="studio-transport-track"><span id="studioTransportFill"></span><span id="studioTransportHandle"></span></div>
-  <button type="button" id="studioExport" class="header-btn accent">EXPORT MP4</button>
 </div><div class="timeline-scroll">
         <div class="ruler"><div class="ruler-label">TIMELINE</div><div id="studioRuler" class="ruler-grid"></div></div>
         <div id="studioTracks"></div>
@@ -2501,7 +2500,7 @@ body>header,body>main{display:none!important}
   }
   function play(){
     S.playing=!S.playing;
-    $("studioPlay").textContent=S.playing?"⏸ Pause":"▶ Play";
+    const headerPlay=$("studioHeaderPlay"); if(headerPlay) headerPlay.textContent=S.playing?"⏸ PAUSE":"▶ PLAY";
     if(S.playing){
       const start=performance.now()-S.cursor/S.fps*1000;
       const tick=now=>{if(!S.playing)return;S.cursor=Math.min(S.frames,Math.floor((now-start)/1000*S.fps));applyFrame();render();if(S.cursor<S.frames)S.timer=requestAnimationFrame(tick);else{S.playing=false;$("studioPlay").textContent="▶ Play"}};S.timer=requestAnimationFrame(tick);
@@ -2579,16 +2578,14 @@ body>header,body>main{display:none!important}
     });
     $("studioPrevFrame")?.addEventListener("click",()=>stepStudio(-1));
     $("studioNextFrame")?.addEventListener("click",()=>stepStudio(1));
-    $("studioPlayTransport")?.addEventListener("click",()=>play());
     $("studioStop")?.addEventListener("click",()=>{S.playing=false;if(S.timer)cancelAnimationFrame(S.timer);S.cursor=0;applyFrame();render();});
-    $("studioExport")?.addEventListener("click",()=>startRender());
+    $("studioHeaderPlay")?.addEventListener("click",()=>play());
+    $("studioHeaderExport")?.addEventListener("click",()=>startRender());
     $("studioTransportTrack")?.addEventListener("pointerdown",e=>{const r=$("studioTransportTrack").getBoundingClientRect();S.playing=false;if(S.timer)cancelAnimationFrame(S.timer);S.cursor=Math.round(Math.max(0,Math.min(1,(e.clientX-r.left)/r.width))*S.frames);applyFrame();render();});
     const transport=[...document.querySelectorAll("#storyStudio .transport-btn")];
     if(transport[0]) transport[0].addEventListener("click",()=>stepStudio(-1));
     if(transport[1]) transport[1].addEventListener("click",()=>play());
     if(transport[2]) transport[2].addEventListener("click",()=>stepStudio(1));
-    const exportBtn=document.querySelector("#storyStudio .adobe-menubar .header-btn");
-    if(exportBtn) exportBtn.addEventListener("click",()=>window.startRender?.());
     const undo=toolButtons.find(b=>b.title==="Undo"), redo=toolButtons.find(b=>b.title==="Redo");
     if(undo) undo.addEventListener("click",()=>{if(S.undoStack?.length){S.redoStack=S.redoStack||[];S.redoStack.push(S.undoStack.pop());render();}});
     if(redo) redo.addEventListener("click",()=>{if(S.redoStack?.length){S.undoStack=S.undoStack||[];S.undoStack.push(S.redoStack.pop());render();}});
