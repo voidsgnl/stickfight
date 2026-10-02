@@ -547,3 +547,20 @@ B = scene.add_fighter("B", x=730, y=1500, render_style="ink_fight")
 - Hardened production-frame image insertion to keep the current object URL alive until the next frame replaces it, avoiding premature blob URL revocation.
 - Added image decode/error state so frame-display failures are observable without changing the production renderer.
 - Kept /api/studio/frame and the existing Python/Pygame production renderer as the source of truth.
+
+## 2026-10-02 — Studio viewport and control wiring fix
+
+### Fixed
+- Removed the duplicate `#studioStage` element from the legacy viewport. The Studio renderer was using `getElementById("studioStage")`, so the production PNG was being inserted into the wrong stage while the actual Story Studio stage remained empty.
+- Scoped Studio frame rendering to the real `#storyStudio #studioStage` element for additional safety.
+- Wired the visible Studio toolbar, zoom controls, transport step/play controls, Export action, and basic Undo/Redo controls into the existing Studio state/render path instead of leaving them inert.
+- Added explicit `type="button"` to buttons so editor controls cannot accidentally behave as form submissions.
+
+### Preserved
+- Existing Python/Pygame production renderer, skeleton, animation clips, physics, collision, combat choreography, and Studio state model.
+- No replacement JavaScript rendering engine was introduced.
+
+### Planned verification
+- Start the GUI and verify the production figures appear in the actual Story Studio stage.
+- Exercise workspace tabs, pose/keyframe controls, fight actions, transport, zoom, and export.
+- Check browser console and server output for remaining runtime errors before proceeding to direct-manipulation posing.
