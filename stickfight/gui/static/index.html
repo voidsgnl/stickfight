@@ -974,7 +974,8 @@ body>header,body>main{display:none!important}
 #storyStudio .audio-placeholder{display:none}
 #storyStudio.workspace-audio .audio-placeholder{display:block}
 #storyStudio .bottom-status{position:absolute;right:8px;bottom:3px;font-size:8px;color:#70767d}
-#storyStudio .panel-action-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;background:#1b1d20;border-bottom:1px solid #0f1012;position:sticky;top:0;z-index:6}
+#storyStudio .panel-action-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 8px;background:#1b1d20;border-bottom:1px solid #0f1012}
+#storyStudio .studio-output-bar{position:sticky;top:0;z-index:6}
 #storyStudio .panel-action-label{font-size:8px;font-weight:800;letter-spacing:1px;color:#777d84}
 #storyStudio .panel-action-buttons{display:flex;align-items:center;gap:5px}
 #storyStudio .panel-action-btn{height:26px;padding:0 9px;background:#151719;border:1px solid #3b3e42;color:#cfd3d8;border-radius:3px;font-size:8px;font-weight:800;letter-spacing:.5px;cursor:pointer}
@@ -1162,13 +1163,6 @@ body>header,body>main{display:none!important}
     </section>
 
     <aside class="sidebar right-sidebar">
-      <div class="panel-action-bar" aria-label="Studio playback and export">
-        <span class="panel-action-label">OUTPUT</span>
-        <div class="panel-action-buttons">
-          <button type="button" id="studioHeaderPlay" class="panel-action-btn" title="Play / Pause">▶ PLAY</button>
-          <button type="button" id="studioHeaderExport" class="panel-action-btn accent" title="Export MP4">EXPORT MP4</button>
-        </div>
-      </div>
       <section class="inspector-section fighter-section fighter-b-section">
         <div class="section-heading">
           <div><span class="eyebrow">CHARACTER 02</span><h2>Fighter B</h2></div>
@@ -2307,6 +2301,13 @@ body>header,body>main{display:none!important}
       </div>
     </section>
 <aside class="studio-right">
+  <div class="panel-action-bar studio-output-bar" aria-label="Studio playback and export">
+    <span class="panel-action-label">OUTPUT</span>
+    <div class="panel-action-buttons">
+      <button type="button" id="studioHeaderPlay" class="panel-action-btn" title="Play / Pause">▶ PLAY</button>
+      <button type="button" id="studioHeaderExport" class="panel-action-btn accent" title="Export MP4">EXPORT MP4</button>
+    </div>
+  </div>
   <div class="prop-title">PROPERTIES</div>
   <div class="prop-section"><h4>Selection</h4><div class="prop-card"><span>OBJECT</span><strong id="studioPropName">Fighter A</strong></div></div>
   <div class="prop-section"><h4>Transform</h4><div class="prop-grid"><div class="prop-card"><span>X</span><strong id="studioPropX">0</strong></div><div class="prop-card"><span>Y</span><strong id="studioPropY">0</strong></div><div class="prop-card"><span>ROTATION</span><strong id="studioPropRot">0°</strong></div><div class="prop-card"><span>SCALE</span><strong id="studioPropScale">100%</strong></div></div></div><div class="prop-section pose-editor"><h4>Pose</h4><label class="pose-label">JOINT<select id="studioPoseJoint"><option>head</option><option>neck</option><option>chest</option><option>left_shoulder</option><option>left_elbow</option><option>left_hand</option><option>right_shoulder</option><option>right_elbow</option><option>right_hand</option><option>left_hip</option><option>left_knee</option><option>left_foot</option><option>right_hip</option><option>right_knee</option><option>right_foot</option></select></label><div class="pose-grid"><label>DX<input id="studioPoseX" type="number" step="1" value="0"></label><label>DY<input id="studioPoseY" type="number" step="1" value="0"></label></div><div class="pose-actions"><button type="button" id="studioPoseReset">Reset Joint</button><button type="button" id="studioPoseKey">◆ Pose Key</button></div></div>
