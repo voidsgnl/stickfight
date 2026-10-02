@@ -847,7 +847,7 @@
     @media (max-width:900px){.studio-workspace{height:auto;min-height:0;display:flex;flex-direction:column}.canvas-column{order:1;min-height:820px}.left-sidebar{order:2;border-right:0;border-top:1px solid #20252d}.right-sidebar{order:3;border-left:0;border-top:1px solid #20252d}.studio-header{position:relative}.brand-subtitle{display:none}}
 
   
-  #studioStage{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:3}#studioStage .studio-real-frame{width:100%;height:100%;object-fit:contain;display:block}#studioStage .studio-char{position:absolute;transform-origin:center bottom;min-width:30px;text-align:center}#studioStage .studio-stick{width:44px;height:92px;margin:auto;position:relative}#studioStage .studio-head{width:20px;height:20px;border:3px solid currentColor;border-radius:50%;margin:0 auto 3px}#studioStage .studio-body{width:4px;height:38px;background:currentColor;margin:auto;border-radius:3px}#studioStage .studio-limb{position:absolute;height:3px;background:currentColor;border-radius:3px;transform-origin:left center}.studio-arm-l{width:24px;left:5px;top:34px;transform:rotate(145deg)}.studio-arm-r{width:24px;right:5px;top:34px;transform-origin:right center;transform:rotate(35deg)}.studio-leg-l{width:30px;left:5px;top:72px;transform:rotate(112deg)}.studio-leg-r{width:30px;right:5px;top:72px;transform-origin:right center;transform:rotate(68deg)}#studioStage .studio-label{font-size:10px;font-weight:800;white-space:nowrap;margin-top:3px;text-shadow:0 1px 3px #000}#studioStage .selected{filter:drop-shadow(0 0 8px rgba(0,229,255,.9))}
+  #storyStudio #studioStage{position:relative;inset:auto;width:auto;height:92%;aspect-ratio:9/16;max-width:48%;background:#0d0e10;border:1px solid #4a4e54;box-shadow:0 12px 40px #000;display:flex;align-items:center;justify-content:center;overflow:hidden;pointer-events:none;z-index:2}#storyStudio #studioStage .studio-real-frame{width:100%;height:100%;object-fit:contain;display:block}#studioStage .studio-char{position:absolute;transform-origin:center bottom;min-width:30px;text-align:center}#studioStage .studio-stick{width:44px;height:92px;margin:auto;position:relative}#studioStage .studio-head{width:20px;height:20px;border:3px solid currentColor;border-radius:50%;margin:0 auto 3px}#studioStage .studio-body{width:4px;height:38px;background:currentColor;margin:auto;border-radius:3px}#studioStage .studio-limb{position:absolute;height:3px;background:currentColor;border-radius:3px;transform-origin:left center}.studio-arm-l{width:24px;left:5px;top:34px;transform:rotate(145deg)}.studio-arm-r{width:24px;right:5px;top:34px;transform-origin:right center;transform:rotate(35deg)}.studio-leg-l{width:30px;left:5px;top:72px;transform:rotate(112deg)}.studio-leg-r{width:30px;right:5px;top:72px;transform-origin:right center;transform:rotate(68deg)}#studioStage .studio-label{font-size:10px;font-weight:800;white-space:nowrap;margin-top:3px;text-shadow:0 1px 3px #000}#studioStage .selected{filter:drop-shadow(0 0 8px rgba(0,229,255,.9))}
 </style>
 
 <style id="adobe-studio-vibe">
@@ -2361,8 +2361,18 @@ body>header,body>main{display:none!important}
         }catch(e){console.warn("Studio combat outcome metadata unavailable",e);}
       }
       const blob=await res.blob(); if(request!==studioFrameRequest)return;
-      const url=URL.createObjectURL(blob); stage.innerHTML='<img class="studio-real-frame" alt="Fight animation frame">';
-      stage.querySelector("img").src=url; setTimeout(()=>URL.revokeObjectURL(url),1500);
+      const url=URL.createObjectURL(blob);
+      const img=document.createElement("img");
+      img.className="studio-real-frame";
+      img.alt="Fight animation frame";
+      img.decoding="async";
+      img.onload=()=>{ if(request===studioFrameRequest){ stage.dataset.frameReady="1"; } };
+      img.onerror=()=>{ if(request===studioFrameRequest){ stage.dataset.frameReady="0"; console.warn("Studio frame image failed to decode"); } };
+      stage.replaceChildren(img);
+      img.src=url;
+      const previous=stage.__studioFrameUrl;
+      stage.__studioFrameUrl=url;
+      if(previous) URL.revokeObjectURL(previous);
     }catch(e){console.warn("Studio fight frame preview unavailable",e);}
   }
 
