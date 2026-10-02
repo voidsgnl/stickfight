@@ -1549,7 +1549,7 @@ body>header,body>main{display:none!important}
       container.querySelectorAll('.archetype-card').forEach(card => {
         card.classList.toggle('active', card.getAttribute('data-type') === type);
       });
-      schedulePreview();
+      schedulePreview(); if(window.__refreshStudio) window.__refreshStudio();
     }
 
     function selectWeapon(side, weapon) {
@@ -1558,19 +1558,19 @@ body>header,body>main{display:none!important}
       container.querySelectorAll('.pill-btn').forEach(btn => {
         btn.classList.toggle('active', btn.getAttribute('data-val') === weapon);
       });
-      schedulePreview();
+      schedulePreview(); if(window.__refreshStudio) window.__refreshStudio();
     }
 
     function setFighterColor(side, hex) {
       document.getElementById(`f${side}_color`).value = hex;
       state['fighter_' + side].color = hex;
-      schedulePreview();
+      schedulePreview(); if(window.__refreshStudio) window.__refreshStudio();
     }
 
     function setHeadbandColor(side, hex) {
       document.getElementById(`f${side}_headband`).value = hex;
       state['fighter_' + side].headband_color = hex;
-      schedulePreview();
+      schedulePreview(); if(window.__refreshStudio) window.__refreshStudio();
     }
 
  
@@ -1579,7 +1579,7 @@ body>header,body>main{display:none!important}
       document.querySelectorAll('#visual_style_selector .style-card').forEach(btn => {
         btn.classList.toggle('active', btn.getAttribute('data-val') === style);
       });
-      schedulePreview();
+      schedulePreview(); if(window.__refreshStudio) window.__refreshStudio();
     }
 
     function selectStyle(style) {
@@ -1594,7 +1594,7 @@ body>header,body>main{display:none!important}
       document.querySelectorAll('#env_selector .pill-btn').forEach(btn => {
         btn.classList.toggle('active', btn.getAttribute('data-val') === env);
       });
-      schedulePreview();
+      schedulePreview(); if(window.__refreshStudio) window.__refreshStudio();
     }
 
     function selectFormat(fmt) {
@@ -1602,7 +1602,7 @@ body>header,body>main{display:none!important}
       document.querySelectorAll('#format_selector .pill-btn').forEach(btn => {
         btn.classList.toggle('active', btn.getAttribute('data-val') === fmt);
       });
-      schedulePreview();
+      schedulePreview(); if(window.__refreshStudio) window.__refreshStudio();
     }
 
     function updateLabel(inputId, labelId, suffix) {
@@ -1666,7 +1666,18 @@ body>header,body>main{display:none!important}
       }
     }
 
+    function syncStudioToLegacyState(){
+      const active=S.instances.filter(i=>i.visible!==false);
+      const a=active[0]||S.instances[0], b=active[1]||S.instances[1];
+      const aa=a?S.assets.find(x=>x.id===a.asset)||{}:{}, bb=b?S.assets.find(x=>x.id===b.asset)||{}:{};
+      if(a){state.fighter_a.name=a.name||"Fighter A";state.fighter_a.archetype=aa.archetype||"ninja";state.fighter_a.weapon=aa.weapon||"none";state.fighter_a.color=aa.color||"#2d3038";state.fighter_a.headband_color=aa.headband_color||null;state.fighter_a.scale=Number(a.scale)||1;}
+      if(b){state.fighter_b.name=b.name||"Fighter B";state.fighter_b.archetype=bb.archetype||"warrior";state.fighter_b.weapon=bb.weapon||"none";state.fighter_b.color=bb.color||"#e6ebf5";state.fighter_b.headband_color=bb.headband_color||null;state.fighter_b.scale=Number(b.scale)||1;}
+      state.timeline=S.combatEvents.map(e=>({time:(Number(e.start_frame)||0)/(S.fps||30),actor:e.attacker_id===S.instances[1]?.id?"B":"A",action:e.action,duration:Math.max(.05,(Number(e.end_frame)-Number(e.start_frame))/(S.fps||30)),target:e.target_id}));
+      state.duration=Math.max(1,(S.frames||180)/(S.fps||30));
+      state.visual_style=aa.style||state.visual_style||"ink_fight";
+    }
     async function startRender() {
+      syncStudioToLegacyState();
       schedulePreview();
       const btn = document.getElementById('btnRender');
       const box = document.getElementById('progressBox');
@@ -2272,6 +2283,14 @@ body>header,body>main{display:none!important}
 <div class="stage-wrap">
   <div class="stage-chrome"><span class="stage-pill">SCENE 03 · FIGHT / ACTION</span><span class="stage-pill">9:16 · 540×960</span></div>
   <div id="studioStage"><span style="font-size:10px;color:#697078">Rendering production frame…</span></div>
+</div><div class="studio-transport">
+  <button type="button" id="studioPrevFrame" class="transport-btn" title="Previous frame">⏮</button>
+  <button type="button" id="studioPlayTransport" class="transport-btn primary" title="Play / Pause">▶</button>
+  <button type="button" id="studioNextFrame" class="transport-btn" title="Next frame">⏭</button>
+  <button type="button" id="studioStop" class="transport-btn" title="Stop">■</button>
+  <span id="studioTransportTime">F0 · 0.00s</span>
+  <div id="studioTransportTrack" class="studio-transport-track"><span id="studioTransportFill"></span><span id="studioTransportHandle"></span></div>
+  <button type="button" id="studioExport" class="header-btn accent">EXPORT MP4</button>
 </div><div class="timeline-scroll">
         <div class="ruler"><div class="ruler-label">TIMELINE</div><div id="studioRuler" class="ruler-grid"></div></div>
         <div id="studioTracks"></div>
@@ -2325,9 +2344,10 @@ body>header,body>main{display:none!important}
     const st = window.state;
     if(!st) return;
     const a=st.fighter_a||{}, b=st.fighter_b||{};
-    S.assets[0].name=a.name||"Fighter A"; S.assets[0].style=st.visual_style||"classic";
-    S.assets[1].name=b.name||"Fighter B"; S.assets[1].style=st.visual_style||"classic";
+    S.assets[0].name=a.name||"Fighter A"; S.assets[0].style=st.visual_style||"classic"; S.assets[0].archetype=a.archetype||"ninja"; S.assets[0].weapon=a.weapon||"none"; S.assets[0].color=a.color||"#2d3038"; S.assets[0].headband_color=a.headband_color||null;
+    S.assets[1].name=b.name||"Fighter B"; S.assets[1].style=st.visual_style||"classic"; S.assets[1].archetype=b.archetype||"warrior"; S.assets[1].weapon=b.weapon||"none"; S.assets[1].color=b.color||"#e6ebf5"; S.assets[1].headband_color=b.headband_color||null;
     S.instances[0].name=S.assets[0].name; S.instances[1].name=S.assets[1].name;
+    S.instances[0].scale=Number(a.scale)||1; S.instances[1].scale=Number(b.scale)||1;
     S.tracks = (st.timeline||[]).map((e,i)=>({id:"legacy-"+i,name:(e.actor||"scene")+" · "+(e.action||"event"),kind:"event",start:Math.round((Number(e.time)||0)*S.fps),duration:Math.max(1,Math.round((Number(e.duration)||.5)*S.fps)),event:e}));
   }
   let studioFrameRequest=0;
@@ -2452,8 +2472,13 @@ body>header,body>main{display:none!important}
       const keys=(S.keyframes[g.id]||[]).map(k=>'<div class="key" title="Keyframe '+k.frame+'" data-frame="'+k.frame+'" style="left:'+(k.frame/S.frames*100)+'%"></div>').join("");
       return '<div class="studio-track"><div class="track-label">'+esc(g.name)+'</div><div class="track-lane" data-track="'+esc(g.id)+'">'+blocks+combatBlocks+keys+'<div class="playhead" style="left:'+(S.cursor/S.frames*100)+'%"></div></div></div>';
     }).join("");
+    const selectedAsset=(()=>{const x=S.instances.find(i=>i.id===S.selected)||S.instances[0];return x?S.assets.find(a=>a.id===x.asset):null;})();
+    if(selectedAsset){if($("studioArchetype"))$("studioArchetype").value=selectedAsset.archetype||"classic";if($("studioVisualStyle"))$("studioVisualStyle").value=selectedAsset.style||"classic";}
     const sel=$("studioSelected"); sel.innerHTML=S.instances.map(i=>"<option value=\""+i.id+"\">"+esc(i.name)+"</option>").join(""); sel.value=S.selected; const si=S.instances.find(i=>i.id===S.selected)||S.instances[0]; if(si){si.pose=si.pose||{};$("studioX").value=si.x||0;$("studioY").value=si.y||0;$("studioRotation").value=si.rotation||0;$("studioScale").value=si.scale||1;} $("studioAssets").innerHTML=S.assets.map(a=>'<div class="asset-row"><span class="asset-dot"></span><div class="asset-meta"><div class="asset-name">'+esc(a.name)+'</div><div class="asset-style">'+esc(a.style)+'</div></div></div>').join("");
-    $("studioTime").textContent=(S.cursor/S.fps).toFixed(2)+"s"; const ps=S.instances.find(i=>i.id===S.selected)||S.instances[0]; const pa=S.combatEvents.filter(e=>(e.attacker_id===S.selected||e.target_id===S.selected)&&S.cursor>=e.start_frame&&S.cursor<=e.end_frame).sort((a,b)=>b.start_frame-a.start_frame)[0]; if(ps){if($("studioPropName"))$("studioPropName").textContent=ps.name;if($("studioPropX"))$("studioPropX").textContent=Math.round(ps.x||0);if($("studioPropY"))$("studioPropY").textContent=Math.round(ps.y||0);if($("studioPropRot"))$("studioPropRot").textContent=Math.round(ps.rotation||0)+"°";if($("studioPropScale"))$("studioPropScale").textContent=Math.round((ps.scale||1)*100)+"%";} syncPoseEditor(); if($("studioPropFrame"))$("studioPropFrame").textContent=Math.round(S.cursor);if($("studioPropFps"))$("studioPropFps").textContent=S.fps;if($("studioPropAction"))$("studioPropAction").textContent=pa?((pa.type==="defense"?"DEFENSE · ":"ATTACK · ")+pa.action.replace(/_/g," ")+(pa.outcome&&pa.outcome!=="pending"?" · "+pa.outcome:"")):"Idle / Guard";if($("fightOutcome")&&selectedCombatEvent())$("fightOutcome").textContent=selectedCombatEvent().outcome||"pending";renderStudioStage();
+    $("studioTime").textContent=(S.cursor/S.fps).toFixed(2)+"s";
+    if($("studioTransportTime"))$("studioTransportTime").textContent="F"+Math.round(S.cursor)+" · "+(S.cursor/S.fps).toFixed(2)+"s";
+    if($("studioTransportFill"))$("studioTransportFill").style.width=(S.frames?S.cursor/S.frames*100:0)+"%";
+    if($("studioPlayTransport"))$("studioPlayTransport").textContent=S.playing?"⏸":"▶"; const ps=S.instances.find(i=>i.id===S.selected)||S.instances[0]; const pa=S.combatEvents.filter(e=>(e.attacker_id===S.selected||e.target_id===S.selected)&&S.cursor>=e.start_frame&&S.cursor<=e.end_frame).sort((a,b)=>b.start_frame-a.start_frame)[0]; if(ps){if($("studioPropName"))$("studioPropName").textContent=ps.name;if($("studioPropX"))$("studioPropX").textContent=Math.round(ps.x||0);if($("studioPropY"))$("studioPropY").textContent=Math.round(ps.y||0);if($("studioPropRot"))$("studioPropRot").textContent=Math.round(ps.rotation||0)+"°";if($("studioPropScale"))$("studioPropScale").textContent=Math.round((ps.scale||1)*100)+"%";} syncPoseEditor(); if($("studioPropFrame"))$("studioPropFrame").textContent=Math.round(S.cursor);if($("studioPropFps"))$("studioPropFps").textContent=S.fps;if($("studioPropAction"))$("studioPropAction").textContent=pa?((pa.type==="defense"?"DEFENSE · ":"ATTACK · ")+pa.action.replace(/_/g," ")+(pa.outcome&&pa.outcome!=="pending"?" · "+pa.outcome:"")):"Idle / Guard";if($("fightOutcome")&&selectedCombatEvent())$("fightOutcome").textContent=selectedCombatEvent().outcome||"pending";renderStudioStage();
   }
   function bindFightEditor(){const tabs=$("studioWorkspaceTabs");if(tabs&&!tabs.dataset.fightBound){tabs.dataset.fightBound="1";}$("fightAddEvent")?.addEventListener("click",upsertCombatEvent);$("fightDeleteEvent")?.addEventListener("click",deleteCombatEvent);$("fightAttacker")?.addEventListener("change",()=>{S.selected=$("fightAttacker").value;render()});$("fightEventType")?.addEventListener("change",()=>{syncFightActionOptions();render()});}
   function addCharacter(){
@@ -2461,7 +2486,7 @@ body>header,body>main{display:none!important}
     const style=$("studioCharStyle").value;
     const n=S.instances.length+1,id="char-"+Date.now(),aid="asset-"+Date.now();
     S.assets.push({id:aid,name,style});
-    S.instances.push({id,asset:aid,name,track:true});
+    S.instances.push({id,asset:aid,name,track:true,x:190+(n-1)*70,y:750,rotation:0,scale:1,visible:true,pose:{}}); S.selected=id;
     $("studioCharName").value="";
     render();
   }
@@ -2491,7 +2516,9 @@ body>header,body>main{display:none!important}
   function applyFrame(){ S.instances.forEach(i=>interpolateCharacter(i.id,S.cursor)); }
   $("studioFightActions").addEventListener("click",e=>{const btn=e.target.closest("[data-action]");if(btn)addCombatAction(btn.dataset.action);});
   $("studioAddCharacter").addEventListener("click",addCharacter);
-  $("studioSelected").addEventListener("change",e=>{S.selected=e.target.value;render()});
+  $("studioSelected").addEventListener("change",e=>{S.selected=e.target.value;syncPoseEditor();render()});
+  $("studioArchetype")?.addEventListener("change",e=>{const si=S.instances.find(i=>i.id===S.selected),a=si&&S.assets.find(x=>x.id===si.asset);if(!a)return;a.archetype=e.target.value;render();});
+  $("studioVisualStyle")?.addEventListener("change",e=>{const si=S.instances.find(i=>i.id===S.selected),a=si&&S.assets.find(x=>x.id===si.asset);if(!a)return;a.style=e.target.value;render();});
   ["studioX","studioY","studioRotation","studioScale"].forEach(id=>$(id).addEventListener("change",e=>{const si=S.instances.find(i=>i.id===S.selected);if(!si)return;si[id==="studioX"?"x":id==="studioY"?"y":id==="studioRotation"?"rotation":"scale"]=Number(e.target.value)||0;render()}));
   function syncPoseEditor(){const si=S.instances.find(i=>i.id===S.selected);if(!si)return;si.pose=si.pose||{};const j=$("studioPoseJoint").value,p=si.pose[j]||{x:0,y:0};$("studioPoseX").value=Math.round(p.x||0);$("studioPoseY").value=Math.round(p.y||0);}
   function updateSelectedPose(){const si=S.instances.find(i=>i.id===S.selected);if(!si)return;si.pose=si.pose||{};const j=$("studioPoseJoint").value;si.pose[j]={x:Number($("studioPoseX").value)||0,y:Number($("studioPoseY").value)||0};render();}
@@ -2550,6 +2577,12 @@ body>header,body>main{display:none!important}
       btn.dataset.bound="1";
       btn.addEventListener("click",()=>setStudioZoom(btn.textContent.trim()==="+"?.1:-.1));
     });
+    $("studioPrevFrame")?.addEventListener("click",()=>stepStudio(-1));
+    $("studioNextFrame")?.addEventListener("click",()=>stepStudio(1));
+    $("studioPlayTransport")?.addEventListener("click",()=>play());
+    $("studioStop")?.addEventListener("click",()=>{S.playing=false;if(S.timer)cancelAnimationFrame(S.timer);S.cursor=0;applyFrame();render();});
+    $("studioExport")?.addEventListener("click",()=>startRender());
+    $("studioTransportTrack")?.addEventListener("pointerdown",e=>{const r=$("studioTransportTrack").getBoundingClientRect();S.playing=false;if(S.timer)cancelAnimationFrame(S.timer);S.cursor=Math.round(Math.max(0,Math.min(1,(e.clientX-r.left)/r.width))*S.frames);applyFrame();render();});
     const transport=[...document.querySelectorAll("#storyStudio .transport-btn")];
     if(transport[0]) transport[0].addEventListener("click",()=>stepStudio(-1));
     if(transport[1]) transport[1].addEventListener("click",()=>play());
@@ -2582,6 +2615,7 @@ body>header,body>main{display:none!important}
     const tab=e.target.closest("#studioWorkspaceTabs .workspace-tab"); if(tab)setWorkspace(tab.dataset.workspace);
   });
   let studioInitialized = false;
+  window.__refreshStudio = ()=>{ syncLegacy(); render(); };
   function initStudio(){
     if(studioInitialized) return;
     if(!$("storyStudio") || !$("studioFightActions")) return;
