@@ -1,3 +1,9 @@
+## 2026-10-02 — Place playback and export in the actual Studio Properties panel
+- Corrected the previous placement: the controls were accidentally added to the legacy right sidebar rather than the visible Studio Properties panel.
+- Moved Play/Pause and Export MP4 to the top of the actual right-side PROPERTIES panel.
+- Kept the frame preview and timeline transport separate, so the large preview area no longer contains a Play/Export control bar.
+- Kept the existing handlers and export/render behavior unchanged.
+
 ## 2026-10-02 — Move Studio playback and export into the Properties panel
 - Removed Play/Pause and Export MP4 from the global Studio header so they no longer consume workspace/header space.
 - Added a compact action bar at the top of the right Properties panel, keeping playback and export immediately accessible beside the active inspector.
