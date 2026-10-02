@@ -1549,7 +1549,7 @@ body>header,body>main{display:none!important}
       container.querySelectorAll('.archetype-card').forEach(card => {
         card.classList.toggle('active', card.getAttribute('data-type') === type);
       });
-      schedulePreview();
+      schedulePreview(); if(window.__refreshStudio) window.__refreshStudio();
     }
 
     function selectWeapon(side, weapon) {
@@ -1558,19 +1558,19 @@ body>header,body>main{display:none!important}
       container.querySelectorAll('.pill-btn').forEach(btn => {
         btn.classList.toggle('active', btn.getAttribute('data-val') === weapon);
       });
-      schedulePreview();
+      schedulePreview(); if(window.__refreshStudio) window.__refreshStudio();
     }
 
     function setFighterColor(side, hex) {
       document.getElementById(`f${side}_color`).value = hex;
       state['fighter_' + side].color = hex;
-      schedulePreview();
+      schedulePreview(); if(window.__refreshStudio) window.__refreshStudio();
     }
 
     function setHeadbandColor(side, hex) {
       document.getElementById(`f${side}_headband`).value = hex;
       state['fighter_' + side].headband_color = hex;
-      schedulePreview();
+      schedulePreview(); if(window.__refreshStudio) window.__refreshStudio();
     }
 
  
@@ -1579,7 +1579,7 @@ body>header,body>main{display:none!important}
       document.querySelectorAll('#visual_style_selector .style-card').forEach(btn => {
         btn.classList.toggle('active', btn.getAttribute('data-val') === style);
       });
-      schedulePreview();
+      schedulePreview(); if(window.__refreshStudio) window.__refreshStudio();
     }
 
     function selectStyle(style) {
@@ -1594,7 +1594,7 @@ body>header,body>main{display:none!important}
       document.querySelectorAll('#env_selector .pill-btn').forEach(btn => {
         btn.classList.toggle('active', btn.getAttribute('data-val') === env);
       });
-      schedulePreview();
+      schedulePreview(); if(window.__refreshStudio) window.__refreshStudio();
     }
 
     function selectFormat(fmt) {
@@ -1602,7 +1602,7 @@ body>header,body>main{display:none!important}
       document.querySelectorAll('#format_selector .pill-btn').forEach(btn => {
         btn.classList.toggle('active', btn.getAttribute('data-val') === fmt);
       });
-      schedulePreview();
+      schedulePreview(); if(window.__refreshStudio) window.__refreshStudio();
     }
 
     function updateLabel(inputId, labelId, suffix) {
@@ -2615,6 +2615,7 @@ body>header,body>main{display:none!important}
     const tab=e.target.closest("#studioWorkspaceTabs .workspace-tab"); if(tab)setWorkspace(tab.dataset.workspace);
   });
   let studioInitialized = false;
+  window.__refreshStudio = ()=>{ syncLegacy(); render(); };
   function initStudio(){
     if(studioInitialized) return;
     if(!$("storyStudio") || !$("studioFightActions")) return;
