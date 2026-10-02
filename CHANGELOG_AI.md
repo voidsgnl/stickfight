@@ -564,3 +564,11 @@ B = scene.add_fighter("B", x=730, y=1500, render_style="ink_fight")
 - Start the GUI and verify the production figures appear in the actual Story Studio stage.
 - Exercise workspace tabs, pose/keyframe controls, fight actions, transport, zoom, and export.
 - Check browser console and server output for remaining runtime errors before proceeding to direct-manipulation posing.
+
+## 2026-10-02 — Make Studio editing controls real
+- Connected Studio Figure Type and Visual Style changes to the actual production frame state.
+- Added in-editor Play/Pause, previous/next frame, Stop, timeline scrubber, time/frame display, and Export MP4 controls.
+- Export now bridges the current Studio characters/combat events into the existing production renderer instead of using stale legacy state.
+- New fighters receive valid stage coordinates and render properties immediately.
+- Preserved the existing Python/Pygame skeleton, animation, physics, combat, and FFmpeg pipeline.
+- Runtime/browser verification remains required before merging.
