@@ -974,6 +974,12 @@ body>header,body>main{display:none!important}
 #storyStudio .audio-placeholder{display:none}
 #storyStudio.workspace-audio .audio-placeholder{display:block}
 #storyStudio .bottom-status{position:absolute;right:8px;bottom:3px;font-size:8px;color:#70767d}
+#storyStudio .panel-action-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;background:#1b1d20;border-bottom:1px solid #0f1012;position:sticky;top:0;z-index:6}
+#storyStudio .panel-action-label{font-size:8px;font-weight:800;letter-spacing:1px;color:#777d84}
+#storyStudio .panel-action-buttons{display:flex;align-items:center;gap:5px}
+#storyStudio .panel-action-btn{height:26px;padding:0 9px;background:#151719;border:1px solid #3b3e42;color:#cfd3d8;border-radius:3px;font-size:8px;font-weight:800;letter-spacing:.5px;cursor:pointer}
+#storyStudio .panel-action-btn:hover{border-color:#68717b;color:#fff;background:#202327}
+#storyStudio .panel-action-btn.accent{color:#00d2ff;border-color:rgba(0,210,255,.35);background:rgba(0,210,255,.07)}
 @media(max-width:1050px){#storyStudio .studio-body{grid-template-columns:210px minmax(430px,1fr)!important}#storyStudio .studio-right{display:none!important}}
 @media(max-width:760px){body{overflow:auto!important}#storyStudio{position:relative!important;min-height:100vh!important;height:auto!important}#storyStudio .studio-body{grid-template-columns:1fr!important;height:auto!important}#storyStudio .asset-pane{display:none!important}#storyStudio .timeline-pane{min-height:900px}}
 </style></head>
@@ -995,8 +1001,6 @@ body>header,body>main{display:none!important}
     <div class="header-actions">
       <button type="button" class="header-btn" onclick="loadPreset('ninja_vs_samurai')">OPEN PRESET</button>
       <button type="button" class="header-btn" onclick="randomizeAll()">RANDOM FIGHT</button>
-      <button type="button" id="studioHeaderPlay" class="header-btn" title="Play / Pause">▶ PLAY</button>
-      <button type="button" id="studioHeaderExport" class="header-btn accent" title="Export MP4">EXPORT MP4</button>
     </div>
   </header>
 
@@ -1158,6 +1162,13 @@ body>header,body>main{display:none!important}
     </section>
 
     <aside class="sidebar right-sidebar">
+      <div class="panel-action-bar" aria-label="Studio playback and export">
+        <span class="panel-action-label">OUTPUT</span>
+        <div class="panel-action-buttons">
+          <button type="button" id="studioHeaderPlay" class="panel-action-btn" title="Play / Pause">▶ PLAY</button>
+          <button type="button" id="studioHeaderExport" class="panel-action-btn accent" title="Export MP4">EXPORT MP4</button>
+        </div>
+      </div>
       <section class="inspector-section fighter-section fighter-b-section">
         <div class="section-heading">
           <div><span class="eyebrow">CHARACTER 02</span><h2>Fighter B</h2></div>
