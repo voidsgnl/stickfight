@@ -1,3 +1,21 @@
+## 2026-09-30 — Functional Studio Workspaces and Keyframe Timeline Markers
+
+### What I implemented
+- Made the Adobe-style Animation / Fight / Story / Audio workspace tabs functional instead of decorative.
+- Added workspace-specific labels and guidance so the editor communicates what each workspace is for.
+- Fight mode exposes the combat action palette; Animation mode keeps the authoring surface focused on keyframes and transforms; Story and Audio establish dedicated editor contexts without forcing all controls onto one screen.
+- Added actual transform keyframe storage for the selected character at the current playhead frame.
+- Added visible diamond keyframe markers to character timeline tracks.
+- Existing timeline playback, scrubbing, combat events, and production frame rendering remain intact.
+
+### Architecture
+- Workspace switching is a presentation/authoring concern and does not alter the underlying Fighter, skeleton, physics, collision, or combat systems.
+- Keyframes remain in the Studio authoring state and are applied through the existing interpolation path.
+
+### Validation
+- Repository source was updated on `story-animation-studio-foundation`.
+- Local browser interaction was not executed in this change; the next verification should click each workspace tab, add a keyframe, scrub the timeline, and confirm the production frame updates.
+
 ## 2026-09-29 — Tighten Studio Around Real Fight Actions
 
 ### What I implemented
@@ -403,3 +421,129 @@ B = scene.add_fighter("B", x=730, y=1500, render_style="ink_fight")
 - Fixed `Fighter.clear_grapple_reaction()` where an accidentally duplicated fragment referenced undefined `attacker` and `mode` variables.
 - The cleanup method now only clears the active grapple reaction state, matching its purpose and preventing render-time `NameError` failures when an IK/timeline action finishes.
 - Validation: source-level fix applied from the traceback; full render/test execution has not yet been run in this session.
+
+
+## 2026-09-30 — Adobe-Inspired Animation Studio Workspace
+- Reworked the Studio UI into a dense desktop animation-editor layout inspired by professional animation applications.
+- Added application menu bar, compact tool rail, workspace tabs, scene/stage chrome, production viewport, Properties panel, and a dedicated bottom timeline area.
+- Changed the Studio shell from a single-screen dashboard/card layout to a panelized editor so tools and information can be opened/used by workspace area rather than competing for one screen.
+- Preserved the existing production fight renderer, combat action palette, transform keyframes, timeline state, and Studio authoring model underneath the visual redesign.
+- Added live selection/transform/frame/action values to the Properties panel.
+- Responsive fallback remains available for narrower screens.
+- No browser verification or automated tests were run as part of this UI-only pass.
+
+
+## 2026-09-30 — Fix Studio Frame API Syntax Regression
+- Fixed an invalid `elif` in `StudioRequestHandler.do_POST()` that caused `python3 gui.py` to fail during import with a SyntaxError.
+- The `/api/studio/frame` handler is now the first POST route check and returns normally before the existing preview/render routes.
+- This was introduced by the Studio UI integration pass; no combat/render logic was changed.
+
+
+## 2026-09-30 — Studio Pose Authoring and Pose Keyframes
+- Added a first real posing layer to the Studio Animation workspace.
+- Added joint selection for the canonical fighter rig: head, torso, shoulders, elbows, hands, hips, knees, and feet.
+- Added per-joint DX/DY pose offsets in the Properties panel, with a reset control.
+- Pose edits are stored on the selected character and sent to `POST /api/studio/frame`.
+- Added pose data to transform keyframes and interpolate joint offsets between keyed frames.
+- The backend now applies validated/clamped pose offsets on top of the existing production animation/IK result, preserving the existing fight animation library and renderer.
+- Added a dedicated Pose Key button while keeping the existing transform keyframe workflow.
+- This is an additive posing layer; it does not replace the existing combat clips, physics, IK, or renderer.
+
+### Validation
+- Source-level integration was completed on `story-animation-studio-foundation`.
+- The next local verification should edit a joint, create pose keys at two frames, scrub between them, and confirm the production-rendered character interpolates the pose.
+- Automated tests and browser verification were not run as part of this implementation.
+## 2026-10-01 — Fight Workspace Choreography Integration
+- Replaced the Fight workspace's single-action behavior with an authored combat-event editor.
+- Added attacker, target, action, start frame, duration, and timing-phase controls in the Properties panel.
+- Combat events are now stored with explicit attacker/target relationships and rendered as dedicated combat blocks on the timeline.
+- Added impact markers to combat blocks and selection/edit/delete behavior for authored events.
+- The Studio frame request now sends the authored combat-event list to the production backend.
+- The backend resolves existing `ATTACK_TIMINGS` metadata for authored attacks and, at the existing impact marker, switches the selected target to the real production `hit` reaction clip.
+- Existing Fighter animation clips and the production renderer remain the execution layer; no separate Studio combat engine was introduced.
+
+### Validation
+- Source-level integration completed on `story-animation-studio-foundation`.
+- Automated tests and live browser verification were not run in this implementation pass.
+- Next local check: launch `python3 gui.py`, select Fight, add an attacker/target action, scrub across its impact marker, and confirm the attacker and target render through the production fight renderer.
+## 2026-10-01 — Studio Combat Impact Resolution
+- Extended the Fight workspace from animation-state switching into collision-aware impact resolution.
+- Authored attacks now use the existing production `ATTACK_TIMINGS`, `Hitbox`, `Hurtbox`, and `PhysicsBody` systems during Studio frame rendering.
+- Attackers advance to the authored timeline position instead of always rendering at clip time zero.
+- When an authored attack enters its active contact window and the production hitbox intersects the selected target's hurtbox, the target receives the existing hitbox damage value and knockback impulse.
+- The target uses the existing `hit` or `knockback` production animation based on the authored impulse.
+- The implementation remains deterministic per preview frame; persistent project state is still the Studio timeline rather than transient preview health.
+
+### Validation
+- Source-level integration completed on `story-animation-studio-foundation`.
+- Automated tests and live browser verification were not run in this pass.
+- Next local verification: place two fighters within striking distance, author a jab/cross/kick, scrub through the active/impact window, and confirm collision-driven reaction and displacement.
+
+
+## 2026-10-01 — Fight Defense and Combat Outcomes
+- Added explicit Attack vs Defense event types to the Fight workspace.
+- Defense authoring supports Block, Dodge, and Counter events with actor/threat relationships on the same timeline as attacks.
+- Defense events render as distinct timeline blocks and expose a runtime-outcome field for the selected event.
+- The production frame resolver now evaluates defense windows before applying a normal hit:
+  - Dodge produces a miss/dodged outcome and preserves the attacker's action without damage.
+  - Block produces a blocked outcome and suppresses normal damage/knockback.
+  - Counter produces a countered outcome and drives the attacker into the existing knockback response.
+  - No collision produces an explicit miss outcome.
+  - Otherwise the existing hitbox damage and knockback path remains the normal hit outcome.
+- Existing Fighter clips, hitboxes, hurtboxes, physics, and renderer remain the execution layer.
+
+### Validation
+- Source-level integration completed on `story-animation-studio-foundation`.
+- Automated tests and live browser verification were not run in this pass.
+- Next local verification: author a jab/cross against Block, Dodge, and Counter defense events, then scrub through their overlapping frames and verify the rendered reactions and timeline outcomes.
+
+
+## 2026-10-01 — Studio Combat Outcome Preview Feedback
+- The Studio frame API now returns per-event outcome metadata alongside the rendered PNG.
+- The Fight workspace consumes that metadata so the selected event can show resolved `hit`, `miss`, `blocked`, `dodged`, or `countered` outcomes while scrubbing.
+- Target `hit` reactions are no longer inferred solely from the attack impact marker; they are applied only after actual hitbox/hurtbox collision and defense resolution.
+- Defense events remain additive and continue to use the production Fighter clips and physics.
+
+### Validation
+- Source-level integration completed on `story-animation-studio-foundation`.
+- Automated tests and live browser verification were not run in this pass.
+
+- Corrected Counter defense to use the existing production Block stance plus attacker knockback because the current animation library does not define a standalone `counter` clip.
+
+
+## 2026-10-01 — Studio UI Interaction Fix
+- Fixed malformed literal `\\n` escape sequences in the Studio JavaScript initialization that could invalidate the entire script.
+- This prevented event listeners from being registered, making workspace, pose, timeline, and Fight controls appear unresponsive.
+- Normalized those sequences into actual JavaScript newlines without changing the Studio state model.
+- Local browser verification is still required.
+
+
+## 2026-10-01 — Simplify Studio Fight Authoring
+- Changed the Fight workspace guidance from a form-first workflow to a direct animation-editor workflow: select fighter, click an action, then scrub/play.
+- Moved detailed attacker/target/frame/phase controls behind an Advanced timing section so first-time authoring does not require filling a configuration form.
+- Made authored combat timeline blocks selectable so clicking an action opens its event in the inspector.
+- Added direct timeline dragging for combat blocks, allowing an authored action to be moved to a new start frame without editing numeric fields.
+- Added clearer selected/outcome styling while preserving the existing combat event model and production fight renderer.
+
+### Validation
+- Source updated on `story-animation-studio-foundation`.
+- Browser verification is still required to confirm click/drag interaction against the local GUI server.
+
+
+## 2026-10-01 — Harden Studio initialization
+- Fixed Studio startup so its action palette, Fight editor, and initial render are initialized whether the Studio markup is loaded before or after DOMContentLoaded.
+- Added an idempotent initialization guard to prevent duplicate event binding.
+- This specifically targets the reported unresponsive-button behavior without changing the fight engine or authoring data model.
+- Browser interaction was not executed in this change; local verification is still required.
+
+
+## 2026-10-01 — Restore visible default Studio fighters
+- Fixed the Studio character instances so the initial Fighter A and Fighter B are positioned on the 540×960 production stage at ground level instead of defaulting to x/y = 0.
+- Added explicit default transform, visibility, and pose state to the initial fighters.
+- This preserves authored movement/keyframes while ensuring the production `/api/studio/frame` preview receives visible characters immediately.
+
+## 2026-10-02 — Fix Studio Production Frame Stage Rendering
+- Corrected the Studio stage CSS so the production frame container remains a real 9:16 stage instead of being forced into an absolute full-panel overlay.
+- Hardened production-frame image insertion to keep the current object URL alive until the next frame replaces it, avoiding premature blob URL revocation.
+- Added image decode/error state so frame-display failures are observable without changing the production renderer.
+- Kept /api/studio/frame and the existing Python/Pygame production renderer as the source of truth.

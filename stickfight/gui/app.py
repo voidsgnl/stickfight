@@ -21,6 +21,8 @@ from stickfight import FightScene, Fighter
 from stickfight.scripting.generator import generate_fight
 from stickfight.engine.camera import Camera
 from stickfight.engine.renderer import Renderer
+from stickfight.engine.combat_timing import ATTACK_TIMINGS
+from stickfight.engine.collision import check_hit
 from stickfight.studio.combat import normalize_action
 
 
@@ -573,6 +575,72 @@ def create_preview_surface(config: Dict[str, Any]) -> pygame.Surface:
     return surface
 
 
+def _apply_studio_pose_overrides(fighter: Fighter, pose_overrides: Any) -> None:
+    """Apply additive per-joint Studio offsets after the production animation/IK pass."""
+    if not isinstance(pose_overrides, dict):
+        return
+    allowed = {
+        "head", "neck", "chest",
+        "left_shoulder", "left_elbow", "left_hand",
+        "right_shoulder", "right_elbow", "right_hand",
+        "left_hip", "left_knee", "left_foot",
+        "right_hip", "right_knee", "right_foot",
+    }
+    for joint, value in pose_overrides.items():
+        if joint not in allowed or not isinstance(value, dict):
+            continue
+        try:
+            dx = max(-180.0, min(180.0, float(value.get("x", 0.0))))
+            dy = max(-180.0, min(180.0, float(value.get("y", 0.0))))
+        except (TypeError, ValueError):
+            continue
+        base_x, base_y = fighter.current_pose.get(joint)
+        fighter.current_pose.set(joint, base_x + dx, base_y + dy)
+
+
+def _resolve_studio_combat_actions(config: Dict[str, Any], frame: int) -> Dict[str, Dict[str, Any]]:
+    """Resolve authored attack/defense events into per-character animation state."""
+    resolved: Dict[str, Dict[str, Any]] = {}
+    for event in config.get("combat_events", []):
+        if not isinstance(event, dict):
+            continue
+        actor = str(event.get("attacker_id", ""))
+        target = str(event.get("target_id", ""))
+        action = normalize_action(event.get("action", "idle"))
+        event_type = str(event.get("type", "attack")).lower()
+        try:
+            start = int(event.get("start_frame", 0))
+            end = max(start + 1, int(event.get("end_frame", start + 1)))
+        except (TypeError, ValueError):
+            continue
+        if frame < start or frame > end or not actor:
+            continue
+        elapsed = frame - start
+        duration = max(1, end - start)
+        if event_type == "defense":
+            resolved.setdefault(actor, {}).update({
+                "defense": action,
+                "defense_target_id": target,
+                "defense_start_frame": start,
+            })
+            continue
+        timing = ATTACK_TIMINGS.get(action)
+        phase = timing.phase(elapsed, duration) if timing else str(event.get("phase", "action"))
+        resolved.setdefault(actor, {}).update({
+            "action": action,
+            "phase": phase,
+            "target_id": target,
+            "start_frame": start,
+        })
+        if target and timing and timing.is_impact_frame(elapsed, duration, tolerance=0.055):
+            resolved.setdefault(target, {}).update({
+                "action": "hit",
+                "phase": "impact",
+                "source_id": actor,
+            })
+    return resolved
+
+
 def create_studio_frame_surface(config: Dict[str, Any]) -> pygame.Surface:
     """Render a Studio frame through the production Fight renderer.
 
@@ -595,6 +663,7 @@ def create_studio_frame_surface(config: Dict[str, Any]) -> pygame.Surface:
     renderer.draw_background(surface, env, camera, ground_y=gy)
 
     chars = config.get("characters", [])
+    combat_states = _resolve_studio_combat_actions(config, int(config.get("frame", 0)))
     if not chars:
         chars = [
             {"id": "char-a", "name": "Fighter A", "x": w * 0.35, "y": gy,
@@ -624,10 +693,95 @@ def create_studio_frame_surface(config: Dict[str, Any]) -> pygame.Surface:
 
         # Fight action is authored by Studio, but executed by the real Fighter
         # animation library. Unknown actions safely resolve to idle.
-        action = normalize_action(char.get("action", "idle"))
+        authored = combat_states.get(str(char.get("id", "")), {})
+        action = normalize_action(authored.get("action", char.get("action", "idle")))
         fighter.set_animation(action, loop=False if action != "idle" else True)
-        fighter.update_animation(0.0)
+        authored_state = combat_states.get(str(char.get("id", "")), {})
+        elapsed_frames = max(0, int(config.get("frame", 0)) - int(authored_state.get("start_frame", config.get("frame", 0))))
+        fighter.update_animation(elapsed_frames / max(1, int(config.get("fps", 30))) if action != "idle" else 0.0)
+        # Manual Studio pose edits layer on top of the real production clip.
+        _apply_studio_pose_overrides(fighter, char.get("pose", {}))
         fighters.append(fighter)
+
+    # Resolve authored attack outcomes through the production hitbox/hurtbox and
+    # physics APIs. Defense events are authored on the same timeline and take
+    # precedence over a normal hit when their windows overlap the attack.
+    by_id = {str(c.get("id", "")): fighter for c, fighter in zip(chars, fighters)}
+    for event in config.get("combat_events", []):
+        if not isinstance(event, dict) or str(event.get("type", "attack")).lower() == "defense":
+            continue
+        attacker = by_id.get(str(event.get("attacker_id", "")))
+        defender = by_id.get(str(event.get("target_id", "")))
+        if attacker is None or defender is None:
+            continue
+        try:
+            start = int(event.get("start_frame", 0))
+            end = max(start + 1, int(event.get("end_frame", start + 1)))
+            frame = int(config.get("frame", 0))
+        except (TypeError, ValueError):
+            continue
+        if frame < start or frame > end:
+            continue
+        timing = ATTACK_TIMINGS.get(attacker.active_clip.name)
+        elapsed = max(0, frame - start)
+        duration = max(1, end - start)
+        if timing is None or not timing.is_active(elapsed, duration):
+            continue
+        hitbox = attacker.get_hitbox()
+        if hitbox is None:
+            continue
+
+        defenses = [
+            d for d in config.get("combat_events", [])
+            if isinstance(d, dict)
+            and str(d.get("type", "attack")).lower() == "defense"
+            and str(d.get("attacker_id", "")) == str(defender.name if False else event.get("target_id", ""))
+            and str(d.get("target_id", "")) in ("", str(event.get("attacker_id", "")))
+        ]
+        active_defense = None
+        for defense in defenses:
+            try:
+                d_start = int(defense.get("start_frame", 0))
+                d_end = max(d_start + 1, int(defense.get("end_frame", d_start + 1)))
+            except (TypeError, ValueError):
+                continue
+            if d_start <= frame <= d_end:
+                active_defense = defense
+                break
+
+        defense_action = str(active_defense.get("action", "")).strip().lower() if active_defense else ""
+        if defense_action == "dodge":
+            defender.set_animation("dodge", loop=False)
+            event["outcome"] = "dodged"
+            continue
+
+        if not check_hit(hitbox, defender.get_hurtbox()):
+            event["outcome"] = "miss"
+            continue
+
+        if defense_action == "block":
+            defender.set_animation("block", loop=False)
+            defender.update_animation(0.0)
+            event["outcome"] = "blocked"
+            continue
+
+        if defense_action == "counter":
+            # The production engine has no standalone counter clip; use its
+            # existing block stance while the counter outcome drives the
+            # attacker's real knockback response.
+            defender.set_animation("block", loop=False)
+            attacker.set_animation("knockback", loop=False)
+            attacker.apply_impulse(-hitbox.knockback_x * 0.85, hitbox.knockback_y)
+            event["outcome"] = "countered"
+            continue
+
+        defender.health = max(0.0, defender.health - hitbox.damage)
+        defender.set_animation("knockback" if abs(hitbox.knockback_x) >= 120 else "hit", loop=False)
+        defender.apply_impulse(hitbox.knockback_x, hitbox.knockback_y)
+        event["outcome"] = "hit"
+        post_impact_frames = max(0, frame - int(start + timing.impact * duration))
+        defender.update_physics(min(0.25, post_impact_frames / max(1, int(config.get("fps", 30)))))
+
 
     for fighter in fighters:
         renderer.draw_fighter(surface, fighter, camera)
@@ -823,7 +977,7 @@ class StudioRequestHandler(SimpleHTTPRequestHandler):
         except Exception:
             payload = {}
 
-        elif url_path == "/api/studio/frame":
+        if url_path == "/api/studio/frame":
             try:
                 surface = create_studio_frame_surface(payload)
                 buf = io.BytesIO()
@@ -831,6 +985,297 @@ class StudioRequestHandler(SimpleHTTPRequestHandler):
                 png_bytes = buf.getvalue()
                 self.send_response(200)
                 self.send_header("Content-Type", "image/png")
+                outcomes = {
+                    str(event.get("id")): str(event.get("outcome"))
+                    for event in payload.get("combat_events", [])
+                    if isinstance(event, dict) and event.get("id") and event.get("outcome")
+                }
+                if outcomes:
+                    self.send_header("X-Studio-Outcomes", json.dumps(outcomes, separators=(",", ":")))
+                self.send_header("Content-Length", str(len(png_bytes)))
+                self.send_header("Cache-Control", "no-cache, no-store")
+                self.end_headers()
+                self.wfile.write(png_bytes)
+            except Exception as e:
+                self.send_response(500)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode("utf-8"))
+            return
+
+        if url_path == "/api/preview":
+            try:
+                surface = create_preview_surface(payload)
+                buf = io.BytesIO()
+                pygame.image.save(surface, buf, "PNG")
+                png_bytes = buf.getvalue()
+
+                self.send_response(200)
+                self.send_header("Content-Type", "image/png")
+                self.send_header("Content-Length", str(len(png_bytes)))
+                self.send_header("Cache-Control", "no-cache, no-store")
+                self.end_headers()
+                self.wfile.write(png_bytes)
+            except Exception as e:
+                self.send_response(500)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode("utf-8"))
+            return
+
+        elif url_path == "/api/render":
+            global active_job
+            with job_lock:
+                if active_job["status"] == "rendering":
+                    self.send_response(409)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"error": "A render job is already in progress."}).encode("utf-8"))
+                    return
+
+                job_id = str(uuid.uuid4())[:8]
+                active_job = {
+                    "id": job_id,
+                    "status": "rendering",
+                    "progress": 0.0,
+                    "frame": 0,
+                    "total_frames": 0,
+                    "fps": 0.0,
+                    "video_url": None,
+                    "error": None,
+                }
+
+            thread = threading.Thread(target=execute_render_job, args=(job_id, payload), daemon=True)
+            thread.start()
+
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({"status": "started", "job_id": job_id}).encode("utf-8"))
+            return
+
+        self.send_error(404, "Not Found")
+
+
+def run_server(host: str = "127.0.0.1", port: int = 5000):
+    # Keep preview, render, and status requests independent.
+    server = ThreadingHTTPServer((host, port), StudioRequestHandler)
+    print(f"🎬 Stick Fight Studio GUI listening at http://{host}:{port}")
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        print("\n🛑 Shutting down Studio GUI server.")
+    finally:
+        server.server_close()
+    for fighter in fighters:
+        renderer.draw_fighter(surface, fighter, camera)
+    return surface
+
+
+def execute_render_job(job_id: str, config: Dict[str, Any]):
+    """Background worker that synthesizes and renders the complete stick fight video."""
+    global active_job
+
+    try:
+        duration = float(config.get("duration", 5.0))
+        fmt = config.get("format", "vertical")
+        if fmt == "horizontal":
+            width, height = 1920, 1080
+            ground_y = 850.0
+        elif fmt == "square":
+            width, height = 1080, 1080
+            ground_y = 850.0
+        else:
+            width, height = 1080, 1920
+            ground_y = 1500.0
+
+        fps = int(config.get("fps", 30))
+        env = config.get("environment", "dojo")
+        seed = config.get("seed")
+        if seed is None or str(seed).strip() == "":
+            seed = random.randint(1000, 999999)
+        else:
+            seed = int(seed)
+
+        timestamp = int(time.time())
+        video_filename = f"fight_studio_{timestamp}.mp4"
+        output_file = os.path.join(OUTPUT_DIR, "videos", video_filename)
+
+        # Build scene with custom fighter parameters
+        fa_cfg = config.get("fighter_a", {})
+        fb_cfg = config.get("fighter_b", {})
+
+        arch_a = fa_cfg.get("archetype", "ninja")
+        arch_b = fb_cfg.get("archetype", "warrior")
+
+        mode = config.get("mode", "procedural")
+        style = config.get("style", "arcade")
+        if mode == "timeline" and config.get("timeline"):
+            scene = build_custom_timeline_scene(config, width, height, fps, ground_y)
+        else:
+            scene = generate_fight(
+                duration=duration,
+                fighter_a_type=arch_a,
+                fighter_b_type=arch_b,
+                environment=env,
+                seed=seed,
+                width=width,
+                height=height,
+                fps=fps,
+                ground_y=ground_y,
+                style=style,
+            )
+
+            # Apply custom names and styling override to fighters
+            if len(scene.fighters) >= 2:
+                f1, f2 = scene.fighters[0], scene.fighters[1]
+                if fa_cfg.get("name"):
+                    f1.name = fa_cfg["name"]
+                if fa_cfg.get("color"):
+                    f1.color = hex_to_rgb(fa_cfg["color"], f1.color)
+                if "headband_color" in fa_cfg and fa_cfg["headband_color"]:
+                    f1.headband_color = hex_to_rgb(fa_cfg["headband_color"])
+                if fa_cfg.get("weapon"):
+                    f1.equip(None if fa_cfg["weapon"] == "none" else fa_cfg["weapon"])
+                if fa_cfg.get("scale"):
+                    f1.scale = float(fa_cfg["scale"])
+                f1.render_style = config.get("visual_style", "ink_fight")
+
+                if fb_cfg.get("name"):
+                    f2.name = fb_cfg["name"]
+                if fb_cfg.get("color"):
+                    f2.color = hex_to_rgb(fb_cfg["color"], f2.color)
+                if "headband_color" in fb_cfg and fb_cfg["headband_color"]:
+                    f2.headband_color = hex_to_rgb(fb_cfg["headband_color"])
+                if fb_cfg.get("weapon"):
+                    f2.equip(None if fb_cfg["weapon"] == "none" else fb_cfg["weapon"])
+                if fb_cfg.get("scale"):
+                    f2.scale = float(fb_cfg["scale"])
+                f2.render_style = config.get("visual_style", "ink_fight")
+
+        start_t = time.time()
+
+        def on_progress(frame: int, total: int, pct: float):
+            with job_lock:
+                elapsed = max(0.01, time.time() - start_t)
+                active_job["frame"] = frame
+                active_job["total_frames"] = total
+                active_job["progress"] = pct
+                active_job["fps"] = frame / elapsed
+
+        print(f"[GUI] render job {job_id} started: {duration:.2f}s -> {output_file}", flush=True)
+        scene.render(output_path=output_file, duration=duration, progress_callback=on_progress)
+        print(f"[GUI] render job {job_id} completed", flush=True)
+
+        with job_lock:
+            active_job["status"] = "done"
+            active_job["progress"] = 1.0
+            active_job["video_url"] = f"/output/videos/{video_filename}"
+            active_job["output_path"] = output_file
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        print(f"[GUI] render job {job_id} failed: {e}", flush=True)
+        with job_lock:
+            active_job["status"] = "error"
+            active_job["error"] = str(e)
+
+
+class StudioRequestHandler(SimpleHTTPRequestHandler):
+    def log_message(self, format: str, *args: Any):
+        # Quieter log output for API polling
+        if "/api/status" in args[0]:
+            return
+        super().log_message(format, *args)
+
+    def do_GET(self):
+        url_path = self.path.split("?")[0]
+
+        if url_path == "/" or url_path == "/index.html":
+            index_path = os.path.join(STATIC_DIR, "index.html")
+            if os.path.exists(index_path):
+                self.send_response(200)
+                self.send_header("Content-Type", "text/html; charset=utf-8")
+                self.end_headers()
+                with open(index_path, "rb") as f:
+                    self.wfile.write(f.read())
+            else:
+                self.send_error(404, "index.html not found")
+            return
+
+        elif url_path == "/api/presets":
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps(PRESETS).encode("utf-8"))
+            return
+
+        elif url_path == "/api/status":
+            with job_lock:
+                resp = json.dumps(active_job).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(resp)
+            return
+
+        elif url_path.startswith("/output/videos/"):
+            filename = os.path.basename(url_path)
+            file_path = os.path.join(OUTPUT_DIR, "videos", filename)
+            if os.path.exists(file_path):
+                self.send_response(200)
+                self.send_header("Content-Type", "video/mp4")
+                self.send_header("Content-Length", str(os.path.getsize(file_path)))
+                self.send_header("Accept-Ranges", "bytes")
+                self.end_headers()
+                with open(file_path, "rb") as f:
+                    self.wfile.write(f.read())
+            else:
+                self.send_error(404, f"Video not found: {filename}")
+            return
+
+        elif url_path.startswith("/output/"):
+            filename = os.path.basename(url_path)
+            file_path = os.path.join(OUTPUT_DIR, filename)
+            if os.path.exists(file_path):
+                mime = "image/png" if filename.endswith(".png") else "application/octet-stream"
+                self.send_response(200)
+                self.send_header("Content-Type", mime)
+                self.end_headers()
+                with open(file_path, "rb") as f:
+                    self.wfile.write(f.read())
+            else:
+                self.send_error(404, f"File not found: {filename}")
+            return
+
+        self.send_error(404, "Not Found")
+
+    def do_POST(self):
+        url_path = self.path.split("?")[0]
+        print(f"[GUI] POST {url_path}", flush=True)
+        content_len = int(self.headers.get("Content-Length", 0))
+        body = self.rfile.read(content_len).decode("utf-8") if content_len > 0 else "{}"
+        try:
+            payload = json.loads(body)
+        except Exception:
+            payload = {}
+
+        if url_path == "/api/studio/frame":
+            try:
+                surface = create_studio_frame_surface(payload)
+                buf = io.BytesIO()
+                pygame.image.save(surface, buf, "PNG")
+                png_bytes = buf.getvalue()
+                self.send_response(200)
+                self.send_header("Content-Type", "image/png")
+                outcomes = {
+                    str(event.get("id")): str(event.get("outcome"))
+                    for event in payload.get("combat_events", [])
+                    if isinstance(event, dict) and event.get("id") and event.get("outcome")
+                }
+                if outcomes:
+                    self.send_header("X-Studio-Outcomes", json.dumps(outcomes, separators=(",", ":")))
                 self.send_header("Content-Length", str(len(png_bytes)))
                 self.send_header("Cache-Control", "no-cache, no-store")
                 self.end_headers()
